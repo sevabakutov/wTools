@@ -200,22 +200,22 @@ path = "module/core/for_each"
 default-features = false
 
 [workspace.dependencies.former]
-version = "~2.2.0"
+version = "~2.3.0"
 path = "module/core/former"
 default-features = false
 
-[workspace.dependencies.former_stable]
-package = "former"
-version = "=2.0.0"
-default-features = false
+# [workspace.dependencies.former_stable]
+# package = "former"
+# version = "=2.2.0"
+# default-features = false
 
 [workspace.dependencies.former_meta]
-version = "~2.2.0"
+version = "~2.3.0"
 path = "module/core/former_meta"
 default-features = false
 
 [workspace.dependencies.former_types]
-version = "~2.2.0"
+version = "~2.4.0"
 path = "module/core/former_types"
 default-features = false
 
@@ -260,7 +260,7 @@ default-features = false
 ## macro tools
 
 [workspace.dependencies.macro_tools]
-version = "~0.28.0"
+version = "~0.30.0"
 path = "module/core/macro_tools"
 default-features = false
 

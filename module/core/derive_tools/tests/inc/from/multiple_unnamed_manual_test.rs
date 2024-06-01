@@ -12,4 +12,4 @@ impl From< ( i32, bool ) > for StructWithManyFields
   }
 }
 
-include!( "./only_test/multiple.rs" );
+include!( "./only_test/multiple_unnamed.rs" );

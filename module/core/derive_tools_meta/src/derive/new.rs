@@ -178,7 +178,7 @@ fn generate_single_field_named
       // fn new( src : i32 ) -> Self
       fn new( src : #field_type ) -> Self
       {
-        // Self { a: src }
+        // Self { a : src }
         Self { #field_name: src }
       }
     }
@@ -225,22 +225,23 @@ fn generate_multiple_fields_named< 'a >
   generics_impl : &syn::punctuated::Punctuated< syn::GenericParam, syn::token::Comma >,
   generics_ty : &syn::punctuated::Punctuated< syn::GenericParam, syn::token::Comma >,
   generics_where: &syn::punctuated::Punctuated< syn::WherePredicate, syn::token::Comma >,
-  field_names : Box< dyn macro_tools::IterTrait< 'a, &'a syn::Ident > + '_ >,
+  field_names : impl macro_tools::IterTrait< 'a, &'a syn::Ident >,
   field_types : impl macro_tools::IterTrait< 'a, &'a syn::Type >,
 )
 -> proc_macro2::TokenStream
 {
 
-  let params : Vec< proc_macro2::TokenStream > = field_names
-  .enumerate()
-  .map(| ( index, field_name ) |
-  {
-    let index = index.to_string().parse::< proc_macro2::TokenStream >().unwrap();
-    qt! { #field_name : src.#index }
-  })
-  .collect();
+  let field_names : Vec< _ > = field_names.collect(); // xxx : qqq : rid off collects
 
-  let field_types : Vec< _ > = field_types.collect();
+  let val_type = field_names.iter()
+  .zip( field_types )
+  .enumerate()
+  .map(| ( index, ( field_name, field_type ) ) |
+  {
+    // let index = index.to_string().parse::< proc_macro2::TokenStream >().unwrap();
+    qt! { #field_name : #field_type }
+  });
+
   qt!
   {
     // impl StructNamedFields
@@ -250,10 +251,10 @@ fn generate_multiple_fields_named< 'a >
     {
       #[ inline( always ) ]
       // fn new( src : ( i32, bool ) ) -> Self
-      fn new( src : ( #( #field_types ),* ) ) -> Self
+      fn new( #( #val_type ),* ) -> Self
       {
         // StructNamedFields{ a : src.0, b : src.1 }
-        #item_name { #(#params),* }
+        #item_name { #( #field_names ),* }
       }
     }
   }
@@ -273,15 +274,12 @@ fn generate_multiple_fields< 'a >
 -> proc_macro2::TokenStream
 {
 
-  let params : Vec< proc_macro2::TokenStream > = ( 0..field_types.len() )
+  let params = ( 0..field_types.len() )
   .map( | index |
   {
     let index = index.to_string().parse::< proc_macro2::TokenStream >().unwrap();
     qt!( src.#index )
-  })
-  .collect();
-
-  let field_types : Vec< _ > = field_types.collect();
+  });
 
   qt!
   {

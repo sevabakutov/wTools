@@ -48,6 +48,11 @@ mod deref_tests
 
   //
 
+  mod basic_test;
+  mod basic_manual_test;
+
+  //
+
   mod struct_unit;
   mod struct_unit_manual;
   mod struct_tuple;
@@ -108,6 +113,11 @@ mod deref_mut_tests
 
   //
 
+  mod basic_test;
+  mod basic_manual_test;
+
+  //
+
   mod struct_tuple;
   mod struct_tuple_manual;
   mod struct_named;
@@ -147,24 +157,57 @@ mod deref_mut_tests
   mod name_collisions;
 }
 
-#[ cfg( feature = "derive_from" ) ]
-#[ path = "from" ]
-mod from
+#[ cfg( feature = "derive_new" ) ]
+#[ path = "new" ]
+mod new_tests
 {
 	#[ allow( unused_imports ) ]
 	use super::*;
 
+  // qqq : for each branch add generic test
+
+  //
+
+  mod basic_manual_test;
+  mod basic_test;
+	mod unit_manual_test;
+	mod unit_test;
+	mod named_manual_test;
+	mod named_test;
+	mod multiple_named_manual_test;
+	mod multiple_named_test;
+	mod multiple_unnamed_manual_test;
+	// mod multiple_unnamed_test;
+
+  //
+
+}
+
+#[ cfg( feature = "derive_from" ) ]
+#[ path = "from" ]
+mod from_tests
+{
+	#[ allow( unused_imports ) ]
+	use super::*;
+
+  // qqq : for each branch add generic test
+
+  //
+
+  mod basic_test;
+  mod basic_manual_test;
+
+  //
+
 	mod named_test;
 	mod named_manual_test;
 
-	mod manual_test;
 	mod multiple_named_manual_test;
-	mod multiple_manual_test;
+	mod multiple_unnamed_manual_test;
 	mod unit_manual_test;
-	mod test;
 	mod multiple_named_test;
 	mod unit_test;
-	mod multiple_test;
+	mod multiple_unnamed_test;
 
 	mod variants_manual;
 	mod variants_derive;
@@ -185,15 +228,20 @@ mod inner_from_tests
 	#[ allow( unused_imports ) ]
 	use super::*;
 
-	mod manual_test;
+  //
+
+  mod basic_test;
+  mod basic_manual_test;
+
+  //
+
+	mod unit_test;
 	mod named_manual_test;
 	mod multiple_named_manual_test;
-	mod multiple_manual_test;
 	mod unit_manual_test;
-	mod test;
 	mod named_test;
 	mod multiple_named_test;
-	mod unit_test;
-	mod multiple_test;
+	mod multiple_unnamed_manual_test;
+	mod multiple_unnamed_test;
 
 }

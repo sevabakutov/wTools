@@ -15,9 +15,9 @@ mod private
   pub struct PackOptions
   {
     pub( crate ) path : PathBuf,
-    #[ former( default = false ) ]
+    #[ former( default = true ) ]
     pub( crate ) allow_dirty : bool,
-    #[ former( default = false ) ]
+    #[ former( default = true ) ]
     pub( crate ) no_verify : bool,
     pub( crate ) temp_path : Option< PathBuf >,
     pub( crate ) dry : bool,
