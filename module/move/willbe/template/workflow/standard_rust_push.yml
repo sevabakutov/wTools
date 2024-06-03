@@ -58,7 +58,7 @@ jobs :
         id: rootpath
         run: echo "::set-output name=path::$(dirname ${{ inputs.manifest_path }})"
       - name: Build module
-        run: cd ${{ steps.rootpath.outputs.path }} && cargo build
+        run: cd ${{ steps.rootpath.outputs.path }} && cargo build && cd -
       - name: Audit the modules
         run: make audit
         continue-on-error: true
