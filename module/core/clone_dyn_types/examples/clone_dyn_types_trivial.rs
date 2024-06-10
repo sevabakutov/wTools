@@ -5,7 +5,8 @@
 //!
 //! By default, Rust does not support cloning for trait objects due to the `Clone` trait
 //! requiring compile-time knowledge of the type's size. The `clone_dyn` crate addresses
-//! this limitation through procedural macros, allowing for cloning collections of trait objects.
+//! this limitation through procedural macros, allowing for cloning collections of trait objects
+//! and crate `clone_dyn_types` contains implementation of all types.
 //!
 //! ##### Overview
 //!
@@ -27,8 +28,7 @@
 //! Rust's type system does not allow trait objects to implement the `Clone` trait directly due to object safety constraints.
 //! Specifically, the `Clone` trait requires knowledge of the concrete type at compile time, which is not available for trait objects.
 //!
-//! The `CloneDyn` trait from the `clone_dyn` crate provides a workaround for this limitation by allowing trait objects to be cloned.
-//! Procedural macros generates the necessary code for cloning trait objects, making it possible to clone collections of trait objects.
+//! The `CloneDyn` trait from the `clone_dyn_types` crate provides a workaround for this limitation by allowing trait objects to be cloned.
 //!
 //! The example demonstrates how to implement `Clone` for boxed `IterTrait` trait objects.
 //!
@@ -61,16 +61,14 @@ fn main() {}
 #[ cfg( feature = "enabled" ) ]
 fn main()
 {
-  use clone_dyn::{ clone_dyn, CloneDyn };
+  use clone_dyn_types::CloneDyn;
 
   /// Trait that encapsulates an iterator with specific characteristics, tailored for your needs.
-  #[ clone_dyn ]
   pub trait IterTrait< 'a, T >
   where
     T : 'a,
     Self : Iterator< Item = T > + ExactSizeIterator< Item = T > + DoubleEndedIterator,
-    // Self : CloneDyn,
-    // no need to explicitly to define this bound, because macro will do it for you anyway
+    Self : CloneDyn,
   {
   }
 
@@ -80,6 +78,17 @@ fn main()
     Self : Iterator< Item = T > + ExactSizeIterator< Item = T > + DoubleEndedIterator,
     Self : CloneDyn,
   {
+  }
+
+  // Implement `Clone` for boxed `IterTrait` trait objects.
+  #[ allow( non_local_definitions ) ]
+  impl< 'c, T > Clone for Box< dyn IterTrait< 'c, T > + 'c >
+  {
+    #[ inline ]
+    fn clone( &self ) -> Self
+    {
+      clone_dyn_types::clone_into_box( &**self )
+    }
   }
 
   ///
@@ -93,10 +102,9 @@ fn main()
   /// Specifically, the `Clone` trait requires knowledge of the concrete type at compile time, which is not available for trait objects.
   ///
   /// In this example, we need to return an iterator that can be cloned. Since we are returning a trait object ( `Box< dyn IterTrait >` ),
-  /// we cannot directly implement `Clone` for this trait object. This is where the `CloneDyn` trait from the `clone_dyn` crate comes in handy.
+  /// we cannot directly implement `Clone` for this trait object. This is where the `CloneDyn` trait from the `clone_dyn_types` crate comes in handy.
   ///
   /// The `CloneDyn` trait provides a workaround for this limitation by allowing trait objects to be cloned.
-  /// It uses procedural macros to generate the necessary code for cloning trait objects, making it possible to clone collections of trait objects.
   ///
   /// It's not possible to use `impl Iterator` here because the code returns iterators of two different types:
   /// - `std::slice::Iter` when the input is `Some`.

@@ -17,13 +17,16 @@ A collection of derive macros designed to enhance STD.
 categories = [ "algorithms", "development-tools" ]
 keywords = [ "fundamental", "general-purpose" ]
 
+
 [lints]
 workspace = true
+
 
 [package.metadata.docs.rs]
 features = [ "full" ]
 all-features = false
 # exclude = [ "/tests", "/examples", "-*" ]
+
 
 [features]
 
@@ -117,7 +120,7 @@ full = [
   # "use_std",
 ]
 no_std = []
-use_alloc = [ "no_std", "clone_dyn/use_alloc" ]
+use_alloc = [ "no_std" ]
 enabled = [ "derive_tools_meta/enabled" ]
 
 # nightly = [ "derive_more/nightly" ]
@@ -176,6 +179,7 @@ derive_new = [ "derive_tools_meta/derive_new" ]
 
 parse_display = [ "parse-display" ]
 
+
 [dependencies]
 
 ## external
@@ -189,6 +193,7 @@ parse-display = { version = "~0.8.2", optional = true, default-features = false 
 derive_tools_meta = { workspace = true, features = [] }
 variadic_from = { workspace = true, features = [] }
 clone_dyn = { workspace = true, features = [] }
+
 
 [dev-dependencies]
 test_tools = { workspace = true }
