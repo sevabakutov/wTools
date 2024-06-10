@@ -8,25 +8,26 @@ pub( crate ) mod private
   use crate::*;
 
   /// Extracts the types of each field into a vector.
-  pub fn field_types< 'a >( t : &'a syn::ItemStruct ) -> impl IterTrait< 'a, &'a syn::Type > + Clone
+  pub fn field_types< 'a >( t : &'a syn::ItemStruct )
+  -> impl IterTrait< 'a, &'a syn::Type >
+  // -> std::iter::Map
+  // <
+  //   syn::punctuated::Iter< 'a, syn::Field >,
+  //   impl FnMut( &'a syn::Field ) -> &'a syn::Type + 'a,
+  // >
   {
     t.fields.iter().map( | field | &field.ty )
   }
 
   /// Retrieves the names of each field, if they exist.
-  // pub fn field_names< 'a >( t : &'a syn::ItemStruct ) -> Option< impl IterTrait< 'a, &'a syn::Ident > >
   pub fn field_names< 'a >( t : &'a syn::ItemStruct ) -> Option< BoxedIter< 'a, &'a syn::Ident > >
-  // xxx
   {
-    let result : Option< BoxedIter< 'a, &'a syn::Ident > > = match &t.fields
+    match &t.fields
     {
       syn::Fields::Named( fields ) => Some( Box::new( fields.named.iter().map( | field | field.ident.as_ref().unwrap() ) ) ),
       syn::Fields::Unit => Some( Box::new( core::iter::empty() ) ),
-      // syn::Fields::Named( fields ) => Some( DynIter::new( fields.named.iter().map( | field | field.ident.as_ref().unwrap() ) ) ),
-      // syn::Fields::Unit => Some( DynIter::new( core::iter::empty() ) ),
       _ => None,
-    };
-    return result;
+    }
   }
 
   /// Retrieves the type of the first field of the struct.
