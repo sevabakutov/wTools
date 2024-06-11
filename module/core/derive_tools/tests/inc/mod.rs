@@ -31,6 +31,7 @@ mod all_manual_test;
 		feature = "derive_deref_mut",
 		feature = "derive_from",
 		feature = "derive_inner_from",
+        feature = "derive_phantom"
 	)
 )]
 mod all_test;
@@ -251,4 +252,17 @@ mod inner_from_tests
 	mod multiple_unnamed_manual_test;
 	mod multiple_unnamed_test;
 
+}
+
+#[ cfg( feature = "derive_phantom" ) ]
+#[ path = "phantom" ]
+mod phantom_tests
+{
+  #[ allow( unused_imports ) ]
+  use super::*;
+
+  mod struct_named;
+  mod struct_named_manual;
+  mod struct_tuple;
+  mod struct_tuple_manual;
 }
