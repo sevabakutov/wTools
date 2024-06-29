@@ -7,12 +7,6 @@ pub( crate ) mod private
 {
   use crate::*;
 
-  ///
-  /// Result with syn::Error.
-  ///
-
-  pub type Result< T > = std::result::Result< T, syn::Error >;
-
   /// Adds indentation and optional prefix/postfix to each line of the given string.
   ///
   /// This function iterates over each line in the input string and applies the specified
@@ -403,12 +397,12 @@ pub mod orphan
   #[ allow( unused_imports ) ]
   pub use super::exposed::*;
 
-  #[ doc( inline ) ]
-  #[ allow( unused_imports ) ]
-  pub use super::private::
-  {
-    Result,
-  };
+  // #[ doc( inline ) ]
+  // #[ allow( unused_imports ) ]
+  // pub use super::private::
+  // {
+  //   Result,
+  // };
 
 }
 

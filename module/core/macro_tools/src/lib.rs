@@ -3,6 +3,21 @@
 #![ doc( html_root_url = "https://docs.rs/proc_macro_tools/latest/proc_macro_tools/" ) ]
 #![ doc = include_str!( concat!( env!( "CARGO_MANIFEST_DIR" ), "/", "Readme.md" ) ) ]
 
+
+/// Internal namespace.
+#[ cfg( feature = "enabled" ) ]
+pub( crate ) mod private
+{
+  use crate::*;
+
+  ///
+  /// Result with syn::Error.
+  ///
+
+  pub type Result< T > = std::result::Result< T, syn::Error >;
+
+}
+
 // qqq : review every page of generated documentation improve how it look as well as its content
 //
 // attr
@@ -99,6 +114,11 @@ pub mod protected
   {
     use super::super::*;
     pub use orphan::*;
+
+    pub use private::
+    {
+      Result,
+    };
 
     #[ cfg( feature = "attr" ) ]
     pub use attr::orphan::*;
