@@ -6,25 +6,25 @@
 
 /// Axiomatic things.
 #[ cfg( feature = "enabled" ) ]
-#[ cfg( feature = "derive_former" ) ]
+#[ cfg( feature = "types_former" ) ]
 mod axiomatic;
 /// Definition of former.
 #[ cfg( feature = "enabled" ) ]
-#[ cfg( feature = "derive_former" ) ]
+#[ cfg( feature = "types_former" ) ]
 mod definition;
 /// Forming process.
 #[ cfg( feature = "enabled" ) ]
-#[ cfg( feature = "derive_former" ) ]
+#[ cfg( feature = "types_former" ) ]
 mod forming;
 /// Storage.
 #[ cfg( feature = "enabled" ) ]
-#[ cfg( feature = "derive_former" ) ]
+#[ cfg( feature = "types_former" ) ]
 mod storage;
 
 /// Interface for collections.
 #[ cfg( feature = "enabled" ) ]
 #[ cfg( any( not( feature = "no_std" ), feature = "use_alloc" ) ) ]
-#[ cfg( feature = "derive_former" ) ]
+#[ cfg( feature = "types_former" ) ]
 mod collection;
 
 /// Component-based forming.
@@ -64,8 +64,10 @@ pub mod orphan
 
 /// Exposed namespace of the module.
 #[ cfg( feature = "enabled" ) ]
+#[ allow( unused_imports ) ]
 pub mod exposed
 {
+  use super::*;
 
   #[ doc( inline ) ]
   #[ allow( unused_imports ) ]
@@ -73,7 +75,7 @@ pub mod exposed
 
   #[ doc( inline ) ]
   #[ allow( unused_imports ) ]
-  #[ cfg( feature = "derive_former" ) ]
+  #[ cfg( feature = "types_former" ) ]
   pub use super::
   {
     axiomatic::*,
@@ -85,7 +87,7 @@ pub mod exposed
   #[ doc( inline ) ]
   #[ allow( unused_imports ) ]
   #[ cfg( any( not( feature = "no_std" ), feature = "use_alloc" ) ) ]
-  #[ cfg( feature = "derive_former" ) ]
+  #[ cfg( feature = "types_former" ) ]
   pub use super::collection::*;
 
 }

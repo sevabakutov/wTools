@@ -6,10 +6,12 @@
 pub( crate ) mod private
 {
   use crate::*;
+  // use iter_tools::{ IterTrait, BoxedIter };
 
   /// Extracts the types of each field into a vector.
   pub fn field_types< 'a >( t : &'a syn::ItemStruct )
-  -> impl IterTrait< 'a, &'a syn::Type >
+  ->
+  impl IterTrait< 'a, &'a syn::Type >
   // -> std::iter::Map
   // <
   //   syn::punctuated::Iter< 'a, syn::Field >,
@@ -88,7 +90,6 @@ pub mod protected
   #[ allow( unused_imports ) ]
   pub use super::private::
   {
-    // fields_many,
     field_types,
     field_names,
     first_field_type,
@@ -105,9 +106,12 @@ pub mod orphan
 }
 
 /// Exposed namespace of the module.
+#[ allow( unused_imports ) ]
 pub mod exposed
 {
-  pub use super::protected as item_struct;
+  use super::*;
+  pub use super::super::item_struct;
+
   #[ doc( inline ) ]
   #[ allow( unused_imports ) ]
   pub use super::prelude::*;

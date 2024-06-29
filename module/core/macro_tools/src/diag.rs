@@ -389,9 +389,11 @@ pub use protected::*;
 /// Protected namespace of the module.
 pub mod protected
 {
+
   #[ doc( inline ) ]
   #[ allow( unused_imports ) ]
   pub use super::orphan::*;
+
 }
 
 /// Parented namespace of the module.
@@ -400,12 +402,22 @@ pub mod orphan
   #[ doc( inline ) ]
   #[ allow( unused_imports ) ]
   pub use super::exposed::*;
+
+  #[ doc( inline ) ]
+  #[ allow( unused_imports ) ]
+  pub use super::private::
+  {
+    Result,
+  };
+
 }
 
 /// Exposed namespace of the module.
+#[ allow( unused_imports ) ]
 pub mod exposed
 {
-  pub use super::protected as diag;
+  use super::*;
+  pub use super::super::diag;
 
   #[ doc( inline ) ]
   #[ allow( unused_imports ) ]
@@ -415,7 +427,6 @@ pub mod exposed
   #[ allow( unused_imports ) ]
   pub use super::private::
   {
-    Result,
     indentation,
     report_format,
     report_print,

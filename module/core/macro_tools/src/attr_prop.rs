@@ -107,6 +107,40 @@ pub( crate ) mod private
 {
   // use crate::*;
 
+  /// Trait for properties of an attribute component that can be identified by a keyword.
+  ///
+  /// The `AttributePropertyComponent` trait defines the interface for attribute properties
+  /// that can be identified by a specific keyword. Implementors of this trait are required
+  /// to define a constant `KEYWORD` that identifies the type of the property.
+  ///
+  /// This trait is useful in scenarios where attributes may have multiple properties
+  /// that need to be parsed and handled separately. By defining a unique keyword for each property,
+  /// the parsing logic can accurately identify and process each property.
+  ///
+  /// # Example
+  ///
+  /// ```rust
+  /// use macro_tools::AttributePropertyComponent;
+  ///
+  /// struct MyProperty;
+  ///
+  /// impl AttributePropertyComponent for MyProperty
+  /// {
+  ///   const KEYWORD : &'static str = "my_property";
+  /// }
+  /// ```
+  ///
+  pub trait AttributePropertyComponent
+  where
+    Self : Sized,
+  {
+    /// The keyword that identifies the component.
+    ///
+    /// This constant is used to match the attribute to the corresponding property.
+    /// Each implementor of this trait must provide a unique keyword for its type.
+    const KEYWORD : &'static str;
+  }
+
 }
 
 #[ doc( inline ) ]
@@ -135,25 +169,35 @@ pub mod orphan
 }
 
 /// Exposed namespace of the module.
+#[ allow( unused_imports ) ]
 pub mod exposed
 {
-  pub use super::protected as attr_prop;
+  use super::*;
+  pub use super::super::attr_prop;
+
+  // pub use super::protected as attr_prop;
+
   #[ doc( inline ) ]
   #[ allow( unused_imports ) ]
   pub use super::prelude::*;
+
   #[ doc( inline ) ]
   #[ allow( unused_imports ) ]
   pub use super::
   {
 
+    private::AttributePropertyComponent,
+
     singletone::AttributePropertySingletone,
     singletone::AttributePropertySingletoneMarker,
     singletone_optional::AttributePropertyOptionalSingletone,
     singletone_optional::AttributePropertyOptionalSingletoneMarker,
+
     boolean::AttributePropertyBoolean,
     boolean::AttributePropertyBooleanMarker,
     boolean_optional::AttributePropertyOptionalBoolean,
     boolean_optional::AttributePropertyOptionalBooleanMarker,
+
     syn::AttributePropertySyn,
     syn::AttributePropertySynMarker,
     syn_optional::AttributePropertyOptionalSyn,

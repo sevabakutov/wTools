@@ -24,18 +24,23 @@ workspace = true
 features = [ "full" ]
 all-features = false
 
-# exclude = [ "/tests", "/examples", "-*" ]
+
 
 [features]
 default = [ "enabled" ]
 full = [ "enabled" ]
 no_std = []
 use_alloc = [ "itertools/use_alloc" ]
-enabled = []
+enabled = [ "clone_dyn_types/enabled" ]
 
 [dependencies]
+
+# external
 itertools = { version = "~0.11.0", features = [ "use_std" ] }
 # qqq : update
+
+# internal
+clone_dyn_types = { workspace = true, features = [] }
 
 [dev-dependencies]
 test_tools = { workspace = true }

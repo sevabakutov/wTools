@@ -6,6 +6,7 @@
 pub( crate ) mod private
 {
   use crate::*;
+  // use iter_tools::{ IterTrait, BoxedIter };
   // use interval_adapter::BoundExt;
 
   /// Enum to encapsulate either a field from a struct or a variant from an enum.
@@ -465,9 +466,15 @@ pub mod orphan
 }
 
 /// Exposed namespace of the module.
+#[ allow( unused_imports ) ]
 pub mod exposed
 {
-  pub use super::protected as struct_like;
+  use super::*;
+
+  pub use super::super::struct_like;
+
+  // pub use super::protected as struct_like;
+
   #[ doc( inline ) ]
   #[ allow( unused_imports ) ]
   pub use super::prelude::*;

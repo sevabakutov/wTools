@@ -135,8 +135,10 @@ pub mod orphan
 }
 
 /// Exposed namespace of the module.
+#[ allow( unused_imports ) ]
 pub mod exposed
 {
+  use super::*;
   #[ doc( inline ) ]
   #[ allow( unused_imports ) ]
   pub use super::prelude::*;
@@ -150,3 +152,4 @@ pub mod prelude
   pub use super::private::ErrorInterface;
   pub use super::private::BasicError;
 }
+// xxx : review

@@ -94,9 +94,14 @@ pub mod orphan
 }
 
 /// Exposed namespace of the module.
+#[ allow( unused_imports ) ]
 pub mod exposed
 {
-  pub use super::protected as tokens;
+  use super::*;
+
+  pub use super::super::tokens;
+  // pub use super::protected as tokens;
+
   #[ doc( inline ) ]
   #[ allow( unused_imports ) ]
   pub use super::prelude::*;
