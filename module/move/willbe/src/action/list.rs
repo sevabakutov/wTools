@@ -445,7 +445,7 @@ mod private
     let mut report = ListReport::default();
 
     // let manifest = Manifest::try_from( args.path_to_manifest.absolute_path() )
-    dbg!( &args.path_to_manifest );
+    // dbg!( &args.path_to_manifest );
     let manifest = Manifest::try_from( args.path_to_manifest.clone() )
     .context( "List of packages by specified manifest path" )
     .err_with( || report.clone() )?;
