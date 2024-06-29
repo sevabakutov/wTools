@@ -80,7 +80,7 @@ kw = []
 phantom = [ "item" ]
 punctuated = []
 quantifier = []
-struct_like = []
+struct_like = [ "item_struct" ]
 tokens = []
 typ = []
 
