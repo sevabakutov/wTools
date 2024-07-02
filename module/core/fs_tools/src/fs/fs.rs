@@ -52,10 +52,10 @@ pub( crate ) mod private
 }
 
 /// Protected namespace of the module.
+#[ allow( unused_imports ) ]
 pub mod protected
 {
   #[ doc( inline ) ]
-  #[ allow( unused_imports ) ]
   pub use super::orphan::*;
 }
 
@@ -64,10 +64,10 @@ pub mod protected
 pub use protected::*;
 
 /// Shared with parent namespace of the module
+#[ allow( unused_imports ) ]
 pub mod orphan
 {
   #[ doc( inline ) ]
-  #[ allow( unused_imports ) ]
   pub use super::exposed::*;
 
 }
@@ -78,12 +78,12 @@ pub mod exposed
 {
   use super::*;
   #[ doc( inline ) ]
-  #[ allow( unused_imports ) ]
   pub use super::prelude::*;
   // use super::private::TempDir;
 }
 
 /// Prelude to use essentials: `use my_module::prelude::*`.
+#[ allow( unused_imports ) ]
 pub mod prelude
 {
 }

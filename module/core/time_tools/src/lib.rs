@@ -27,10 +27,10 @@ pub mod dependency
 
 /// Protected namespace of the module.
 #[ cfg( feature = "enabled" ) ]
+#[ allow( unused_imports ) ]
 pub mod protected
 {
   #[ doc( inline ) ]
-  #[ allow( unused_imports ) ]
   pub use super::orphan::*;
 }
 
@@ -41,10 +41,10 @@ pub use protected::*;
 
 /// Shared with parent namespace of the module
 #[ cfg( feature = "enabled" ) ]
+#[ allow( unused_imports ) ]
 pub mod orphan
 {
   #[ doc( inline ) ]
-  #[ allow( unused_imports ) ]
   pub use super::exposed::*;
 }
 
@@ -55,7 +55,6 @@ pub mod exposed
 {
   use super::*;
   #[ doc( inline ) ]
-  #[ allow( unused_imports ) ]
   pub use super::prelude::*;
   #[ cfg( feature = "time_now" ) ]
   #[ doc( inline ) ]
@@ -65,6 +64,7 @@ pub mod exposed
 
 /// Prelude to use essentials: `use my_module::prelude::*`.
 #[ cfg( feature = "enabled" ) ]
+#[ allow( unused_imports ) ]
 pub mod prelude
 {
 }

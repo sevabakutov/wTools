@@ -517,16 +517,16 @@ pub( crate ) mod private
 pub use protected::*;
 
 /// Protected namespace of the module.
+#[ allow( unused_imports ) ]
 pub mod protected
 {
-  #[ allow( unused_imports ) ]
   pub use super::orphan::*;
 }
 
 /// Parented namespace of the module.
+#[ allow( unused_imports ) ]
 pub mod orphan
 {
-  #[ allow( unused_imports ) ]
   pub use super::exposed::*;
 }
 
@@ -535,7 +535,6 @@ pub mod orphan
 pub mod exposed
 {
   use super::*;
-  #[ allow( unused_imports ) ]
   pub use super::prelude::*;
 
   #[ allow( unused_imports ) ]
@@ -558,6 +557,7 @@ pub mod exposed
 }
 
 /// Prelude to use essentials: `use my_module::prelude::*`.
+#[ allow( unused_imports ) ]
 pub mod prelude
 {
 }

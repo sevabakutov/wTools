@@ -120,10 +120,10 @@ pub use protected::*;
 
 /// Protected namespace of the module.
 #[ cfg( feature = "enabled" ) ]
+#[ allow( unused_imports ) ]
 pub mod protected
 {
   #[ doc( inline ) ]
-  #[ allow( unused_imports ) ]
   pub use super::orphan::*;
   #[ cfg( feature = "derive_clone_dyn" ) ]
   #[ doc( inline ) ]
@@ -140,10 +140,10 @@ pub mod protected
 
 /// Orphan namespace of the module.
 #[ cfg( feature = "enabled" ) ]
+#[ allow( unused_imports ) ]
 pub mod orphan
 {
   #[ doc( inline ) ]
-  #[ allow( unused_imports ) ]
   pub use super::exposed::*;
 }
 
@@ -154,7 +154,6 @@ pub mod exposed
 {
   use super::*;
   #[ doc( inline ) ]
-  #[ allow( unused_imports ) ]
   pub use super::prelude::*;
 
   #[ cfg( all( feature = "derive_more" ) ) ]
@@ -287,6 +286,7 @@ pub mod exposed
 
 /// Prelude to use essentials: `use my_module::prelude::*`.
 #[ cfg( feature = "enabled" ) ]
+#[ allow( unused_imports ) ]
 pub mod prelude
 {
   #[ cfg( feature = "derive_clone_dyn" ) ]

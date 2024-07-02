@@ -424,33 +424,34 @@ pub( crate ) mod private
       pub use protected::*;
 
       /// Protected namespace of the module.
+      #[ allow( unused_imports ) ]
       pub mod protected
       {
         #[ doc( inline ) ]
-        #[ allow( unused_imports ) ]
         pub use super::orphan::*;
         #( #protected_clause )*
       }
 
       /// Orphan namespace of the module.
+      #[ allow( unused_imports ) ]
       pub mod orphan
       {
         #[ doc( inline ) ]
-        #[ allow( unused_imports ) ]
         pub use super::exposed::*;
         #( #orphan_clause )*
       }
 
       /// Exposed namespace of the module.
+      #[ allow( unused_imports ) ]
       pub mod exposed
       {
         #[ doc( inline ) ]
-        #[ allow( unused_imports ) ]
         pub use super::prelude::*;
         #( #exposed_clause )*
       }
 
       /// Prelude to use essentials: `use my_module::prelude::*`.
+      #[ allow( unused_imports ) ]
       pub mod prelude
       {
         #( #prelude_clause )*
@@ -475,6 +476,7 @@ pub( crate ) mod private
 }
 
 /// Protected namespace of the module.
+#[ allow( unused_imports ) ]
 pub mod protected
 {
   pub use super::orphan::*;
@@ -483,6 +485,7 @@ pub mod protected
 pub use protected::*;
 
 /// Parented namespace of the module.
+#[ allow( unused_imports ) ]
 pub mod orphan
 {
   pub use super::exposed::*;
@@ -501,6 +504,7 @@ pub mod exposed
 }
 
 /// Prelude to use essentials: `use my_module::prelude::*`.
+#[ allow( unused_imports ) ]
 pub mod prelude
 {
   #[ allow( unused_imports ) ]

@@ -321,6 +321,46 @@ pub( crate ) mod private
     }
   }
 
+  impl syn::parse::Parse
+  for Many< AttributesInner >
+  {
+    fn parse( input : ParseStream< '_ > ) -> syn::Result< Self >
+    {
+      let mut result = Self::new();
+      loop
+      {
+        // let lookahead = input.lookahead1();
+        if !input.peek( Token![ # ] )
+        {
+          break;
+        }
+        result.0.push( input.parse()? );
+      }
+      Ok( result )
+    }
+  }
+
+  impl syn::parse::Parse
+  for Many< AttributesOuter >
+  {
+    fn parse( input : ParseStream< '_ > ) -> syn::Result< Self >
+    {
+      let mut result = Self::new();
+      loop
+      {
+        // let lookahead = input.lookahead1();
+        if !input.peek( Token![ # ] )
+        {
+          break;
+        }
+        result.0.push( input.parse()? );
+      }
+      Ok( result )
+    }
+  }
+
+  impl AsMuchAsPossibleNoDelimiter for syn::Item {}
+
   /// Trait for components of a structure aggregating attributes that can be constructed from a meta attribute.
   ///
   /// The `AttributeComponent` trait defines the interface for components that can be created
@@ -386,7 +426,8 @@ pub( crate ) mod private
     ///
     /// A `syn::Result` containing the constructed component if successful, or an error if the parsing fails.
     fn from_meta( attr : &syn::Attribute ) -> syn::Result< Self >;
-    // xxx : redo
+
+    // zzz : redo maybe
   }
 
 }
@@ -396,10 +437,10 @@ pub( crate ) mod private
 pub use protected::*;
 
 /// Protected namespace of the module.
+#[ allow( unused_imports ) ]
 pub mod protected
 {
   #[ doc( inline ) ]
-  #[ allow( unused_imports ) ]
   pub use super::orphan::*;
   #[ doc( inline ) ]
   #[ allow( unused_imports ) ]
@@ -412,15 +453,14 @@ pub mod protected
 }
 
 /// Orphan namespace of the module.
+#[ allow( unused_imports ) ]
 pub mod orphan
 {
   #[ doc( inline ) ]
-  #[ allow( unused_imports ) ]
   pub use super::exposed::*;
 }
 
 /// Exposed namespace of the module.
-// xxx2 : continue
 #[ allow( unused_imports ) ]
 pub mod exposed
 {
@@ -428,7 +468,6 @@ pub mod exposed
   pub use super::super::attr;
 
   #[ doc( inline ) ]
-  #[ allow( unused_imports ) ]
   pub use super::prelude::*;
   #[ doc( inline ) ]
   #[ allow( unused_imports ) ]
@@ -436,13 +475,12 @@ pub mod exposed
   {
     AttributesInner,
     AttributesOuter,
-
     AttributeComponent,
-    // AttributePropertyComponent,
   };
 }
 
 /// Prelude to use essentials: `use my_module::prelude::*`.
+#[ allow( unused_imports ) ]
 pub mod prelude
 {
 }

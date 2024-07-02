@@ -86,15 +86,11 @@ pub( crate ) mod private
 #[ allow( unused_imports ) ]
 pub use protected::*;
 
-// qqq : xxx : make sure documentation look good. generate, review and fix every file
-/// This module provides various utilities and namespaces for working with `syn::Item`, specifically focusing on
-/// ensuring syntactical correctness and managing different visibility levels within the code. It includes functions
-/// to manipulate the structure of items, handle different kinds of fields, and provide a structured approach to
-/// organizing the codebase into different access levels.
+/// Protected namespace of the module.
+#[ allow( unused_imports ) ]
 pub mod protected
 {
   #[ doc( inline ) ]
-  #[ allow( unused_imports ) ]
   pub use super::orphan::*;
   #[ doc( inline ) ]
   #[ allow( unused_imports ) ]
@@ -105,10 +101,10 @@ pub mod protected
 }
 
 /// Orphan namespace of the module.
+#[ allow( unused_imports ) ]
 pub mod orphan
 {
   #[ doc( inline ) ]
-  #[ allow( unused_imports ) ]
   pub use super::exposed::*;
   #[ doc( inline ) ]
   #[ allow( unused_imports ) ]
@@ -133,6 +129,7 @@ pub mod exposed
 }
 
 /// Prelude to use essentials: `use my_module::prelude::*`.
+#[ allow( unused_imports ) ]
 pub mod prelude
 {
 }

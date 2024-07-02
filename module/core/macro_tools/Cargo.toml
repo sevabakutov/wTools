@@ -35,7 +35,6 @@ default = [
   "container_kind",
   "derive",
   "diag",
-  "drop",
   "equation",
   "generic_args",
   "generic_params",
@@ -49,6 +48,7 @@ default = [
   "struct_like",
   "tokens",
   "typ",
+  "typed",
 ]
 full = [
   "default",
@@ -68,7 +68,6 @@ ct = []
 container_kind = [ "typ" ]
 derive = []
 diag = []
-drop = []
 equation = []
 generic_args = []
 generic_params = [ "punctuated" ]
@@ -83,9 +82,17 @@ quantifier = []
 struct_like = [ "item_struct" ]
 tokens = []
 typ = []
+typed = []
 
-# qqq : zzz : put all files under features: macro_attr, macro_container_kind, ...
-# qqq : zzz : optimize features list
+# qqq : put all files under features: macro_attr, macro_container_kind, ...
+# qqq : optimize features list
+# qqq : make sure all combinations of features are working and passing test
+
+# qqq : expose features
+# syn_derive
+# syn_parsing
+# syn_printing
+# syn_clone
 
 [dependencies]
 
@@ -97,7 +104,7 @@ const_format = { version = "0.2.32", features = [] }
 
 ## internal
 interval_adapter = { workspace = true, features = [] }
-iter_tools = { workspace = true, features = [] }
+iter_tools = { workspace = true, features = [ "iter_trait" ] }
 clone_dyn_types = { workspace = true, features = [] }
 former_types = { workspace = true, features = [ "types_component_assign" ] }
 
