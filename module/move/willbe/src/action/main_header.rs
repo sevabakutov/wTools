@@ -244,8 +244,9 @@ mod private
     .map( | m | m.as_str() )
     .unwrap_or_default();
 
-    _ = query::parse( raw_params ).context( "Fail to parse arguments" );
+    // _ = query::parse( raw_params ).context( "Fail to parse arguments" );
     // qqq : for Petro : why ignored?
+    // aaa : commented
 
     let header = header_param.to_header().err_with_report( &report )?;
     let content : String = TAGS_TEMPLATE.get().unwrap().replace
