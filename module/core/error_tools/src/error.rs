@@ -152,7 +152,8 @@ pub( crate ) mod private
 
   }
 
-  // xxx : deprecate maybe?
+  // zzz : review
+
   /// baic implementation of generic BasicError
 
   #[ derive( core::fmt::Debug, core::clone::Clone, core::cmp::PartialEq, core::cmp::Eq ) ]
@@ -209,22 +210,24 @@ pub( crate ) mod private
 
 #[ doc( inline ) ]
 #[ allow( unused_imports ) ]
-pub use protected::*;
+pub use own::*;
 
-/// Protected namespace of the module.
+/// Own namespace of the module.
 #[ allow( unused_imports ) ]
-pub mod protected
+pub mod own
 {
+  use super::*;
   #[ doc( inline ) ]
-  pub use super::orphan::*;
+  pub use orphan::*;
 }
 
 /// Shared with parent namespace of the module
 #[ allow( unused_imports ) ]
 pub mod orphan
 {
+  use super::*;
   #[ doc( inline ) ]
-  pub use super::exposed::*;
+  pub use exposed::*;
 }
 
 /// Exposed namespace of the module.
@@ -233,23 +236,30 @@ pub mod exposed
 {
   use super::*;
 
-  pub use private::ErrWith;
-  pub use private::ResultWithReport;
+  #[ doc( inline ) ]
+  pub use private::
+  {
+    ErrWith,
+    ResultWithReport,
+  };
 
   #[ doc( inline ) ]
-  pub use super::prelude::*; // xxx
+  pub use prelude::*;
 }
 
 /// Prelude to use essentials: `use my_module::prelude::*`.
 #[ allow( unused_imports ) ]
 pub mod prelude
 {
-  // xxx
+  use super::*;
 
-  pub use super::private::err;
-  pub use super::private::return_err;
-  pub use super::private::ErrorTrait;
-  pub use super::private::BasicError;
+  #[ doc( inline ) ]
+  pub use private::
+  {
+    err,
+    return_err,
+    ErrorTrait,
+    BasicError,
+  };
 
 }
-// xxx : review
