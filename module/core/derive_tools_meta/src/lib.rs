@@ -584,6 +584,7 @@ pub fn phantom( _attr: proc_macro::TokenStream, input : proc_macro::TokenStream 
 ///
 /// ```rust
 /// use core::ops::Index;
+///
 /// pub struct IsTransparent< T >
 /// {
 ///     a : Vec< T >,
@@ -604,9 +605,12 @@ pub fn phantom( _attr: proc_macro::TokenStream, input : proc_macro::TokenStream 
 /// Use `#[ index ]` to automatically generate the implementation:
 ///
 /// ```rust
-/// # use derive_tools_meta::*;
+/// use derive_tools_meta::*;
+/// 
+/// #[ derive( Index ) ]
 /// pub struct IsTransparent< T > 
 /// {
+///  #[ index ]
 ///   a : Vec< T >  
 /// };
 /// ```

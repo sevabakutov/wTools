@@ -11,3 +11,4 @@ struct StructMultipleNamed< T >
 }
 
 include!( "./only_test/struct_multiple_named.rs" );
+

@@ -305,15 +305,17 @@ mod index_tests
   #[ allow( unused_imports ) ]
   use super::*;
     
-  mod struct_named; 
-  mod struct_multiple_named;
+  mod struct_named;
+  mod struct_multiple_named_field;
+  mod struct_multiple_named_item;
   mod struct_named_manual;
   mod struct_multiple_named_manual;
   mod struct_tuple;
   mod struct_multiple_tuple;
   mod struct_tuple_manual;
   mod struct_multiple_tuple_manual;
-
+  mod struct_collisions;
+  
   only_for_terminal_module!
   {
     #[ test_tools::nightly ]

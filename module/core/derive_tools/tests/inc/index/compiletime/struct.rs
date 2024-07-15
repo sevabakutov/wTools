@@ -4,7 +4,7 @@ use derive_tools::Index;
 struct StructMultipleNamed< T > 
 {
   #[ index ]
-  a: Vec< T >,
+  a : Vec< T >,
   #[ index ]
   b : Vec< T >,
 }
