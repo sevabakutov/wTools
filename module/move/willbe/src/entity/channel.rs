@@ -66,8 +66,9 @@ mod private
     let list = report
     .out
     .lines()
-    .map( | l | l.split_once( '-' ).unwrap().0 )
-    .filter_map( | c | match c
+    // toolchain with a name without `-` may exist, but we are looking at specific ones
+    .filter_map( | l | l.split_once( '-' ) )
+    .filter_map( |( c, _ ) | match c
     {
       "stable" => Some( Channel::Stable ),
       "nightly" => Some( Channel::Nightly ),
