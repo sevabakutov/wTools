@@ -55,6 +55,7 @@ full = [
 ]
 
 enabled = [
+  "default",
   "former_types/enabled",
   "interval_adapter/enabled",
   "clone_dyn_types/enabled",
