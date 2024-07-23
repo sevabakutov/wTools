@@ -2,6 +2,10 @@
 #[ allow( unused_imports ) ]
 use super::*;
 
-mod basic_manual;
-mod basic;
-mod parametrized;
+#[ cfg( feature = "clone_dyn_meta" ) ]
+mod tests 
+{
+    pub mod basic_manual;
+    pub mod basic;
+    pub mod parametrized;
+}
