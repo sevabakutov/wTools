@@ -3,9 +3,8 @@
 use super::*;
 
 #[ cfg( feature = "clone_dyn_meta" ) ]
-mod tests 
-{
-    pub mod basic_manual;
-    pub mod basic;
-    pub mod parametrized;
-}
+pub mod basic_manual;
+#[ cfg( feature = "clone_dyn_meta" ) ]
+ pub mod basic;
+#[ cfg( feature = "clone_dyn_meta" ) ]
+pub mod parametrized;
