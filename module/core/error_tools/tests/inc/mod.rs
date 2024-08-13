@@ -1,6 +1,8 @@
 #[ allow( unused_imports ) ]
 use super::*;
 
-mod basic_test;
-mod for_app_test;
 mod assert_test;
+mod basic_test;
+#[ cfg( not( feature = "no_std" ) ) ]
+mod err_with_test;
+mod untyped_test;
