@@ -3,6 +3,7 @@ use super::*;
 
 use the_module::
 {
+  // print,
   Fields,
   IteratorTrait,
   AsTable,
@@ -10,17 +11,15 @@ use the_module::
   TableSize,
   TableRows,
   TableHeader,
-  // TableFormatter,
   Context,
   WithRef,
-  ref_or_debug::field,
   MaybeAs,
 };
 
 use std::
 {
   collections::HashMap,
-  borrow::Cow,
+  // borrow::Cow,
 };
 
 /// Struct representing a test object with various fields.
@@ -33,12 +32,17 @@ pub struct TestObject
   pub tools : Option< Vec< HashMap< String, String > > >,
 }
 
-impl< 'a > Fields< 'a, &'static str, MaybeAs< 'a, str, WithRef > >
+impl Fields< &'_ str, MaybeAs< '_, str, WithRef > >
 for TestObject
 {
-  fn fields( &'a self ) -> impl IteratorTrait< Item = ( &'static str, MaybeAs< 'a, str, WithRef > ) >
+  type Key< 'k > = &'k str;
+  type Val< 'v > = MaybeAs< 'v, str, WithRef >;
+
+  fn fields( &self ) -> impl IteratorTrait< Item = ( &'_ str, MaybeAs< '_, str, WithRef > ) >
   {
-    let mut dst : Vec< ( &'static str, MaybeAs< 'a, str, WithRef > ) > = Vec::new();
+    use format_tools::ref_or_display_or_debug_multiline::field;
+    // use format_tools::ref_or_display_or_debug::field;
+    let mut dst : Vec< ( &'_ str, MaybeAs< '_, str, WithRef > ) > = Vec::new();
 
     dst.push( field!( &self.id ) );
     dst.push( field!( &self.created_at ) );
@@ -55,40 +59,15 @@ for TestObject
 
     dst.into_iter()
   }
+
 }
 
-// impl< 'a > Fields< 'a, &'static str, Option< Cow< 'a, String > > >
-// for TestObject
-// {
-//   fn fields( &'a self ) -> impl IteratorTrait< Item = ( &'static str, Option< Cow< 'a, String > > ) >
-//   {
-//     let mut vec : Vec< ( &'static str, Option< Cow< 'a, String > > ) > = Vec::new();
 //
-//     vec.push( ( "id", Some( Cow::Borrowed( &self.id ) ) ) );
-//     vec.push( ( "created_at", Some( Cow::Owned( self.created_at.to_string() ) ) ) );
-//     vec.push( ( "file_ids", Some( Cow::Owned( format!( "{:?}", self.file_ids ) ) ) ) );
-//
-//     if let Some( tools ) = &self.tools
-//     {
-//       vec.push( ( "tools", Some( Cow::Owned( format!( "{:?}", tools ) ) ) ) );
-//     }
-//     else
-//     {
-//       vec.push( ( "tools", None ) );
-//     }
-//
-//     vec.into_iter()
-//   }
-// }
 
-#[ test ]
-fn test_table_to_string()
-// where
-  // for< 'a > AsTable< 'a, Vec< TestObject >, usize, TestObject, &'static str, String, &'static str > : TableFormatter< 'a >,
+fn test_objects_gen() -> Vec< TestObject >
 {
-  use the_module::TableToString;
 
-  let test_objects = vec!
+  vec!
   [
     TestObject
     {
@@ -101,7 +80,7 @@ fn test_table_to_string()
     {
       id : "2".to_string(),
       created_at : 13,
-      file_ids : vec![ "file3".to_string(), "file4".to_string() ],
+      file_ids : vec![ "file3".to_string(), "file4\nmore details".to_string() ],
       tools : Some
       (
         vec!
@@ -119,40 +98,160 @@ fn test_table_to_string()
         ]
       ),
     },
-  ];
-
-  let cells = Cells::< '_, &'static str, str, WithRef >::cells( &test_objects[ 0 ] );
-  // assert_eq!( cells.len(), 4 );
-  // let cells = Cells::< '_, &'static str, MaybeAs< '_, str, WithRef > >::cells( &test_objects[ 1 ] );
-  // assert_eq!( cells.len(), 4 );
-  // drop( cells );
-
-//   let as_table : AsTable< '_, Vec< TestObject >, usize, TestObject, &str, String, &str > = AsTable::new( &test_objects );
-//   let size = TableSize::< '_ >::table_size( &as_table );
-//   assert_eq!( size, [ 2, 4 ] );
-//   let rows = TableRows::rows( &as_table );
-//   assert_eq!( rows.len(), 2 );
-//   // dbg!( rows.collect::< Vec< _ > >() );
-//   let header = TableHeader::header( &as_table );
-//   assert!( header.is_some() );
-//   let header = header.unwrap();
-//   assert_eq!( header.len(), 4 );
-//   assert_eq!( header.collect::< Vec< _ > >(), vec![ ( "id", "id" ), ( "created_at", "created_at" ), ( "file_ids", "file_ids" ), ( "tools", "tools" ) ] );
-//   // dbg!( header.collect::< Vec< _ > >() );
-//
-//   let mut output = String::new();
-//   let mut formatter = Context::new( &mut output, Default::default() );
-//   let got = the_module::TableFormatter::fmt( &as_table, &mut formatter );
-//   assert!( got.is_ok() );
-//   println!( "{}", &output );
-//
-//   let as_table : AsTable< '_, Vec< TestObject >, usize, TestObject, &str, String, &str > = AsTable::new( &test_objects );
-//   let table_string = as_table.table_to_string();
-//   assert!( table_string.contains( "id" ) );
-//   assert!( table_string.contains( "created_at" ) );
-//   assert!( table_string.contains( "file_ids" ) );
-//   assert!( table_string.contains( "tools" ) );
+  ]
 
 }
 
-// xxx
+//
+
+#[ test ]
+fn table_to_string()
+// where
+  // for< 'a > AsTable< 'a, Vec< TestObject >, usize, TestObject, &'static str, String, &'static str > : TableFormatter< 'a >,
+{
+  use the_module::TableToString;
+  let test_objects = test_objects_gen();
+
+  let cells = Cells::< str, WithRef >::cells( &test_objects[ 0 ] );
+  assert_eq!( cells.len(), 4 );
+  let cells = Cells::< str, WithRef >::cells( &test_objects[ 1 ] );
+  assert_eq!( cells.len(), 4 );
+  drop( cells );
+
+  let as_table : AsTable< '_, Vec< TestObject >, usize, TestObject, str, WithRef > = AsTable::new( &test_objects );
+  let mcells = TableSize::mcells( &as_table );
+  assert_eq!( mcells, [ 4, 2 ] );
+  let rows = TableRows::rows( &as_table );
+  assert_eq!( rows.len(), 2 );
+  dbg!( rows.collect::< Vec< _ > >() );
+  let header = TableHeader::header( &as_table );
+  assert!( header.is_some() );
+  let header = header.unwrap();
+  assert_eq!( header.len(), 4 );
+  assert_eq!( header.clone().collect::< Vec< _ > >(), vec!
+  [
+    ( "id", "id" ),
+    ( "created_at", "created_at" ),
+    ( "file_ids", "file_ids" ),
+    ( "tools", "tools" ),
+  ]);
+  dbg!( header.collect::< Vec< _ > >() );
+
+  let mut output = String::new();
+  let mut context = Context::new( &mut output, Default::default() );
+  // let mut context : Context< '_, print::All > = Context::new( &mut output, Default::default() );
+  let got = the_module::TableFormatter::fmt( &as_table, &mut context );
+  assert!( got.is_ok() );
+  println!( "{}", &output );
+
+  // with explicit arguments
+
+  let as_table : AsTable< '_, Vec< TestObject >, usize, TestObject, str, WithRef > = AsTable::new( &test_objects );
+  let table_string = as_table.table_to_string();
+  println!( "\ntable_string\n{table_string}" );
+  assert!( table_string.contains( "id" ) );
+  assert!( table_string.contains( "created_at" ) );
+  assert!( table_string.contains( "file_ids" ) );
+  assert!( table_string.contains( "tools" ) );
+
+  // without explicit arguments
+
+  println!( "" );
+  let as_table = AsTable::new( &test_objects );
+  let table_string = as_table.table_to_string();
+  assert!( table_string.contains( "id" ) );
+  assert!( table_string.contains( "created_at" ) );
+  assert!( table_string.contains( "file_ids" ) );
+  assert!( table_string.contains( "tools" ) );
+  println!( "\ntable_string\n{table_string}" );
+
+}
+
+//
+
+#[ test ]
+fn custom_formatter()
+{
+  // use the_module::TableToString;
+  let test_objects = test_objects_gen();
+
+  let mut output = String::new();
+  let mut formatter = the_module::Styles::default();
+
+  formatter.cell_prefix = "( ".into();
+  formatter.cell_postfix = " )".into();
+  formatter.cell_separator = "|".into();
+
+  formatter.row_prefix = ">".into();
+  formatter.row_postfix = "<".into();
+  formatter.row_separator = "\n".into();
+
+  let as_table = AsTable::new( &test_objects );
+  // let mut context : Context< '_, print::All > = Context::new( &mut output, formatter );
+  let mut context = Context::new( &mut output, formatter );
+  let result = the_module::TableFormatter::fmt( &as_table, &mut context );
+  assert!( result.is_ok() );
+
+  println!( "\noutput\n{output}" );
+  assert!( output.contains( "id" ) );
+  assert!( output.contains( "created_at" ) );
+  assert!( output.contains( "file_ids" ) );
+  assert!( output.contains( "tools" ) );
+
+  let exp = r#">( id )|( created_at )|(          file_ids          )|(           tools            )<
+>( 1  )|( 1627845583 )|(        [                   )|(                            )<
+>(    )|(            )|(            "file1",        )|(                            )<
+>(    )|(            )|(            "file2",        )|(                            )<
+>(    )|(            )|(        ]                   )|(                            )<
+>( 2  )|(     13     )|( [                          )|( [                          )<
+>(    )|(            )|(     "file3",               )|(     {                      )<
+>(    )|(            )|(     "file4\nmore details", )|(         "tool1": "value1", )<
+>(    )|(            )|( ]                          )|(     },                     )<
+>(    )|(            )|(                            )|(     {                      )<
+>(    )|(            )|(                            )|(         "tool2": "value2", )<
+>(    )|(            )|(                            )|(     },                     )<
+>(    )|(            )|(                            )|( ]                          )<"#;
+
+  a_id!( output.as_str(), exp );
+
+
+}
+
+//
+
+#[ test ]
+fn filter_col()
+{
+  let test_objects = test_objects_gen();
+
+  let mut output = String::new();
+  let mut formatter = the_module::Styles::default();
+
+  // formatter.filter_col = print::No;
+  // xxx : implement
+
+  let as_table = AsTable::new( &test_objects );
+  // let mut context : Context< '_, _ > = Context::new( &mut output, formatter );
+  let mut context = Context::new( &mut output, formatter );
+  let result = the_module::TableFormatter::fmt( &as_table, &mut context );
+  assert!( result.is_ok() );
+
+  let exp = r#"│ id │ created_at │          file_ids          │           tools            │
+│ 1  │ 1627845583 │        [                   │                            │
+│    │            │            "file1",        │                            │
+│    │            │            "file2",        │                            │
+│    │            │        ]                   │                            │
+│ 2  │     13     │ [                          │ [                          │
+│    │            │     "file3",               │     {                      │
+│    │            │     "file4\nmore details", │         "tool1": "value1", │
+│    │            │ ]                          │     },                     │
+│    │            │                            │     {                      │
+│    │            │                            │         "tool2": "value2", │
+│    │            │                            │     },                     │
+│    │            │                            │ ]                          │"#;
+
+  a_id!( output.as_str(), exp );
+
+}
+
+

@@ -28,14 +28,13 @@ pub( crate ) mod private
     {{
       (
         ::core::stringify!( $key ),
-        $crate::MaybeAs::< 'a, str, $how >::from
+        $crate::MaybeAs::< '_, str, $how >::from
         (
           $crate::to_string_with_fallback!( $how, $fallback1, $fallback2, $src )
         ),
       )
     }};
   }
-
 
   /// Macro to create a field with optional fallbacks.
   ///
@@ -102,6 +101,55 @@ pub( crate ) mod private
     {{
       $crate::_field_with_key!( $key, $( $prefix )* $key, $how, $fallback1, $fallback2 )
     }};
+
+  }
+
+  /// Converting representations to a reference on a string slice,
+  /// but if not possible, to a display string, and if that is also not possible, then to a debug string.
+  ///
+  /// Macros for converting fields to different string representations in a prioritized manner:
+  /// 1. Reference to a string slice.
+  /// 2. Display string.
+  /// 3. Debug string with miltiline.
+  pub mod ref_or_display_or_debug_multiline
+  {
+
+    /// Macro to create a field with key using reference, display, or debug formatting.
+    ///
+    /// This macro attempts to convert the field to a reference to a string slice.
+    /// If that is not possible, it tries to use the Display trait for conversion.
+    /// If that also fails, it falls back to using the Debug trait with multiline.
+    #[ macro_export ]
+    macro_rules! ref_or_display_or_debug_multiline_field_with_key
+    {
+      (
+        $key : ident,
+        $src : expr
+        $(,)?
+      )
+      =>
+      {{
+        $crate::_field_with_key!( $key, $src, $crate::WithRef, $crate::WithDisplay, $crate::WithDebugMultiline )
+      }};
+    }
+
+    /// Macro to create a field using reference, display, or debug formatting.
+    ///
+    /// This macro attempts to convert the field to a reference to a string slice.
+    /// If that is not possible, it tries to use the Display trait for conversion.
+    /// If that also fails, it falls back to using the Debug trait with multiline.
+    #[ macro_export ]
+    macro_rules! ref_or_display_or_debug_multiline_field
+    {
+      ( $( $t:tt )+ )
+      =>
+      {{
+        $crate::_field!( $( $t )+, $crate::WithRef, $crate::WithDisplay, $crate::WithDebugMultiline )
+      }}
+    }
+
+    pub use ref_or_display_or_debug_multiline_field_with_key as field_with_key;
+    pub use ref_or_display_or_debug_multiline_field as field;
 
   }
 
@@ -206,7 +254,9 @@ pub( crate ) mod private
 pub mod to_string;
 pub mod to_string_with_fallback;
 pub mod as_table;
+pub mod md_math;
 pub mod print;
+pub mod string;
 pub mod table;
 
 #[ doc( inline ) ]
@@ -225,7 +275,9 @@ pub mod own
     to_string::orphan::*,
     to_string_with_fallback::orphan::*,
     as_table::orphan::*,
+    md_math::orphan::*,
     print::orphan::*,
+    string::orphan::*,
     table::orphan::*,
   };
 
@@ -244,6 +296,7 @@ pub mod orphan
   pub use private::
   {
     ref_or_display_or_debug,
+    ref_or_display_or_debug_multiline,
     ref_or_debug,
   };
 
@@ -264,7 +317,9 @@ pub mod exposed
     to_string::exposed::*,
     to_string_with_fallback::exposed::*,
     as_table::exposed::*,
+    md_math::exposed::*,
     print::exposed::*,
+    string::exposed::*,
     table::exposed::*,
   };
 
@@ -282,7 +337,9 @@ pub mod prelude
     to_string::prelude::*,
     to_string_with_fallback::prelude::*,
     as_table::prelude::*,
+    md_math::prelude::*,
     print::prelude::*,
+    string::prelude::*,
     table::prelude::*,
   };
 

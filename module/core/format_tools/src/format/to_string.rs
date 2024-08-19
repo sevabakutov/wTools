@@ -22,6 +22,10 @@ pub( crate ) mod private
   #[ derive( Debug, Default, Clone, Copy ) ]
   pub struct WithDebug;
 
+  /// Marker type for using Debug multiline formatting.
+  #[ derive( Debug, Default, Clone, Copy ) ]
+  pub struct WithDebugMultiline;
+
   /// Marker type for using Display formatting.
   #[ derive( Debug, Default, Clone, Copy ) ]
   pub struct WithDisplay;
@@ -49,6 +53,7 @@ pub( crate ) mod private
     #[ inline ]
     fn to_string_with< 's >( &'s self ) -> Cow< 's, str >
     {
+      // println!( " - WithRef" );
       Cow::Borrowed( self.as_ref() )
     }
   }
@@ -62,8 +67,22 @@ pub( crate ) mod private
     #[ inline ]
     fn to_string_with< 's >( &'s self ) -> Cow< 's, str >
     {
-      println!( " - WithDebug Ref {:?}", self );
+      // println!( " - WithDebug {:?}", self );
       Cow::Owned( format!( "{:?}", self ) )
+    }
+  }
+
+  impl< 'a, T > ToStringWith< WithDebugMultiline > for T
+  where
+    T : fmt::Debug,
+    T : ?Sized,
+  {
+    /// Converts the type to a string using Debug formatting.
+    #[ inline ]
+    fn to_string_with< 's >( &'s self ) -> Cow< 's, str >
+    {
+      // println!( " - WithDebugMultiline {:#?}", self );
+      Cow::Owned( format!( "{:#?}", self ) )
     }
   }
 
@@ -77,6 +96,7 @@ pub( crate ) mod private
     #[ inline ]
     fn to_string_with< 's >( &'s self ) -> Cow< 's, str >
     {
+      // println!( " - WithDisplay {}", self );
       Cow::Owned( format!( "{}", self ) )
     }
   }
@@ -84,7 +104,6 @@ pub( crate ) mod private
 }
 
 mod aref;
-// mod aref2;
 
 #[ doc( inline ) ]
 #[ allow( unused_imports ) ]
@@ -115,6 +134,7 @@ pub mod orphan
   pub use private::
   {
     WithDebug,
+    WithDebugMultiline,
     WithDisplay,
     WithRef,
     WithWell,
