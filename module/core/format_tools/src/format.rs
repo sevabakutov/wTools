@@ -3,7 +3,7 @@
 //!
 
 /// Internal namespace.
-pub( crate ) mod private
+mod private
 {
 
   /// Macro to create a field with a key and formatted value.
@@ -28,7 +28,7 @@ pub( crate ) mod private
     {{
       (
         ::core::stringify!( $key ),
-        $crate::MaybeAs::< '_, str, $how >::from
+        $crate::OptionalCow::< '_, str, $how >::from
         (
           $crate::to_string_with_fallback!( $how, $fallback1, $fallback2, $src )
         ),
@@ -251,13 +251,15 @@ pub( crate ) mod private
 
 }
 
-pub mod to_string;
-pub mod to_string_with_fallback;
 pub mod as_table;
+pub mod filter;
 pub mod md_math;
+pub mod output_format;
 pub mod print;
 pub mod string;
 pub mod table;
+pub mod to_string;
+pub mod to_string_with_fallback;
 
 #[ doc( inline ) ]
 #[ allow( unused_imports ) ]
@@ -272,13 +274,15 @@ pub mod own
   #[ doc( inline ) ]
   pub use super::
   {
-    to_string::orphan::*,
-    to_string_with_fallback::orphan::*,
     as_table::orphan::*,
+    filter::orphan::*,
     md_math::orphan::*,
+    output_format::orphan::*,
     print::orphan::*,
     string::orphan::*,
     table::orphan::*,
+    to_string::orphan::*,
+    to_string_with_fallback::orphan::*,
   };
 
 }
@@ -309,18 +313,20 @@ pub mod exposed
   use super::*;
 
   #[ doc( inline ) ]
-  pub use reflect_tools::MaybeAs;
+  pub use reflect_tools::OptionalCow;
 
   #[ doc( inline ) ]
   pub use
   {
-    to_string::exposed::*,
-    to_string_with_fallback::exposed::*,
     as_table::exposed::*,
+    filter::exposed::*,
     md_math::exposed::*,
+    output_format::exposed::*,
     print::exposed::*,
     string::exposed::*,
     table::exposed::*,
+    to_string::exposed::*,
+    to_string_with_fallback::exposed::*,
   };
 
 }
@@ -334,13 +340,15 @@ pub mod prelude
   #[ doc( inline ) ]
   pub use
   {
-    to_string::prelude::*,
-    to_string_with_fallback::prelude::*,
     as_table::prelude::*,
+    filter::prelude::*,
     md_math::prelude::*,
+    output_format::prelude::*,
     print::prelude::*,
     string::prelude::*,
     table::prelude::*,
+    to_string::prelude::*,
+    to_string_with_fallback::prelude::*,
   };
 
 }

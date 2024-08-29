@@ -3,13 +3,13 @@
 //!
 
 /// Internal namespace.
-pub( crate ) mod private
+mod private
 {
 
   use crate::*;
   use core::
   {
-    fmt,
+    // fmt,
     borrow::Borrow,
   };
   // use std::borrow::Cow;
@@ -42,13 +42,13 @@ pub( crate ) mod private
 
   pub trait CellKey
   where
-    Self : fmt::Debug + std::cmp::Eq + std::hash::Hash + Borrow< str >,
+    Self : core::cmp::Eq + std::hash::Hash + Borrow< str >,
   {
   }
 
   impl< T > CellKey for T
   where
-    T : fmt::Debug + std::cmp::Eq + std::hash::Hash + Borrow< str > + ?Sized,
+    T : core::cmp::Eq + std::hash::Hash + Borrow< str > + ?Sized,
   {
   }
 
@@ -66,9 +66,14 @@ pub( crate ) mod private
 
   impl< T > CellRepr for T
   where
-    T : Copy + 'static + ?Sized,
+    T : Copy + 'static,
   {
   }
+
+  // =
+
+  /// Marker trait to tag structures for whcih table trait deducing should be done from trait Fields, which is reflection.
+  pub trait TableWithFields {}
 
   // =
 
@@ -79,7 +84,7 @@ pub( crate ) mod private
     CellKey : table::CellKey + ?Sized,
   {
     /// Returns an iterator over all cells of the row.
-    fn cells< 'a, 'b >( &'a self ) -> impl IteratorTrait< Item = ( &'b CellKey, MaybeAs< 'b, str, CellRepr > ) >
+    fn cells< 'a, 'b >( &'a self ) -> impl IteratorTrait< Item = ( &'b CellKey, OptionalCow< 'b, str, CellRepr > ) >
     where
       'a : 'b,
       CellKey : 'b,
@@ -90,22 +95,18 @@ pub( crate ) mod private
   for Row
   where
     CellKey : table::CellKey + ?Sized,
-    for< 'k, 'v >
-    Row : Fields
+    for< 'ckv >
+    Row : TableWithFields + Fields
     <
-      &'k CellKey,
-      MaybeAs< 'v, str, CellRepr >,
-      Key< 'k > = &'k CellKey,
-      Val< 'v > = MaybeAs< 'v, str, CellRepr >,
-    > + 'k + 'v,
-    // for< 'v > MaybeAs< 'v, str, CellRepr > : From
-    // <
-    //   MaybeAs< 'v, str, CellRepr >,
-    // >,
+      &'ckv CellKey,
+      OptionalCow< 'ckv, str, CellRepr >,
+      Key< 'ckv > = &'ckv CellKey,
+      Val< 'ckv > = OptionalCow< 'ckv, str, CellRepr >,
+    > + 'ckv, // xxx
     CellRepr : table::CellRepr,
   {
 
-    fn cells< 'a, 'b >( &'a self ) -> impl IteratorTrait< Item = ( &'b CellKey, MaybeAs< 'b, str, CellRepr > ) >
+    fn cells< 'a, 'b >( &'a self ) -> impl IteratorTrait< Item = ( &'b CellKey, OptionalCow< 'b, str, CellRepr > ) >
     where
       'a : 'b,
       CellKey : 'b,
@@ -115,8 +116,6 @@ pub( crate ) mod private
         move | ( key, cell ) |
         {
           ( key, cell )
-          // ( key.clone(), cell.clone() )
-          // ( key, cell.into() )
         }
       )
     }
@@ -166,11 +165,11 @@ pub( crate ) mod private
     type CellRepr : table::CellRepr;
 
     /// Returns an iterator over all rows of the table.
-    fn rows< 'a >( & 'a self ) -> impl IteratorTrait< Item = & 'a Self::Row >
-    where
-      Self::Row : 'a;
+    fn rows( &self ) -> impl IteratorTrait< Item = &Self::Row >;
+    // fn rows< 'a >( & 'a self ) -> impl IteratorTrait< Item = & 'a Self::Row >
+    // where
+    //   Self::Row : 'a;
   }
-
 
   impl< T, RowKey, Row, CellKey, CellRepr >
   TableRows<>
@@ -180,13 +179,13 @@ pub( crate ) mod private
     for< 'k, 'v > T : Fields
     <
       RowKey,
-      &'v Row,
-      Key< 'k > = RowKey,
+      &'k Row,
+      // Key< 'k > = RowKey,
       Val< 'v > = &'v Row,
     > + 'k + 'v,
 
     RowKey : table::RowKey,
-    Row : Cells< CellKey, CellRepr >,
+    Row : TableWithFields + Cells< CellKey, CellRepr >,
     CellKey : table::CellKey + ?Sized,
     CellRepr : table::CellRepr,
   {
@@ -195,55 +194,55 @@ pub( crate ) mod private
     type CellKey = CellKey;
     type CellRepr = CellRepr;
 
-    fn rows< 'a >( &'a self ) -> impl IteratorTrait< Item = &'a Self::Row >
-    where
-      Self::Row : 'a
+    fn rows( &self ) -> impl IteratorTrait< Item = &Self::Row >
+    // fn rows< 'a >( &'a self ) -> impl IteratorTrait< Item = &'a Self::Row >
+    // where
+      // Self::Row : 'a
     {
       self.as_ref().fields()
-      .filter_map( move | ( _k, e ) : ( RowKey, &Row ) |
+      .map( move | ( _k, e ) : ( _, &Row ) |
       {
-        Some( e )
+        e
       })
-      .collect::< Vec< _ > >().into_iter()
     }
 
   }
 
   // =
 
-  /// A trait for iterating over all rows of a table.
-  pub trait TableSize
-  {
-    /// Returns multi-dimensional size of a table.
-    fn mcells( &self ) -> [ usize ; 2 ];
-  }
-
-  impl< T, RowKey, Row, CellKey, CellRepr > TableSize
-  for AsTable< '_, T, RowKey, Row, CellKey, CellRepr >
-  where
-    Self : TableRows< RowKey = RowKey, Row = Row, CellKey = CellKey, CellRepr = CellRepr >,
-    RowKey : table::RowKey,
-    Row : Cells< CellKey, CellRepr >,
-    CellKey : table::CellKey + ?Sized,
-    CellRepr : table::CellRepr,
-  {
-    fn mcells( &self ) -> [ usize ; 2 ]
-    {
-      let rows = self.rows();
-      let nrows = rows.len();
-      let row = rows.clone().next();
-      if let Some( row2 ) = row
-      {
-        let cit = row2.cells().clone();
-        let mcells = cit.len();
-        [ mcells, nrows ]
-      }
-      else
-      {
-        [ 0, 0 ]
-      }
-    }
-  }
+//   /// A trait for iterating over all rows of a table.
+//   pub trait TableSize
+//   {
+//     /// Returns multi-dimensional size of a table.
+//     fn mcells( &self ) -> [ usize ; 2 ];
+//   }
+//
+//   impl< T, RowKey, Row, CellKey, CellRepr > TableSize
+//   for AsTable< '_, T, RowKey, Row, CellKey, CellRepr >
+//   where
+//     Self : TableRows< RowKey = RowKey, Row = Row, CellKey = CellKey, CellRepr = CellRepr >,
+//     RowKey : table::RowKey,
+//     Row : Cells< CellKey, CellRepr >,
+//     CellKey : table::CellKey + ?Sized,
+//     CellRepr : table::CellRepr,
+//   {
+//     fn mcells( &self ) -> [ usize ; 2 ]
+//     {
+//       let rows = self.rows();
+//       let nrows = rows.len();
+//       let row = rows.clone().next();
+//       if let Some( row2 ) = row
+//       {
+//         let cit = row2.cells().clone();
+//         let mcells = cit.len();
+//         [ mcells, nrows + 1 ]
+//       }
+//       else
+//       {
+//         [ 0, 0 ] // xxx : test
+//       }
+//     }
+//   }
 
   // =
 
@@ -262,7 +261,7 @@ pub( crate ) mod private
   where
     Self : TableRows< RowKey = RowKey, Row = Row, CellKey = CellKey, CellRepr = CellRepr >,
     RowKey : table::RowKey,
-    Row : Cells< CellKey, CellRepr >,
+    Row : TableWithFields + Cells< CellKey, CellRepr >,
     CellKey : table::CellKey + ?Sized,
     CellRepr : table::CellRepr,
   {
@@ -278,10 +277,7 @@ pub( crate ) mod private
         (
           row
           .cells()
-          // .map( | ( key, _title ) | ( key.clone(), Cow::Owned( format!( "{}", key ) ) ) )
           .map( | ( key, _title ) | ( key, key.borrow() ) )
-          .collect::< Vec< _ > >()
-          .into_iter()
         )
       }
       else
@@ -336,9 +332,10 @@ pub mod exposed
   #[ doc( inline ) ]
   pub use private::
   {
+    TableWithFields,
     Cells,
     TableRows,
-    TableSize,
+    // TableSize,
     TableHeader,
   };
 
