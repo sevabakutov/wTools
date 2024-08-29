@@ -12,7 +12,7 @@ fn reexport()
   let got = vec1.last().unwrap().clone();
   assert_eq!( got, 2 );
 
-  let mut vec2 : the_module::DynArray< i32 > = the_module::DynArray::new();
+  let mut vec2 : the_module::DynList< i32 > = the_module::DynList::new();
   vec2.push( 1 );
   vec2.push( 2 );
   let got = vec2.first().unwrap().clone();
@@ -41,6 +41,10 @@ fn constructor()
   exp.push( 13 );
   assert_eq!( got, exp );
 
+  let _got = the_module::vec!( "b" );
+  let _got = the_module::dlist!( "b" );
+  let _got = the_module::exposed::dlist!( "b" );
+
 }
 
 #[ cfg( feature = "collection_into_constructors" ) ]
@@ -59,6 +63,11 @@ fn into_constructor()
   exp.push( 3 );
   exp.push( 13 );
   assert_eq!( got, exp );
+
+  let _got : Vec< &str > = the_module::into_vec!( "b" );
+  let _got : Vec< &str > = the_module::exposed::into_vec!( "b" );
+  let _got : Vec< &str > = the_module::into_dlist!( "b" );
+  let _got : Vec< &str > = the_module::exposed::into_dlist!( "b" );
 
 }
 

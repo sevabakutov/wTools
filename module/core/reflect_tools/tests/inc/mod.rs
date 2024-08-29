@@ -9,9 +9,9 @@ mod fundamental
   use super::*;
 
   mod fields_test;
-  // mod to_string_test;
-  // mod to_string_example;
-  // mod to_string_with_fallback_test;
+  mod fields_vec;
+  mod fields_hmap;
+  mod fields_bmap;
 
 }
 
