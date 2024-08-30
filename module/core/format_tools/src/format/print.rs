@@ -1,9 +1,9 @@
 //!
-//! Nice print.
+//! Print data as table.
 //!
 
 /// Internal namespace.
-pub( crate ) mod private
+mod private
 {
 
   use crate::*;
@@ -16,13 +16,13 @@ pub( crate ) mod private
   {
     fmt,
   };
-  use former::Former;
+  // use former::Former;
 
   //=
 
   /// A struct to configure options for printing data as a table.
   ///
-  /// The `Styles` struct provides customizable delimiters for formatting table data. It allows
+  /// The `Printer` struct provides customizable delimiters for formatting table data. It allows
   /// you to define how table data should be separated and formatted, making it adaptable to
   /// various needs.
   ///
@@ -41,383 +41,447 @@ pub( crate ) mod private
   ///   used to add a consistent end to each row.
   ///
   /// ```
-  #[ derive( Debug, Former ) ]
-  pub struct Styles
+  // xxx : enable
+  // #[ derive( Debug, Former ) ]
+  // #[ derive( Debug ) ]
+  pub struct Printer< 'callback >
   {
-    /// Delimiter for separating table columns.
-    pub cell_separator : String,
 
-    /// Delimiter for adding prefix to a row.
-    pub row_prefix : String,
+    /// Convert extract into a string, writing it into destination buffer.
+    pub output_format : &'callback dyn TableOutputFormat,
+    /// Filter out columns.
+    pub filter_col : &'callback ( dyn FilterCol + 'callback ),
+    /// Filter out rows.
+    pub filter_row : &'callback ( dyn FilterRow + 'callback ),
 
-    /// Delimiter for adding postfix to a row.
-    pub row_postfix : String,
   }
 
-  impl Default for Styles
+  impl< 'callback > Printer< 'callback >
   {
-    fn default() -> Self
+    /// Constructor accepting styles/foramt.
+    pub fn with_format( output_format : &'callback dyn TableOutputFormat ) -> Self
     {
-      let cell_separator = " ".to_string();
-      let row_prefix = "".to_string();
-      let row_postfix = "".to_string();
-      Styles { cell_separator, row_prefix, row_postfix }
+      let filter_col = Default::default();
+      let filter_row = Default::default();
+      Self
+      {
+        output_format,
+        filter_col,
+        filter_row
+      }
     }
   }
 
-  /// Struct for formatting tables.
-  pub struct Context< 'a >
+  impl< 'callback > fmt::Debug for Printer< 'callback >
   {
-    buf : &'a mut dyn fmt::Write,
-    styles : Styles,
+    fn fmt( & self, f : & mut fmt::Formatter< '_ > ) -> fmt::Result
+    {
+      f.debug_struct( "Printer" )
+      // .field( "cell_prefix", & self.cell_prefix )
+      // .field( "cell_postfix", & self.cell_postfix )
+      // .field( "cell_separator", & self.cell_separator )
+      // .field( "row_prefix", & self.row_prefix )
+      // .field( "row_postfix", & self.row_postfix )
+      // .field( "row_separator", & self.row_separator )
+      // .field( "output_format", & format_args!( "{:?}", self.output_format ) ) // xxx
+      // .field( "filter_col", & format_args!( "{:?}", self.filter_col ) )
+      .finish()
+    }
   }
 
-  impl< 'a > Context< 'a >
+  impl< 'callback > Default for Printer< 'callback >
+  {
+    fn default() -> Self
+    {
+      let output_format = Default::default();
+      let filter_col = Default::default();
+      let filter_row = Default::default();
+      Self
+      {
+        output_format,
+        filter_col,
+        filter_row
+      }
+    }
+  }
+
+  /// Struct for managing table formatting context.
+  ///
+  /// `Context` holds the buffer and styling options used during table
+  /// formatting, facilitating the writing of formatted table data.
+  ///
+  pub struct Context< 'context >
+  {
+    ///
+    /// A mutable reference to a buffer implementing `fmt::Write`,
+    ///   used to collect the formatted output.
+    pub buf : &'context mut dyn fmt::Write,
+    ///
+    /// An instance of `Printer` that defines the formatting
+    ///   options, such as delimiters and prefixes.
+    pub printer : Printer< 'context >,
+  }
+
+  impl< 'context > Context< 'context >
   {
     /// Just constructr.
-    pub fn new( buf : &'a mut dyn fmt::Write, styles : Styles ) -> Self
+    pub fn new( buf : &'context mut dyn fmt::Write, printer : Printer< 'context > ) -> Self
     {
-      Self { buf, styles }
+      Self { buf, printer }
     }
   }
 
   impl fmt::Debug for Context< '_ >
   {
-    fn fmt( &self, f : &mut fmt::Formatter< '_ > ) -> fmt::Result
+    fn fmt( &self, c : &mut fmt::Formatter< '_ > ) -> fmt::Result
     {
-      f
+      c
       .debug_struct( "Context" )
       .field( "buf", &"dyn fmt::Write" )
-      .field( "styles", &self.styles )
+      .field( "printer", &self.printer )
       .finish()
     }
   }
 
-  /// A trait for converting tables to a string representation.
-  pub trait TableToString< 'a >
+  /// Trait for defining table formatting logic.
+  ///
+  /// `TableFormatter` allows implementations to specify how tables are formatted
+  /// and displayed, providing flexibility in presentation.
+  ///
+  /// # Type Parameters
+  ///
+  /// - `'data`: The lifetime of the data being formatted.
+  ///
+  pub trait TableFormatter< 'data >
   {
+    /// Formats the table and writes the result to the provided context.
+    fn fmt< 'context >( &'data self, c : & mut Context< 'context > ) -> fmt::Result;
+
     /// Converts the table to a string representation.
     ///
     /// # Returns
     ///
     /// A `String` containing the formatted table.
-    fn table_to_string( &'a self ) -> String;
-  }
+    fn table_to_string( &'data self ) -> String
+    {
+      self.table_to_string_with_format( &output_format::Ordinary::default() )
+    }
 
-  impl< 'a, T > TableToString< 'a > for T
-  where
-    T : TableFormatter< 'a >
-  {
-    fn table_to_string( &'a self ) -> String
+    /// Converts the table to a string representation specifying printer.
+    ///
+    /// # Returns
+    ///
+    /// A `String` containing the formatted table.
+    fn table_to_string_with_format< 'context, Styles >( &'data self, styles : &'context Styles ) -> String
+    where
+      Styles : TableOutputFormat,
     {
       let mut output = String::new();
+      let printer = Printer
+      {
+        output_format : styles,
+        filter_col : Default::default(),
+        filter_row : Default::default(),
+      };
       let mut context = Context
       {
         buf : &mut output,
-        styles : Styles::default(),
+        printer,
       };
-      T::fmt( self, &mut context ).expect( "Table formatting failed" );
+      Self::fmt( self, &mut context ).expect( "Table formatting failed" );
       output
     }
+
   }
 
   /// A trait for formatting tables.
-  ///
-  /// This trait defines a method for formatting tables, allowing implementations
-  /// to specify how a table should be formatted and displayed.
-  ///
-
-  pub trait TableFormatter< 'b >
-  {
-    /// Formats the table and writes the result to the given formatter.
-    fn fmt< 'a >( &'b self, f : &mut Context< 'a > ) -> fmt::Result;
-  }
-
-  /// A trait for formatting tables.
-  impl< 'a, T, RowKey, Row, CellKey, CellFormat > TableFormatter< 'a >
-  for AsTable< 'a, T, RowKey, Row, CellKey, CellFormat >
+  impl< 'data, T, RowKey, Row, CellKey, CellRepr > TableFormatter< 'data >
+  for AsTable< 'data, T, RowKey, Row, CellKey, CellRepr >
   where
-    Self : TableRows< RowKey, Row, CellKey, CellFormat >,
-    Self : TableHeader< CellKey >,
-    Self : TableSize,
-    Row : Clone + Cells< CellKey, CellFormat >,
-    CellKey : fmt::Debug + Clone + std::cmp::Eq + std::hash::Hash + 'static,
-    CellFormat : Copy + 'static,
+    Self : TableRows< CellKey = CellKey, CellRepr = CellRepr, RowKey = RowKey, Row = Row >,
+    Self : TableHeader< CellKey = CellKey >,
+    RowKey : table::RowKey,
+    Row : Cells< CellKey, CellRepr >,
+    CellKey : table::CellKey + ?Sized,
+    CellRepr : table::CellRepr,
   {
-    fn fmt( &'a self, f : &mut Context< '_ > ) -> fmt::Result
+
+    fn fmt< 'a >( &'data self, c : &mut Context< 'a > ) -> fmt::Result
     {
 
-      let mut x = FormatExtract::extract( self );
-      // x.extract_slices();
-
-//       let FormatExtract
-//       {
-//         mcells,
-//         col_order,
-//         col_descriptors,
-//         data,
-//         ..
-//       } = x;
-
-      let cell_separator = &f.styles.cell_separator;
-      let row_prefix = &f.styles.row_prefix;
-      let row_postfix = &f.styles.row_postfix;
-
-      // Write head with proper alignment
-      if let Some( header ) = self.header()
-      {
-        // xxx : rid of vector
-        let mut formatted_row : Vec< String > = Vec::with_capacity( x.col_order.len() );
-        for k in &x.col_order
+      InputExtract::extract
+      (
+        self,
+        c.printer.filter_col,
+        c.printer.filter_row,
+        | x |
         {
-          let descriptor = &x.col_descriptors[ &k ];
-          let width = descriptor.1;
-          let cell = descriptor.0.as_ref().unwrap_or( &Cow::Borrowed( "" ) );
-          formatted_row.push( format!( "{:^width$}", cell, width = width ) );
+          c.printer.output_format.extract_write( x, c )
         }
-        writeln!( f.buf, "{}{}{}", row_prefix, formatted_row.join( cell_separator ), row_postfix )?;
-      }
-
-      // Write rows with proper alignment
-      for row in &x.data
-      {
-        // xxx : rid of vector
-        let height = row.iter().fold( 1, | acc, ( _k, e ) | acc.max( e.1[ 1 ] ) );
-        // println!( "height : {height}" );
-
-        let mut formatted_row : Vec< String > = Vec::with_capacity( x.col_order.len() );
-        for k in &x.col_order
-        {
-          let cell = &row[ &k ];
-          let descriptor = &x.col_descriptors[ &k ];
-          let width = descriptor.1;
-          println!( "width : {width:?}" );
-          formatted_row.push( format!( "{:^width$}", cell.0.as_ref(), width = width ) );
-        }
-        writeln!( f.buf, "{}{}{}", row_prefix, formatted_row.join( cell_separator ), row_postfix )?;
-      }
-
-      Ok(())
+      )
     }
+
   }
 
-  pub struct FormatExtract< 'a, 'b, CellKey >
-  where
-    CellKey : fmt::Debug + Clone + std::cmp::Eq + std::hash::Hash + 'static, // xxx
-    'a : 'b,
-    // 'b : 'a,
+  /// A struct for extracting and organizing row of table data for formatting.
+
+  #[ derive( Debug, Default ) ]
+  pub struct RowDescriptor
+  {
+    pub irow : usize,
+    pub height : usize,
+    pub typ : LineType,
+    pub vis : bool,
+  }
+
+  /// A struct for extracting and organizing row of table data for formatting.
+
+  #[ derive( Debug, Default ) ]
+  pub struct ColDescriptor
+  {
+    pub icol : usize,
+    pub width : usize,
+  }
+
+  /// A struct for extracting and organizing table data for formatting.
+  ///
+  /// `InputExtract` holds metadata and content necessary for formatting tables,
+  /// including dimensions, column order, and data slices. It facilitates the
+  /// transformation of raw table data into a structured format suitable for
+  /// rendering as a table.
+  ///
+
+  #[ allow( dead_code ) ]
+  #[ derive( Debug ) ]
+  pub struct InputExtract< 'data >
   {
 
     /// Multidimensional size in number of columns per table and number of rows per table.
     pub mcells : [ usize ; 2 ],
 
-    /// Order of columns must be as stable as possible.
-    pub col_order : Vec< CellKey >,
+    /// Multidimensional size in number of visible columns per table and number of visible rows per table.
+    pub mcells_vis : [ usize ; 2 ],
 
-    //                             key        string,                   width, index
-    pub col_descriptors : HashMap< CellKey, ( Option< Cow< 'a, str > >, usize, usize ) >,
+    /// Multidimensional size in number of character without taking into account grids.
+    pub mchars : [ usize ; 2 ],
 
+    /// Indicates if the table has a header.
+    pub has_header : bool,
+
+    /// Descriptors for each column, including optional title, width, and index.
+    //                           width, index
+    // pub col_descriptors : Vec< ( usize, usize ) >,
+    pub col_descriptors : Vec< ColDescriptor >,
+
+    /// Descriptors for each row, including height.
     //                           height
-    pub row_descriptors : Vec< ( usize, ) >,
+    // pub row_descriptors : Vec< ( usize, ) >,
+    pub row_descriptors : Vec< RowDescriptor >,
 
-    /// Either slices or strings extracted for further processsing.
-    //                           key, string,           size,
-    pub data : Vec< HashMap< CellKey, ( Cow< 'a, str >, [ usize ; 2 ] ) > >,
+    /// Extracted data for each cell, including string content and size.
+    //                      string,              size,
+    pub data : Vec< Vec< ( Cow< 'data, str >, [ usize ; 2 ] ) > >,
 
-    /// Multidimensional size in number of subrows per row, number of columns per table and number of rows per table.
-    /// Use it to retrive corresponding slice from multi-matrix of slices.
+    /// Dimensions of slices for retrieving data from multi-matrix.
     pub slices_dim : [ usize ; 3 ],
 
-    /// Either slices or strings extracted for further processsing.
-    pub slices : Vec< &'b str >,
-
-    // Does table have the header.
-    pub has_header : bool,
+    /// Extracted slices or strings for further processing.
+    pub slices : Vec< &'data str >,
 
   }
 
-  impl< 'a, 'b, CellKey > FormatExtract< 'a, 'b, CellKey >
-  where
-    CellKey : fmt::Debug + Clone + std::cmp::Eq + std::hash::Hash + 'static,
-    'a : 'b,
-    // 'b : 'a,
+  //
+
+  impl< 'data > InputExtract< 'data >
   {
 
-    pub fn extract_slices< 'c : 'b >( &'c mut self )
+    /// Extract input data from and collect it in a format consumable by output formatter.
+    pub fn extract< 't, 'context, Table, RowKey, Row, CellKey, CellRepr >
+    (
+      table : &'t Table,
+      filter_col : &'context ( dyn FilterCol + 'context ),
+      filter_row : &'context ( dyn FilterRow + 'context ),
+      callback : impl for< 'a2 > FnOnce( &'a2 InputExtract< 'a2 > ) -> fmt::Result,
+    )
+    -> fmt::Result
+    where
+      'data : 't,
+      Table : TableRows< RowKey = RowKey, Row = Row, CellKey = CellKey, CellRepr = CellRepr >,
+      Table : TableHeader< CellKey = CellKey >,
+      RowKey : table::RowKey,
+      Row : Cells< CellKey, CellRepr > + 'data,
+      CellKey : table::CellKey + ?Sized + 'data,
+      CellRepr : table::CellRepr,
     {
       use md_math::MdOffset;
 
-      let mut slices : Vec< &str > = vec![];
-      std::mem::swap( &mut self.slices, &mut slices );
+      // let mcells = table.mcells();
+      let mut mcells_vis = [ 0 ; 2 ];
+      let mut mcells = [ 0 ; 2 ];
+      let mut mchars = [ 0 ; 2 ];
 
-      let col : &( Option< Cow< '_, str > >, usize, usize ) = &self.col_descriptors[ &self.col_order[ 0 ] ];
-      slices[ 0 ] = col.0.as_ref().unwrap();
+      //                                 key        width, index
+      let mut key_to_ikey : HashMap< &'t CellKey, usize > = HashMap::new();
 
-      let mut irow : isize = -1;
-      if self.has_header
-      {
-
-        irow += 1;
-        for ( icol, k ) in self.col_order.iter().enumerate()
-        {
-          let col : &( _, _, _ ) = &self.col_descriptors[ k ];
-          let cell = &col.0;
-
-          if let Some( cell ) = cell
-          {
-
-            string::lines( cell )
-            .enumerate()
-            .for_each( | ( layer, s ) | slices[ [ layer, icol, irow as usize ].md_offset( self.slices_dim ) ] = s )
-            ;
-
-          }
-
-        }
-
-      }
-
-      for row_data in self.data.iter()
-      {
-
-        irow += 1;
-        let row = &self.row_descriptors[ irow as usize ];
-
-        for ( icol, k ) in self.col_order.iter().enumerate()
-        {
-          let cell = &row_data[ &k ];
-          string::lines( cell.0.as_ref() )
-          .enumerate()
-          .for_each( | ( layer, s ) | slices[ [ layer, icol, irow as usize ].md_offset( self.slices_dim ) ] = s )
-          ;
-        }
-
-      }
-
-      std::mem::swap( &mut self.slices, &mut slices );
-    }
-
-    pub fn extract< Table, RowKey, Row, CellFormat >( table : &'a Table ) -> Self
-    where
-      Table : TableRows< RowKey, Row, CellKey, CellFormat >,
-      Table : TableHeader< CellKey >,
-      Table : TableSize,
-      Row : Clone + Cells< CellKey, CellFormat > + 'a,
-      CellFormat : Copy + 'static,
-    {
-
-      let mcells = table.mcells();
-      //                                 key        string,                   width, index
-      let mut col_descriptors : HashMap< CellKey, ( Option< Cow< '_, str > >, usize, usize ) > = HashMap::new();
-      //                             height
-      let mut row_descriptors : Vec< ( usize, ) > = Vec::with_capacity( mcells[ 1 ] );
-
-      let mut col_order : Vec< CellKey > = Vec::new();
+      let mut col_descriptors : Vec< ColDescriptor > = Vec::with_capacity( mcells[ 0 ] );
+      let mut row_descriptors : Vec< RowDescriptor > = Vec::with_capacity( mcells[ 1 ] );
       let mut has_header = false;
 
-      // process header first
+      let mut data : Vec< Vec< ( Cow< 't, str >, [ usize ; 2 ] ) > > = Vec::new();
+      let rows = table.rows();
+      let mut irow : usize = 0;
+      let filter_col_need_args = filter_col.need_args();
+      // let filter_row_need_args = filter_row.need_args();
 
-      let mut row_number : isize = -1;
-      if let Some( header ) = table.header()
+      let mut row_add = | row_iter : &'_ mut dyn _IteratorTrait< Item = ( &'t CellKey, Cow< 't, str > ) >, typ : LineType |
       {
-        assert!( header.len() <= usize::MAX, "Header of a table has too many cells" );
-        has_header = true;
-        row_number = 0;
-        row_descriptors.push( ( 1, ) );
 
-        for ( key, title ) in header
-        {
-          let title_str : Cow< '_, str > = Cow::Owned( format!( "{}", title ) );
-          let l = col_descriptors.len();
-          let sz = string::size( &title_str );
+        irow = row_descriptors.len();
+        let vis = true;
+        let height = 1;
+        let mut row = RowDescriptor { height, typ, vis, irow };
+        let mut ncol = 0;
+        let mut ncol_vis = 0;
 
-          col_descriptors
-          .entry( key.clone() )
-          .and_modify( | col |
-          {
-            col.1 = col.1.max( sz[ 1 ] );
-          })
-          .or_insert_with( ||
-          {
-            col_order.push( key.clone() );
-            ( Some( title_str ), sz[ 1 ], l + 1 )
-          });
-
-          row_descriptors[ row_number as usize ] = ( row_descriptors[ row_number as usize ].0.max( sz[ 0 ] ), );
-          debug_assert!( row_descriptors.len() == ( row_number as usize ) + 1 );
-
-        }
-      }
-
-      // Collect rows
-      //                           key,       string,         size,
-      let mut data : Vec< HashMap< CellKey, ( Cow< '_, str >, [ usize ; 2 ] ) > > = Vec::new();
-      assert!( table.rows().len() <= usize::MAX, "Table has too many rows" );
-      for row in table.rows()
-      {
-        assert!( row.cells().len() <= usize::MAX, "Row of a table has too many cells" );
-
-        row_number += 1;
-        row_descriptors.push( ( 1, ) );
-
-        let fields : HashMap< CellKey, ( Cow< '_, str >, [ usize ; 2 ] ) > = row
-        .cells()
-        .map
+        let fields : Vec< ( Cow< 't, str >, [ usize ; 2 ] ) > = row_iter
+        .filter_map
         (
-          | ( key, cell ) |
+          | ( key, val ) |
           {
-            let r = match cell.0
-            {
-              Some( cell ) =>
-              {
-                ( key, cell )
-              }
-              None =>
-              {
-                ( key, Cow::Borrowed( "" ) )
-              }
-            };
-
-            let sz = string::size( &r.1 );
             let l = col_descriptors.len();
-            row_descriptors[ row_number as usize ] = ( row_descriptors[ row_number as usize ].0.max( sz[ 0 ] ), );
 
-            col_descriptors
-            .entry( r.0.clone() )
-            .and_modify( | col |
+            ncol += 1;
+
+            if filter_col_need_args
             {
-              col.1 = col.1.max( sz[ 1 ] );
+              if !filter_col.filter_col( key.borrow() )
+              {
+                return None;
+              }
+            }
+            else
+            {
+              if !filter_col.filter_col( "" )
+              {
+                return None;
+              }
+            }
+
+            ncol_vis += 1;
+
+            let sz = string::size( &val );
+
+            key_to_ikey
+            .entry( key )
+            .and_modify( | icol |
+            {
+              let col = &mut col_descriptors[ *icol ];
+              col.width = col.width.max( sz[ 0 ] );
             })
             .or_insert_with( ||
             {
-              col_order.push( r.0.clone() );
-              ( None, sz[ 1 ], l + 1 )
+              let icol = l;
+              let width = sz[ 0 ];
+              let col = ColDescriptor { width, icol };
+              col_descriptors.push( col );
+              icol
             });
 
-            return ( r.0, ( r.1, sz ) );
+            row.height = row.height.max( sz[ 1 ] );
+            return Some( ( val, sz ) );
           }
         )
         .collect();
+
+        mcells[ 0 ] = mcells[ 0 ].max( ncol );
+        mcells_vis[ 0 ] = mcells_vis[ 0 ].max( ncol_vis );
+
+        row.vis = filter_row.filter_row( typ, irow, &fields );
+        if row.vis
+        {
+          mcells_vis[ 1 ] += 1;
+        }
+        mcells[ 1 ] += 1;
+
+        row_descriptors.push( row );
         data.push( fields );
+
+      };
+
+      // process header first
+
+      if let Some( header ) = table.header()
+      {
+        rows.len().checked_add( 1 ).expect( "Table has too many rows" );
+        // assert!( header.len() <= usize::MAX, "Header of a table has too many cells" );
+        has_header = true;
+
+        let mut row2 =  header.map( | ( key, title ) |
+        {
+          ( key, Cow::Borrowed( title ) )
+        });
+
+        row_add( &mut row2, LineType::Header );
       }
+
+      // Collect rows
+      //                           key,       string,           size,
+      for row in rows
+      {
+        // assert!( row.cells().len() <= usize::MAX, "Row of a table has too many cells" );
+
+        let mut row2 = row
+        .cells()
+        .map
+        (
+          | ( key, val ) |
+          {
+
+            let val = match val.0
+            {
+              Some( val ) =>
+              {
+                val
+              }
+              None =>
+              {
+                Cow::Borrowed( "" )
+              }
+            };
+
+            return ( key, val );
+          }
+        );
+
+        row_add( &mut row2, LineType::Regular );
+      }
+
+      // calculate size in chars
+
+      mchars[ 0 ] = col_descriptors.iter().fold( 0, | acc, col | acc + col.width );
+      mchars[ 1 ] = row_descriptors.iter().fold( 0, | acc, row | acc + if row.vis { row.height } else { 0 } );
 
       // cook slices multi-matrix
 
-      let mut slices_dim = [ 1, mcells[ 0 ], mcells[ 1 ] + ( if has_header { 1 } else { 0 } ) ];
+      let mut slices_dim = [ 1, mcells[ 0 ], mcells[ 1 ] ];
       slices_dim[ 0 ] = row_descriptors
       .iter()
-      .fold( 0, | acc : usize, e | acc.max( e.0 ) )
+      .fold( 0, | acc : usize, row | acc.max( row.height ) )
       ;
 
       let slices_len = slices_dim[ 0 ] * slices_dim[ 1 ] * slices_dim[ 2 ];
-      let mut slices : Vec< &str > = vec![ "" ; slices_len ];
+      let slices : Vec< &str > = vec![ "" ; slices_len ];
 
-      //
+  //     assert_eq!( mcells, mcells, r#"Incorrect multidimensional size of table
+  // mcells <> mcells
+  // {mcells:?} <> {mcells:?}"# );
+  //     println!( "mcells : {mcells:?} | mcells : {mcells:?} | mcells_vis : {mcells_vis:?}" );
 
-      let mut r = Self
+      let mut x = InputExtract::< '_ >
       {
         mcells,
-        col_order,
+        mcells_vis,
+        mchars,
         col_descriptors,
         row_descriptors,
         data,
@@ -426,40 +490,36 @@ pub( crate ) mod private
         slices,
       };
 
-      r
+      // extract slices
 
-//       use md_math::MdOffset;
-//       let mut slices : Vec< &str > = vec![];
-//       std::mem::swap( &mut r.slices, &mut slices );
-//
-//       let col : &( Option< Cow< '_, str > >, usize, usize ) = &r.col_descriptors[ &r.col_order[ 0 ] ];
-//       slices[ 0 ] = col.0.as_ref().unwrap();
-//
-//       let mut irow : isize = -1;
-//       if r.has_header
-//       {
-//
-//         irow += 1;
-//         for ( icol, k ) in r.col_order.iter().enumerate()
-//         {
-//           let col : &( _, _, _ ) = &r.col_descriptors[ k ];
-//           let cell = &col.0;
-//
-//           if let Some( cell ) = cell
-//           {
-//
-//             string::lines( cell )
-//             .enumerate()
-//             .for_each( | ( layer, s ) | slices[ [ layer, icol, irow as usize ].md_offset( r.slices_dim ) ] = s )
-//             ;
-//
-//           }
-//
-//         }
-//
-//       }
-//
-//       r
+      let mut slices : Vec< &str > = vec![];
+      std::mem::swap( &mut x.slices, &mut slices );
+
+      let mut irow : isize = -1;
+
+      for row_data in x.data.iter()
+      {
+
+        irow += 1;
+
+        for icol in 0 .. x.col_descriptors.len()
+        {
+          let cell = &row_data[ icol ];
+          string::lines( cell.0.as_ref() )
+          .enumerate()
+          .for_each( | ( layer, s ) |
+          {
+            let md_index = [ layer, icol, irow as usize ];
+            slices[ x.slices_dim.md_offset( md_index ) ] = s;
+          })
+          ;
+        }
+
+      }
+
+      std::mem::swap( &mut x.slices, &mut slices );
+
+      return callback( &x );
     }
 
   }
@@ -476,6 +536,15 @@ pub mod own
   use super::*;
   #[ doc( inline ) ]
   pub use orphan::*;
+
+  #[ doc( inline ) ]
+  pub use private::
+  {
+    Context,
+    Printer,
+    InputExtract,
+  };
+
 }
 
 /// Orphan namespace of the module.
@@ -485,6 +554,12 @@ pub mod orphan
   use super::*;
   #[ doc( inline ) ]
   pub use exposed::*;
+
+  #[ doc( inline ) ]
+  pub use private::
+  {
+  };
+
 }
 
 /// Exposed namespace of the module.
@@ -492,14 +567,12 @@ pub mod orphan
 pub mod exposed
 {
   use super::*;
+  pub use super::super::print;
 
   #[ doc( inline ) ]
   pub use private::
   {
-    Styles,
-    Context,
     TableFormatter,
-    TableToString,
   };
 
 }
@@ -510,3 +583,5 @@ pub mod prelude
 {
   use super::*;
 }
+
+//

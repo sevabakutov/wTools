@@ -5,7 +5,7 @@ use the_module::
 {
   Fields,
   IteratorTrait,
-  MaybeAs,
+  OptionalCow,
   // ToStringWith,
   // WithDebug,
 };
@@ -15,7 +15,7 @@ use the_module::
 use std::
 {
   // fmt,
-  collections::HashMap,
+  // collections::HashMap,
   borrow::Cow,
 };
 
@@ -29,16 +29,15 @@ pub struct TestObject
   pub tools : Option< Vec< HashMap< String, String > > >,
 }
 
-// impl< 'a > Fields< 'a, &'static str, MaybeAs< 'a, String, () > >
-impl Fields< &'static str, MaybeAs< '_, String, () > >
+impl Fields< &'static str, OptionalCow< '_, String, () > >
 for TestObject
 {
-  type Value< 'v > = MaybeAs< 'v, String, () >;
+  type Key< 'k > = &'static str;
+  type Val< 'v > = OptionalCow< 'v, String, () >;
 
-  // fn fields( &'a self ) -> impl IteratorTrait< Item = ( &'static str, MaybeAs< 'a, String, () > ) >
-  fn fields( &self ) -> impl IteratorTrait< Item = ( &'static str, MaybeAs< '_, String, () > ) >
+  fn fields( &self ) -> impl IteratorTrait< Item = ( &'static str, OptionalCow< '_, String, () > ) >
   {
-    let mut dst : Vec< ( &'static str, MaybeAs< '_, String, () > ) > = Vec::new();
+    let mut dst : Vec< ( &'static str, OptionalCow< '_, String, () > ) > = Vec::new();
 
     dst.push( ( "id", Some( Cow::Borrowed( &self.id ) ).into() ) );
     dst.push( ( "created_at", Some( Cow::Owned( self.created_at.to_string() ) ).into() ) );
@@ -95,7 +94,7 @@ fn basic()
     ),
   };
 
-  let fields : Vec< ( &str, MaybeAs< '_, String, () > ) > = test_object.fields().collect();
+  let fields : Vec< ( &str, OptionalCow< '_, String, () > ) > = test_object.fields().collect();
 
   assert_eq!( fields.len(), 4 );
   assert!( fields[ 0 ].1.is_borrowed() );
@@ -141,13 +140,9 @@ fn test_vec_fields()
     },
   ];
 
-  // let fields : Vec< _ > = test_objects.fields().collect();
-  // let fields : Vec< ( usize, Option< Cow< '_, TestObject > > ) > = test_objects.fields().collect();
   let fields : Vec< _ > = Fields::< usize, Option< _ > >::fields( &test_objects ).collect();
   assert_eq!( fields.len(), 2 );
   assert_eq!( fields[ 0 ].0, 0 );
   assert_eq!( fields[ 1 ].0, 1 );
-
-  // let x = Cow::Borrowed(  );
 
 }

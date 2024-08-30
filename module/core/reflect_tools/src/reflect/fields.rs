@@ -3,22 +3,19 @@
 //!
 
 /// Internal namespace.
-pub( crate ) mod private
+mod private
 {
-
-  // use core::fmt;
-  use std::borrow::Cow;
 
   /// A trait for iterators that are also `ExactSizeIterator`.
   pub trait _IteratorTrait
   where
-    Self : core::iter::Iterator + ExactSizeIterator + DoubleEndedIterator
+    Self : core::iter::Iterator + ExactSizeIterator
   {
   }
 
   impl< T > _IteratorTrait for T
   where
-    Self : core::iter::Iterator + ExactSizeIterator + DoubleEndedIterator
+    Self : core::iter::Iterator + ExactSizeIterator
   {
   }
 
@@ -48,7 +45,7 @@ pub( crate ) mod private
   ///
   /// # Associated Types
   ///
-  /// - `Value<'v>`: The type of value yielded by the iterator, parameterized by a lifetime `'v`.
+  /// - `Val<'v>`: The type of value yielded by the iterator, parameterized by a lifetime `'v`.
   ///   This ensures the values' lifetimes are tied to the entity being iterated over.
   ///
   /// # Example
@@ -56,16 +53,17 @@ pub( crate ) mod private
   /// ```rust
   /// use reflect_tools::{ Fields, IteratorTrait };
   ///
-  /// struct MyCollection< T >
+  /// struct MyCollection< V >
   /// {
-  ///   data : Vec< T >,
+  ///   data : Vec< V >,
   /// }
   ///
-  /// impl< T > Fields< usize, & T > for MyCollection< T >
+  /// impl< V > Fields< usize, &V > for MyCollection< V >
   /// {
-  ///   type Value< 'v > = & 'v T where Self : 'v;
+  ///   type Key< 'k > = usize where V : 'k;
+  ///   type Val< 'v > = & 'v V where Self : 'v;
   ///
-  ///   fn fields( & self ) -> impl IteratorTrait< Item = ( usize, Self::Value< '_ > ) >
+  ///   fn fields( & self ) -> impl IteratorTrait< Item = ( usize, Self::Val< '_ > ) >
   ///   {
   ///     self.data.iter().enumerate()
   ///   }
@@ -76,12 +74,19 @@ pub( crate ) mod private
   /// with both index and value.
   pub trait Fields< K, V >
   {
-    /// `Value<'v>`: The type of value yielded by the iterator, parameterized by a lifetime `'v`.
+
+    /// The type of key yielded by the iterator, parameterized by a lifetime `'k`.
     ///   This ensures the values' lifetimes are tied to the entity being iterated over.
-    type Value< 'v > where Self : 'v;
+    type Key< 'k > where Self : 'k;
+
+    /// The type of value yielded by the iterator, parameterized by a lifetime `'v`.
+    ///   This ensures the values' lifetimes are tied to the entity being iterated over.
+    type Val< 'v > where Self : 'v;
 
     /// Returns an iterator over fields of the specified type within the entity.
-    fn fields( & self ) -> impl IteratorTrait< Item = ( K, Self::Value< '_ > ) >;
+    fn fields< 's >( &'s self ) -> impl IteratorTrait< Item = ( Self::Key< 's >, Self::Val< 's > ) >;
+    // fn fields( &self ) -> impl IteratorTrait< Item = ( Self::Key< '_ >, Self::Val< '_ > ) >;
+
   }
 
   /// Trait returning name of type of variable.
@@ -102,67 +107,11 @@ pub( crate ) mod private
     }
   }
 
-  // == implementations for collections
-
-//   impl< T, Marker > Fields< usize, Marker > for Vec< T >
-//   where
-//     T : std::borrow::ToOwned,
-//     Marker : for< 'a > From< &'a T >,
-//   //   T : Clone
-//   {
-//     type Value< 'v > = Marker
-//     where Self : 'v;
-//
-//     fn fields( &self ) -> impl IteratorTrait< Item = ( usize, Self::Value< '_ > ) >
-//     // where
-//       // 'a : 'b,
-//     {
-//       self.iter().enumerate().map( move | ( key, val ) | ( key, Marker::from( val ) ) )
-//     }
-//   }
-
-  impl< T > Fields< usize, &'_ T > for Vec< T >
-  where
-    T : std::borrow::ToOwned,
-  {
-    type Value< 'v > = &'v T
-    where Self : 'v, T : 'v;
-
-    fn fields( &self ) -> impl IteratorTrait< Item = ( usize, Self::Value< '_ > ) >
-    {
-      self.into_iter().enumerate().map( move | ( key, val ) | ( key, val ) )
-    }
-
-  }
-
-  impl< T > Fields< usize, Option< Cow< '_, T > > > for Vec< T >
-  where
-    T : std::borrow::ToOwned,
-  {
-    type Value< 'v > = Option< Cow< 'v, T > >
-    where Self : 'v;
-
-    fn fields( &self ) -> impl IteratorTrait< Item = ( usize, Self::Value< '_ > ) >
-    {
-      self.iter().enumerate().map( move | ( key, val ) | ( key, Some( Cow::Borrowed( val ) ) ) )
-    }
-  }
-
-  impl< T, Marker > Fields< usize, crate::MaybeAs< '_, T, Marker > > for Vec< T >
-  where
-    T : std::borrow::ToOwned,
-    Marker : Clone + Copy + 'static,
-  {
-    type Value< 'v > = crate::MaybeAs< 'v, T, Marker >
-    where Self : 'v;
-
-    fn fields( &self ) -> impl IteratorTrait< Item = ( usize, Self::Value< '_ > ) >
-    {
-      self.iter().enumerate().map( move | ( key, val ) | ( key, crate::MaybeAs::from( Cow::Borrowed( val ) ) ) )
-    }
-  }
-
 }
+
+mod vec;
+mod hmap;
+mod bmap;
 
 #[ doc( inline ) ]
 #[ allow( unused_imports ) ]

@@ -64,14 +64,12 @@ pub mod exposed
   #[ doc( inline ) ]
   pub use super::format::exposed::*;
 
-  // #[ doc( inline ) ]
-  // pub use super::format::exposed::*;
-
   #[ doc( inline ) ]
   pub use super::dependency::reflect_tools::
   {
     Fields,
     IteratorTrait,
+    _IteratorTrait,
   };
 
 }
