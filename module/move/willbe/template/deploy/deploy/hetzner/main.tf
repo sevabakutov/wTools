@@ -27,7 +27,7 @@ resource "hcloud_primary_ip" "primary_ip" {
 resource "hcloud_server" "uaconf" {
   name        = "uaconf-2024"
   image       = "ubuntu-22.04"
-  server_type = "cx11"
+  server_type = "cx22"
   datacenter  = "hel1-dc2"
 
   public_net {
