@@ -26,7 +26,7 @@ export TF_VAR_IMAGE_NAME ?= {{docker_image_name}}
 # Path to the service account credentials
 export google_sa_creds ?= key/service_account.json
 # Cloud Storage bucket name
-export TF_VAR_BUCKET_NAME ?= uaconf_tfstate
+export TF_VAR_BUCKET_NAME ?= {{docker_image_name}}_tfstate
 # Specifies where to deploy the project. Possible values: `hetzner`, `gce`, `aws`
 export CSP ?= hetzner
 
