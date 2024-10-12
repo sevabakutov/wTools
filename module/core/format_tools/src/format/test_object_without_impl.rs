@@ -1,14 +1,15 @@
-#[ allow( unused_imports ) ]
-use super::*;
+//! A strucutre for diagnostic and demonstration purpose.
 
-use the_module::
-{
-  Fields,
-  IteratorTrait,
-  TableWithFields,
-  WithRef,
-  OptionalCow,
-};
+// use super::*;
+
+// use crate::
+// {
+//   Fields,
+//   IteratorTrait,
+//   TableWithFields,
+//   WithRef,
+//   OptionalCow,
+// };
 
 use std::
 {
@@ -16,12 +17,12 @@ use std::
   hash::Hasher,
   hash::Hash,
   cmp::Ordering,
-  borrow::Cow,
+  // borrow::Cow,
 };
 
 /// Struct representing a test object with various fields.
 #[ derive( Clone, Debug, PartialEq, Eq ) ]
-pub struct TestObject
+pub struct TestObjectWithoutImpl
 {
   pub id : String,
   pub created_at : i64,
@@ -29,13 +30,15 @@ pub struct TestObject
   pub tools : Option< Vec< HashMap< String, String > > >,
 }
 
-impl TableWithFields for TestObject {}
+// TableWithFields is not implemented for TestObjectWithoutImpl intentionally
 
+// impl TableWithFields for TestObjectWithoutImpl {}
+//
 // impl Fields< &'_ str, Option< Cow< '_, str > > >
-// for TestObject
+// for TestObjectWithoutImpl
 // {
 //   type Key< 'k > = &'k str;
-//   type Val< 'v > = OptionalCow< 'v, str>;
+//   type Val< 'v > = Option< Cow< 'v, str > >;
 //
 //   fn fields( &self ) -> impl IteratorTrait< Item = ( &'_ str, Option< Cow< '_, str > > ) >
 //   {
@@ -53,7 +56,7 @@ impl TableWithFields for TestObject {}
 //     }
 //     else
 //     {
-//       dst.push( ( "tools", OptionalCow::none() ) );
+//       dst.push( ( "tools", Option::None ) );
 //     }
 //
 //     dst.into_iter()
@@ -61,39 +64,7 @@ impl TableWithFields for TestObject {}
 //
 // }
 
-impl Fields< &'_ str, Option< Cow< '_, str > > >
-for TestObject
-{
-  type Key< 'k > = &'k str;
-  type Val< 'v > = Option< Cow< 'v, str > >;
-
-  fn fields( &self ) -> impl IteratorTrait< Item = ( &'_ str, Option< Cow< '_, str > > ) >
-  {
-    use format_tools::ref_or_display_or_debug_multiline::field;
-    // use format_tools::ref_or_display_or_debug::field;
-    let mut dst : Vec< ( &'_ str, Option< Cow< '_, str > > ) > = Vec::new();
-
-    // trace_macros!( true );
-    dst.push( field!( &self.id ) );
-    // trace_macros!( false );
-    dst.push( field!( &self.created_at ) );
-    dst.push( field!( &self.file_ids ) );
-
-    if let Some( tools ) = &self.tools
-    {
-      dst.push( field!( tools ) );
-    }
-    else
-    {
-      dst.push( ( "tools", Option::None ) );
-    }
-
-    dst.into_iter()
-  }
-
-}
-
-impl Hash for TestObject
+impl Hash for TestObjectWithoutImpl
 {
 
   fn hash< H: Hasher >( &self, state: &mut H )
@@ -121,24 +92,7 @@ impl Hash for TestObject
 
 }
 
-// impl PartialEq for TestObject
-// {
-//
-//   fn eq( &self, other: &Self ) -> bool
-//   {
-//     self.id == other.id &&
-//     self.created_at == other.created_at &&
-//     self.file_ids == other.file_ids &&
-//     self.tools == other.tools
-//   }
-//
-// }
-//
-// impl Eq for TestObject
-// {
-// }
-
-impl PartialOrd for TestObject
+impl PartialOrd for TestObjectWithoutImpl
 {
 
   fn partial_cmp( &self, other: &Self ) -> Option< Ordering >
@@ -148,7 +102,7 @@ impl PartialOrd for TestObject
 
 }
 
-impl Ord for TestObject
+impl Ord for TestObjectWithoutImpl
 {
 
   fn cmp( &self, other: &Self ) -> Ordering
@@ -161,21 +115,20 @@ impl Ord for TestObject
 
 }
 
-//
-
-pub fn test_objects_gen() -> Vec< TestObject >
+/// Generate a dynamic array of test objects.
+pub fn test_objects_gen() -> Vec< TestObjectWithoutImpl >
 {
 
   vec!
   [
-    TestObject
+    TestObjectWithoutImpl
     {
       id : "1".to_string(),
       created_at : 1627845583,
       file_ids : vec![ "file1".to_string(), "file2".to_string() ],
       tools : None
     },
-    TestObject
+    TestObjectWithoutImpl
     {
       id : "2".to_string(),
       created_at : 13,

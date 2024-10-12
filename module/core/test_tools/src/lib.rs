@@ -87,6 +87,8 @@ mod private {}
   prelude use ::collection_tools as collection;
   // prelude use ::process_tools as process;
 
+  use ::collection_tools; // xxx : do that for all dependencies
+
   prelude use ::meta_tools::
   {
     impls,
@@ -95,6 +97,7 @@ mod private {}
     tests_impls_optional,
     tests_index,
   };
+
   prelude use ::typing_tools::{ implements };
 
 }
