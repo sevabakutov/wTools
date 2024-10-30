@@ -98,7 +98,7 @@ default-features = false
 # path = "module/core/type_constructor_derive_pair_meta"
 
 [workspace.dependencies.interval_adapter]
-version = "~0.24.0"
+version = "~0.25.0"
 path = "module/core/interval_adapter"
 default-features = false
 features = [ "enabled" ]
@@ -110,7 +110,7 @@ default-features = false
 features = [ "enabled" ]
 
 [workspace.dependencies.collection_tools]
-version = "~0.12.0"
+version = "~0.13.0"
 path = "module/core/collection_tools"
 default-features = false
 
@@ -176,7 +176,7 @@ path = "module/core/clone_dyn_meta"
 features = [ "enabled" ]
 
 [workspace.dependencies.clone_dyn_types]
-version = "~0.23.0"
+version = "~0.24.0"
 path = "module/core/clone_dyn_types"
 default-features = false
 features = [ "enabled" ]
@@ -201,7 +201,7 @@ default-features = false
 ## iter
 
 [workspace.dependencies.iter_tools]
-version = "~0.21.0"
+version = "~0.22.0"
 path = "module/core/iter_tools"
 default-features = false
 
@@ -234,7 +234,7 @@ path = "module/core/former_meta"
 default-features = false
 
 [workspace.dependencies.former_types]
-version = "~2.8.0"
+version = "~2.9.0"
 path = "module/core/former_types"
 default-features = false
 
@@ -279,7 +279,7 @@ default-features = false
 ## macro tools
 
 [workspace.dependencies.macro_tools]
-version = "~0.40.0"
+version = "~0.41.0"
 path = "module/core/macro_tools"
 default-features = false
 
@@ -379,10 +379,10 @@ version = "~0.10.0"
 path = "module/core/process_tools"
 default-features = false
 
-[workspace.dependencies.process_tools_published]
-package = "process_tools"
-version = "~0.9.0"
-default-features = false
+# [workspace.dependencies.process_tools_published]
+# package = "process_tools"
+# version = "~0.9.0"
+# default-features = false
 
 
 ## test
