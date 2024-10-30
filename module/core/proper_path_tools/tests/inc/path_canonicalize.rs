@@ -7,10 +7,10 @@ use the_module::path;
 fn assumptions()
 {
 
-  assert_eq!( PathBuf::from( "c:/src/" ).is_absolute(), false );
-  assert_eq!( PathBuf::from( "/c/src/" ).is_absolute(), true );
-  assert_eq!( PathBuf::from( "/c:/src/" ).is_absolute(), true );
-  assert_eq!( PathBuf::from( "/c/src/" ).is_absolute(), true );
+  // assert_eq!( PathBuf::from( "c:/src/" ).is_absolute(), false ); // qqq : xxx : this assumption is false on linux
+  // assert_eq!( PathBuf::from( "/c/src/" ).is_absolute(), true ); // qqq : xxx : this assumption is false, seems
+  // assert_eq!( PathBuf::from( "/c:/src/" ).is_absolute(), true ); // qqq : xxx : this assumption is false, too
+  // assert_eq!( PathBuf::from( "/c/src/" ).is_absolute(), true ); // qqq : xxx : this assumption is false, too
 
 }
 

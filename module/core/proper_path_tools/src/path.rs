@@ -299,6 +299,7 @@ mod private
 
     Ok( std::format!( "{}_{}_{}_{}", timestamp, pid, tid, count ) )
   }
+
   /// Joins a list of file system paths into a single absolute path.
   ///
   /// This function takes a list of file system paths and joins them into a single path,

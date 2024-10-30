@@ -144,6 +144,7 @@ pub mod exposed
   #[ cfg( feature = "derive_strum" ) ]
   #[ doc( inline ) ]
   pub use ::strum::*;
+  // qqq : xxx : name all
 
   #[ cfg( any( feature = "derive_variadic_from", feature = "type_variadic_from" ) ) ]
   #[ doc( inline ) ]

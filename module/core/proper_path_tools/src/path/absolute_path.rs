@@ -23,7 +23,7 @@ mod private
 
   #[ cfg( feature="no_std" ) ]
   extern crate std;
-  
+
   #[ cfg( feature="no_std" ) ]
   use alloc::string::String;
 
@@ -78,6 +78,20 @@ mod private
     pub fn inner( self ) -> PathBuf
     {
       self.0
+    }
+
+    // qqq : xxx : cover by minimal tests
+    // qqq : xxx : make iterator over Paths also working
+    /// Joins a list of strs into a single absolute path.
+    pub fn from_strs< 'a, I >( iter : I ) -> Result< Self, io::Error >
+    where
+      I : Iterator< Item = &'a str >,
+    {
+      // Join all the path segments using join_paths
+      let joined_path = path::join_paths( iter.map( Path::new ) );
+
+      // Convert the joined PathBuf into an AbsolutePath
+      AbsolutePath::try_from( joined_path )
     }
 
   }
