@@ -354,24 +354,71 @@ mod private
       }
     }
 
+
     /// Extract input data from and collect it in a format consumable by output formatter.
-    pub fn extract< 't, 'context, Table, RowKey, Row, CellKey>
+    pub fn extract< 'context, Table, RowKey, Row, CellKey>
     (
-      table : &'t Table,
+      table : &'data Table,
       filter_col : &'context ( dyn FilterCol + 'context ),
       filter_row : &'context ( dyn FilterRow + 'context ),
       callback : impl for< 'a2 > FnOnce( &'a2 InputExtract< 'a2 > ) -> fmt::Result,
     )
     -> fmt::Result
     where
-      'data : 't,
-      // 't : 'data,
       Table : TableRows< RowKey = RowKey, Row = Row, CellKey = CellKey >,
       Table : TableHeader< CellKey = CellKey >,
       RowKey : table::RowKey,
       Row : Cells< CellKey > + 'data,
+      Row : Cells< CellKey > + 'data,
       CellKey : table::CellKey + ?Sized + 'data,
       // CellRepr : table::CellRepr,
+    {
+      let rows = table.rows().map( | r | r.cells().map( | ( _, c ) | {
+        match c
+        {
+          Some( c ) => c,
+          None => Cow::from( "" ),
+        }
+      }).collect()).collect();
+
+      let has_header = table.header().is_some();
+
+      let column_names = match table.header()
+      {
+        Some( header ) => header.map( | ( k, _ ) | Cow::from( k.borrow() ) ).collect(),
+
+        None => match table.rows().next()
+        {
+          Some( r ) => r.cells().map( | ( k, _ ) | Cow::from( k.borrow() ) ).collect(),
+          None => Vec::new()
+        }
+      };
+
+      Self::extract_from_raw_table
+      (
+        column_names,
+        has_header,
+        rows,
+        filter_col,
+        filter_row,
+        callback,
+      )
+    }
+
+    /// Extract input data from a table that is constructed with vectors and `Cow`s and collect
+    /// it in a format consumable by output formatter.
+    ///
+    /// `rows` should not contain header of the table, it will be automatically added if `has_header`
+    /// is true.
+    pub fn extract_from_raw_table< 'context >
+    (
+      column_names : Vec< Cow< 'data, str > >,
+      has_header : bool,
+      rows : Vec< Vec< Cow< 'data, str > > >,
+      filter_col : &'context ( dyn FilterCol + 'context ),
+      filter_row : &'context ( dyn FilterRow + 'context ),
+      callback : impl for< 'a2 > FnOnce( &'a2 InputExtract< 'a2 > ) -> fmt::Result,
+    ) -> fmt::Result
     {
       // let mcells = table.mcells();
       let mut mcells_vis = [ 0 ; 2 ];
@@ -379,19 +426,17 @@ mod private
       let mut mchars = [ 0 ; 2 ];
 
       //                                 key        width, index
-      let mut key_to_ikey : HashMap< &'t CellKey, usize > = HashMap::new();
+      let mut key_to_ikey : HashMap< Cow< 'data, str >, usize > = HashMap::new();
 
       let mut col_descriptors : Vec< ColDescriptor< '_ > > = Vec::with_capacity( mcells[ 0 ] );
       let mut row_descriptors : Vec< RowDescriptor > = Vec::with_capacity( mcells[ 1 ] );
-      let mut has_header = false;
 
-      let mut data : Vec< Vec< ( Cow< 't, str >, [ usize ; 2 ] ) > > = Vec::new();
-      let rows = table.rows();
+      let mut data : Vec< Vec< ( Cow< 'data, str >, [ usize ; 2 ] ) > > = Vec::new();
       let mut irow : usize = 0;
       let filter_col_need_args = filter_col.need_args();
       // let filter_row_need_args = filter_row.need_args();
 
-      let mut row_add = | row_iter : &'_ mut dyn _IteratorTrait< Item = ( &'t CellKey, Cow< 't, str > ) >, typ : LineType |
+      let mut row_add = | row_data : Vec< Cow< 'data, str > >, typ : LineType |
       {
 
         irow = row_descriptors.len();
@@ -401,18 +446,21 @@ mod private
         let mut ncol = 0;
         let mut ncol_vis = 0;
 
-        let fields : Vec< ( Cow< 't, str >, [ usize ; 2 ] ) > = row_iter
+        let fields : Vec< ( Cow< 'data, str >, [ usize ; 2 ] ) > = row_data
+        .into_iter()
+        .enumerate()
         .filter_map
         (
-          | ( key, val ) |
+          | ( ikey, val ) |
           {
+            let key = &column_names[ ikey ];
             let l = col_descriptors.len();
 
             ncol += 1;
 
             if filter_col_need_args
             {
-              if !filter_col.filter_col( key.borrow() )
+              if !filter_col.filter_col( key.as_ref() )
               {
                 return None;
               }
@@ -430,7 +478,7 @@ mod private
             let sz = string::size( &val );
 
             key_to_ikey
-            .entry( key )
+            .entry( key.clone() )
             .and_modify( | icol |
             {
               let col = &mut col_descriptors[ *icol ];
@@ -469,18 +517,9 @@ mod private
 
       // process header first
 
-      if let Some( header ) = table.header()
+      if has_header
       {
-        rows.len().checked_add( 1 ).expect( "Table has too many rows" );
-        // assert!( header.len() <= usize::MAX, "Header of a table has too many cells" );
-        has_header = true;
-
-        let mut row2 =  header.map( | ( key, title ) |
-        {
-          ( key, Cow::Borrowed( title ) )
-        });
-
-        row_add( &mut row2, LineType::Header );
+        row_add( column_names.clone(), LineType::Header );
       }
 
       // Collect rows
@@ -489,30 +528,7 @@ mod private
       {
         // assert!( row.cells().len() <= usize::MAX, "Row of a table has too many cells" );
 
-        let mut row2 = row
-        .cells()
-        .map
-        (
-          | ( key, val ) |
-          {
-
-            let val = match val
-            {
-              Some( val ) =>
-              {
-                val
-              }
-              None =>
-              {
-                Cow::Borrowed( "" )
-              }
-            };
-
-            return ( key, val );
-          }
-        );
-
-        row_add( &mut row2, LineType::Regular );
+        row_add( row, LineType::Regular );
       }
 
       // calculate size in chars
