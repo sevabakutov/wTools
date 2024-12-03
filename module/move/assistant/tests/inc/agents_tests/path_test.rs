@@ -135,8 +135,7 @@ fn path_join_relative()
 
   let combined = orig_path.join( &append );
 
-  assert!( combined.is_ok() );
-  assert_eq!( combined.unwrap().inner(), "agent::completion" );
+  assert_eq!( combined.inner(), "agent::completion" );
 }
 
 #[ test ]
@@ -147,7 +146,7 @@ fn path_join_absolute()
 
   let combined = orig_path.join( &append );
 
-  assert!( combined.is_err() );
+  assert_eq!( combined.inner(), "::completion" );
 }
 
 #[ test ]
@@ -158,8 +157,7 @@ fn path_join_root()
 
   let combined = orig_path.join( &append );
 
-  assert!( combined.is_ok() );
-  assert_eq!( combined.unwrap().inner(), "::agent" );
+  assert_eq!( combined.inner(), "::agent" );
 }
 
 #[ test ]
@@ -170,8 +168,7 @@ fn path_join_trailing()
 
   let combined = orig_path.join( &append );
 
-  assert!( combined.is_ok() );
-  assert_eq!( combined.unwrap().inner(), "agents::completion" );
+  assert_eq!( combined.inner(), "agents::completion" );
 }
 
 #[ test ]
@@ -249,74 +246,6 @@ fn path_inner()
   let inner = path.inner();
 
   assert_eq!( inner, path_str );
-}
-
-#[ test ]
-fn path_from_iter_right()
-{
-  let expected = "agents::completion";
-  let elements = vec![ "agents", "completion" ];
-
-  let path = Path::from_iter_rel( elements.into_iter() );
-
-  assert!( path.is_ok() );
-  let path = path.unwrap();
-  assert!( path.is_relative() );
-  assert_eq!( path.inner(), expected );
-}
-
-#[ test ]
-fn path_from_iter_wrong_item()
-{
-  let elements = vec![ "agents:", "completion" ];
-
-  let path = Path::from_iter_rel( elements.into_iter() );
-
-  assert!( path.is_err() );
-}
-
-#[ test ]
-fn path_from_iter_wrong_separator()
-{
-  let elements = vec![ "agents", "::", "completion" ];
-
-  let path = Path::from_iter_rel( elements.into_iter() );
-
-  assert!( path.is_err() );
-}
-
-#[ test ]
-fn path_from_iter_abs()
-{
-  let expected = "::agents::completion";
-  let elements = vec![ "agents", "completion" ];
-
-  let path = Path::from_iter_abs( elements.into_iter() );
-
-  assert!( path.is_ok() );
-  let path = path.unwrap();
-  assert!( path.is_absolute() );
-  assert_eq!( path.inner(), expected );
-}
-
-#[ test ]
-fn path_remove_absolute()
-{
-  let path = Path::try_from( "::agents::completion" ).unwrap();
-
-  let got_path = path.remove_absolute();
-
-  assert_eq!( got_path.inner(), "agents::completion" );
-}
-
-#[ test ]
-fn path_remove_absolute_from_rel()
-{
-  let path = Path::try_from( "agents::completion" ).unwrap();
-
-  let got_path = path.remove_absolute();
-
-  assert_eq!( got_path.inner(), "agents::completion" );
 }
 
 #[ test ]
