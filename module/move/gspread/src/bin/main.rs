@@ -15,7 +15,7 @@ async fn main() -> Result< (), Box< dyn Error > >
 {
   dotenv().ok();
 
-  let secret = Secret::load()?;
+  let secret = Secret::read();
 
   let hub = hub( &secret ).await?;
 

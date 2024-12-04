@@ -52,7 +52,7 @@ mod private
     #[ allow( non_snake_case ) ]
     pub fn load() -> Result< Self >
     {
-      let path = "./.key/-env.sh";
+      let path = "./.secret/.env";
 
       let r = dotenv::from_path( path );
       if let Err( ref err ) = r
@@ -67,8 +67,8 @@ mod private
       {
         CLIENT_SECRET : var( "CLIENT_SECRET", None )?,
         CLIENT_ID : var( "CLIENT_ID", None )?,
-        AUTH_URI : var ( "AUTH_URI", None )?,
-        TOKEN_URI : var ( "TOKEN_URI", None )?
+        AUTH_URI : var ( "AUTH_URI", Some( "https://accounts.google.com/o/oauth2/auth" ) )?,
+        TOKEN_URI : var ( "TOKEN_URI", Some( "https://oauth2.googleapis.com/token" ) )?
       };
       Ok( config )
     }
@@ -77,7 +77,7 @@ mod private
     {
       Self::load().unwrap_or_else( | err |
       {
-        let example = include_str!("../.key/readme.md");
+        let example = include_str!("../.secret/readme.md");
         let explanation = format!
         (
                   r#" = Lack of secrets
@@ -86,8 +86,7 @@ Failed to load secret or some its parameters.
 {err}
 
  = Fix
-
-Either define missing environment variable or make sure `./.key/-env.toml` file has it defined.
+          Add missing secret to .env file in .secret directory. Example: MISSING_SECRET=YOUR_MISSING_SECRET
 
  = More information
 
@@ -109,10 +108,10 @@ Either define missing environment variable or make sure `./.key/-env.toml` file 
   fn var
   (
     name : &'static str,
-    default : Option<&'static str>,
+    default : Option< &'static str >,
   ) -> Result < String >
   {
-    match env::var(name)
+    match env::var( name )
     {
       Ok( val ) => Ok ( val ),
       Err( _ ) =>
