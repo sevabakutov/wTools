@@ -3,8 +3,19 @@ mod private
   use crate::*;
 
   use std::collections::HashMap;
+  use parser::{ Program, ParsedCommand };
 
   // use error::{ return_err };
+
+  #[ allow( missing_docs ) ]
+  #[ derive( Debug, error::typed::Error ) ]
+  pub enum ParserError
+  {
+    #[ error( "Internal Error: {details}" ) ]
+    InternalError { details: String },
+    #[ error( "Unexpected input. Expected: {expected}, found {input}" ) ]
+    UnexpectedInput { expected: String, input: String },
+  }
 
   /// `Parser` is a struct used for parsing data.
   #[ derive( Debug ) ]
@@ -21,13 +32,14 @@ mod private
     /// # Returns
     ///
     /// Returns a `Result` with a `Program` containing the parsed commands if successful, or an error if parsing fails.
-    // qqq : use typed error
-    pub fn parse< As, A >( &self, args : As ) -> error::untyped::Result< Program< ParsedCommand > >
+    // aaa : use typed error
+    // aaa : done.
+    pub fn parse< As, A >( &self, args : As ) -> Result< Program< ParsedCommand >, ParserError >
     where
       As : IntoIterator< Item = A >,
       A : Into< String >,
     {
-      let args = args.into_iter().map( Into::into ).collect::< Vec< _ > >();
+      let args: Vec< _ > = args.into_iter().map( Into::into ).collect();
       let mut commands = vec![];
       let mut i = 0;
       while i < args.len()
@@ -54,18 +66,18 @@ mod private
     }
 
     // returns ParsedCommand and relative position of the last parsed item
-    // qqq : use typed error
-    fn parse_command( args : &[ String ] ) -> error::untyped::Result< ( ParsedCommand, usize ) >
+    // aaa : use typed error
+    fn parse_command( args : &[ String ] ) -> Result< ( ParsedCommand, usize ), ParserError >
     {
       if args.is_empty() {
-        error::untyped::return_err!( "Unexpected behaviour: Try to parse command without input" );
+        return Err( ParserError::InternalError { details: "Try to parse command without input".into() } );
       }
 
       let mut i = 0;
 
       if !Self::valid_command_name( &args[ i ] )
       {
-        error::untyped::return_err!( "Unexpected input: Expected a command, found: `{}`", args[ i ] );
+        return Err( ParserError::UnexpectedInput { expected: "command".into(), input: args[ i ].clone() } );
       }
       let name = match args[ i ].strip_prefix( '.' ).unwrap()
       {
@@ -91,8 +103,9 @@ mod private
     }
 
     // returns ( subjects, properties, relative_end_pos )
-    // qqq : use typed error
-    fn parse_command_args( args : &[ String ] ) -> error::untyped::Result< ( Vec< String >, HashMap< String, String >, usize ) >
+    // aaa : use typed error
+    // aaa : done
+    fn parse_command_args( args : &[ String ] ) -> Result< ( Vec< String >, HashMap< String, String >, usize ), ParserError >
     {
       let mut i = 0;
 
@@ -125,7 +138,7 @@ mod private
           // prop:
           else
           {
-            error::untyped::return_err!( "Unexpected input '{}': Detected a possible property key preceding the ':' character. However, no corresponding value was found.", item );
+            return Err( ParserError::UnexpectedInput { expected: "property value".into(), input: "end of input".into() } );
           }
         }
         // prop : value | prop :value
@@ -146,11 +159,7 @@ mod private
           // :
           else
           {
-            error::untyped::return_err!
-            (
-              "Unexpected input '{} :': Detected a possible property key preceding the ':' character. However, no corresponding value was found.",
-              item,
-            );
+            return Err( ParserError::UnexpectedInput { expected: "property value".into(), input: "end of input".into() } );
           }
         }
 
@@ -160,7 +169,7 @@ mod private
         }
         else
         {
-          error::untyped::return_err!( "Unexpected input: Expected `command` or `property`, found: `{}`", item );
+          return Err( ParserError::UnexpectedInput { expected: "`command` or `property`".into(), input: item.into() } );
         }
         i += 1;
       }
@@ -174,5 +183,6 @@ mod private
 
 crate::mod_interface!
 {
-  exposed use Parser;
+  orphan use Parser;
+  orphan use ParserError;
 }

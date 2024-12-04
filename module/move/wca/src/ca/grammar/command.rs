@@ -2,10 +2,11 @@ mod private
 {
   use crate::*;
 
-  use std::collections::{ HashMap };
+  use std::collections::HashMap;
   use indexmap::IndexMap;
   use former::{ Former, StoragePreform };
   use iter_tools::Itertools;
+  use executor::{ Routine, Handler };
 
   /// A description of a Value in a command. Used to specify the expected type and provide a hint for the Value.
   ///
@@ -35,7 +36,7 @@ mod private
   pub struct PropertyDescription
   {
     name : String,
-    // qqq : how to re-use ValueDescriptionFormer without additional end?
+    // xxx : how to re-use ValueDescriptionFormer without additional end?
     // #[subform_scalar]
     // value : ValueDescription,
     /// providing guidance to the user for entering a valid value
@@ -74,7 +75,7 @@ mod private
   /// # Example:
   ///
   /// ```
-  /// # use wca::{ Command, Type };
+  /// # use wca::{ grammar::Command, Type };
   /// let command = Command::former()
   /// .hint( "hint" )
   /// .long_hint( "long_hint" )
@@ -103,7 +104,8 @@ mod private
     /// Map of aliases.
     // Aliased key -> Original key
     pub properties_aliases : HashMap< String, String >,
-    // qqq : make it usable and remove default(?)
+    // aaa : make it usable and remove default(?)
+    // aaa : it is usable
     /// The type `Routine` represents the specific implementation of the routine.
     #[ scalar( setter = false ) ]
     #[ former( default = Routine::from( Handler::< _, std::convert::Infallible >::from( || { panic!( "No routine available: A handler function for the command is missing" ) } ) ) ) ]
@@ -246,8 +248,8 @@ mod private
 
 crate::mod_interface!
 {
-  exposed use Command;
-  exposed use CommandFormer;
+  orphan use Command;
+  orphan use CommandFormer;
   own use ValueDescription;
 
   own use CommandAsSubformer;
@@ -256,4 +258,5 @@ crate::mod_interface!
 
 }
 
-// qqq : use orphan instead of exposed for ALL files in the folder, dont use prelude for structs
+// aaa : use orphan instead of exposed for ALL files in the folder, dont use prelude for structs
+// aaa : done.
