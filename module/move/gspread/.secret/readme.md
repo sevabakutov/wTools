@@ -24,10 +24,12 @@ CLIENT_ID=YOUR_CLIENT_ID
 CLIENT_SECRET=YOUR_SECRET_KEY
 ```
 
+In most cases, only these two secrets are required.
+
 
 # Troubleshooting
 
-If you encounter problems with authentication or tokens, you will most likely need to add **AUTH_URI** or **TOKEN_URI** to the .env file. To retrieve them, download the API key you created in JSON format. Open the file and copy the keys into the .env file. After making these changes, your .env file should look like this:
+If you encounter problems with authentication or tokens, you will most likely need to add **AUTH_URI** or **TOKEN_URI** to the .env file. In such case all 4 secrets are requeired. To retrieve them, download the API key you created in JSON format. Open the file and copy the keys into the .env file. After making these changes, your .env file should look like this:
 
 ```bash
 CLIENT_ID=YOUR_CLIENT_ID
