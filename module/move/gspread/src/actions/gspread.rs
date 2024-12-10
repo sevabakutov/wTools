@@ -23,13 +23,19 @@ mod private
       #[ from ]
       #[ serde_as( as = "DisplayFromStr" ) ]
       google_sheets4::Error
-    )
+    ),
+
+    #[ error( "Invalid URL format: {0}" ) ]
+    InvalidUrl
+    (
+      String
+    ),
   }
 
   pub fn get_spreadsheet_id_from_url
   (
     url : &str
-  ) -> Option< &str >
+  ) -> Result< &str >
   {
 
     let re = Regex::new( r"d/([^/]+)/edit" ).unwrap();
@@ -37,11 +43,14 @@ mod private
     {
       if let Some( id ) = captures.get( 1 )
       {
-        return Some( id.as_str() );
+        return Ok( id.as_str() );
       }
     }
 
-    None
+    Err
+    ( 
+      Error::InvalidUrl( "Wrong url format.\nFix: copy sheet's the whole url from your browser. Usage: --url '<your copied url>'".to_string() ) 
+    )
   }
 
   pub type Result< T > = core::result::Result< T, Error >;
