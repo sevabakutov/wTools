@@ -24,12 +24,13 @@ CLIENT_ID=YOUR_CLIENT_ID
 CLIENT_SECRET=YOUR_SECRET_KEY
 ```
 
-In most cases, only these two secrets are required.
+## 3. Why do we need it?
 
+After executing each command, you need to grant the GSPREAD program access to the Google API. You will receive a link that begin with 'Please direct your browser to https://....' that will redirect you to your browser, where you must authorize the access. You will need to select the appropriate Google account that has the credentials for the application. The **CLIENT_ID** and **CLIENT_SECRET** are set up to do this process.
 
-# Troubleshooting
+## 4. Troubleshooting
 
-If you encounter problems with authentication or tokens, you will most likely need to add **AUTH_URI** or **TOKEN_URI** to the .env file. In such case all 4 secrets are requeired. To retrieve them, download the API key you created in JSON format. Open the file and copy the keys into the .env file. After making these changes, your .env file should look like this:
+If you encounter a page displaying an error instead of the Google account selection screen, it is likely that you need to add **AUTH_URI** or **TOKEN_URI** to the .env file. In this case, all four secrets are required. To retrieve them, download the API key you created in JSON format. Open the file and copy the necessary keys into the .env file. After making these changes, your .env file should look like this:
 
 ```bash
 CLIENT_ID=YOUR_CLIENT_ID
