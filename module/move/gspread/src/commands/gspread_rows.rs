@@ -40,7 +40,15 @@ mod private
     {
       CommonArgs { url, tab } =>
       {
-        let spreadsheet_id = get_spreadsheet_id_from_url( url.as_str() ).unwrap();
+        let spreadsheet_id = match get_spreadsheet_id_from_url( url.as_str() ) 
+        {
+          Ok( id ) => id,
+          Err( error ) => 
+          {
+            eprintln!( "Error extracting spreadsheet ID: {}", error );
+            return;
+          }
+        };
 
         let result = actions::gspread_get_rows::action
         (
