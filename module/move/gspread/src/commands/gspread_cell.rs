@@ -103,8 +103,8 @@ mod private
 
         match result
         {
-          Ok( value ) => println!( "Success: {:?}", value ),
-          Err( error ) => println!( "Error: {}", error ),
+          Ok( msg ) => println!( "{}", msg ),
+          Err( error ) => println!( "Error:\n{}", error ),
         }
       }
 

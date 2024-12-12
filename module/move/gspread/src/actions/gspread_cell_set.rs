@@ -9,7 +9,7 @@ mod private
 {
   use google_sheets4::api::ValueRange;
   use crate::*;
-  use actions::gspread::Result;
+  use actions::gspread::{ Result, Error };
   use client::SheetsType;
   use ser::JsonValue;
 
@@ -20,7 +20,7 @@ mod private
     table_name : &str,
     cell_id : &str,
     value : &str
-  ) -> Result< i32 >
+  ) -> Result< String >
   {
 
     let value = JsonValue::String( value.to_string() );
@@ -30,17 +30,27 @@ mod private
       ..ValueRange::default()
     };
 
-    let result = hub
+    match hub
     .spreadsheets()
     .values_update( value_range, spreadsheet_id, format!( "{}!{}", table_name, cell_id ).as_str() )
     .value_input_option( "USER_ENTERED" )
     .doit()
-    .await?
-    .1
-    .updated_cells
-    .unwrap();
+    .await
+    {
+      Ok( ( _, response) ) =>
+      {
+        match response.updated_cells
+        {
+          Some( number ) => Ok( format!( "You successfully update {} cell!", number ) ),
+          None => Err( Error::CellError( "Some problem with cell updating".to_string() ) )
+        }
+      }
+      Err( error) =>
+      {
+        Err( Error::ApiError( error ) )
+      }
+    }
 
-    Ok( result )
   }
 }
 

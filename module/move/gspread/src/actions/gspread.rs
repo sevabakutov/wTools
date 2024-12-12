@@ -25,8 +25,14 @@ mod private
       google_sheets4::Error
     ),
 
-    #[ error( "Invalid URL format: {0}" ) ]
+    #[ error( "Invalid URL format:\n{0}" ) ]
     InvalidUrl
+    (
+      String
+    ),
+
+    #[ error( "Cell error:\n{0}" ) ]
+    CellError
     (
       String
     ),
@@ -60,6 +66,7 @@ crate::mod_interface!
 {
   own use
   {
+    Error,
     Result,
     get_spreadsheet_id_from_url,
   };
