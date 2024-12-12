@@ -13,6 +13,14 @@ Follow these steps to create and configure your OAuth credentials for using Goog
 7. Add **.../auth/userinfo.email** and **.../auth/userinfo.profile** spoces.
 8. Finish configuration
 
+## 2. Enable Google Sheets API
+
+1. Go to the [Google API Console](https://console.developers.google.com/).
+2. In the left side menu, select **Enabled APIs & Services**.
+3. Click on **ENABLE APIS AND SERVICES**
+4. Search for **Google Sheets API**
+5. Click on **Enable**
+
 ## 2. Create API Credentials
 
 1. Go to the [Google API Console](https://console.developers.google.com/).
