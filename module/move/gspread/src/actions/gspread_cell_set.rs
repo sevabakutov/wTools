@@ -9,7 +9,11 @@ mod private
 {
   use google_sheets4::api::ValueRange;
   use crate::*;
-  use actions::gspread::{ Result, Error };
+  use actions::gspread::
+  { 
+    Result,
+    Error 
+  };
   use client::SheetsType;
   use ser::JsonValue;
 

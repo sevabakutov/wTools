@@ -6,8 +6,14 @@
 
 mod private
 {
+  
+
   use crate::*;
-  use actions::gspread::Result;
+  use actions::gspread::
+  {
+    Error,
+    Result
+  };
   use client::SheetsType;
   use ser::JsonValue;
 
@@ -19,18 +25,22 @@ mod private
     cell_id : &str,
   ) -> Result< JsonValue >
   {
-    let result = hub
+    match hub
     .spreadsheets()
     .values_get( spreadsheet_id, format!( "{}!{}", table_name, cell_id ).as_str() )
     .doit()
-    .await?
-    .1
-    .values;
-
-    match result
+    .await
     {
-      Some( values ) => Ok( values.get( 0 ).unwrap().get( 0 ).unwrap().clone() ),
-      None => Ok( JsonValue::Null.clone() )
+      Ok( (_, response ) ) => 
+      match response.values
+      {
+        Some( values ) => Ok( values.get( 0 ).unwrap().get( 0 ).unwrap().clone() ),
+        None => Ok( JsonValue::Null.clone() )
+      }
+      Err( error ) =>
+      {
+        Err( Error::ApiError( error ) )
+      }
     }
 
   }
