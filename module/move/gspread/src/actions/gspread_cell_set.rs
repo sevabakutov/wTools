@@ -49,10 +49,7 @@ mod private
           None => Err( Error::CellError( "Some problem with cell updating".to_string() ) )
         }
       }
-      Err( error) =>
-      {
-        Err( Error::ApiError( error ) )
-      }
+      Err( error) => Err( Error::ApiError( error ) )
     }
 
   }

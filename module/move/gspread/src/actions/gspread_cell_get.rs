@@ -37,10 +37,7 @@ mod private
         Some( values ) => Ok( values.get( 0 ).unwrap().get( 0 ).unwrap().clone() ),
         None => Ok( JsonValue::Null.clone() )
       }
-      Err( error ) =>
-      {
-        Err( Error::ApiError( error ) )
-      }
+      Err( error ) => Err( Error::ApiError( error ) )
     }
 
   }

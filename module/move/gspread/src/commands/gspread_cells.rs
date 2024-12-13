@@ -13,19 +13,31 @@ mod private
   #[ derive( Debug, Subcommand ) ]
   pub enum Commands
   {
+    /// Command to set values range to a google sheet
     #[ command( name = "set" ) ]
     Set
     {
-      #[ arg( long ) ]
+      #[ arg( long, help = "Identifier of a row. Available identifiers: id (row's unique identifier).\n\
+      Example: --select_row_by_key \"id\"" ) ]
       select_row_by_key : String,
-
-      #[ arg( long ) ]
+      
+      #[ arg( long, help = "Value range. It must contain select_row_by_key.
+      The key is a column name (not a header name, but a column name, which can only contain Latin letters).
+      Every key and value must be a string.
+      Depending on the shell, different handling might be required.\n\
+      Examples:\n\
+      1. --json '\"id\": \"3\", \"A\": \"1\", \"B\": \"2\"'\n\
+      2. --json \"\"id\": \"3\", \"A\": \"1\", \"B\": \"2\"\"\n\
+      3. --json '\\\"id\\\": \\\"3\\\", \\\"A\\\": \\\"1\\\", \\\"B\\\": \\\"2\\\"'\n\
+      4. --json \"\\\"id\\\": \\\"3\\\", \\\"A\\\": \\\"1\\\", \\\"B\\\": \\\"2\\\"\" " ) ]
       json : String,
 
-      #[ arg( long ) ]
+      #[ arg( long, help = "Full URL of Google Sheet.\n\
+      It has to be inside of '' to avoid parse errors.\n\
+      Example: 'https://docs.google.com/spreadsheets/d/your_spreadsheet_id/edit?gid=0#gid=0'" ) ]
       url : String,
 
-      #[ arg( long ) ]
+      #[ arg( long, help = "Sheet name.\nExample: List1" ) ]
       tab : String
     }
 
