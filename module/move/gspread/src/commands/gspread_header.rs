@@ -51,14 +51,13 @@ mod private
           }
         };
 
-        let result = actions::gspread_get_header::action
-          (
-            hub,
-            spreadsheet_id,
-            tab.as_str()
-          ).await;
-
-        match result
+        match actions::gspread_get_header::action
+        (
+          hub,
+          spreadsheet_id,
+          tab.as_str()
+        )
+        .await
         {
           Ok( header ) =>
             {
@@ -67,9 +66,9 @@ mod private
               .map( | row | RowWrapper{ max_len: row.len(), row } )
               .collect();
 
-              println!( "Header: \n {}", Report{ rows: header_wrapped } );
+              println!( "Header:\n{}", Report{ rows: header_wrapped } );
             }
-          Err( error ) => println!( "Error: {}", error ),
+          Err( error ) => eprintln!( "Error:\n{}", error ),
         }
       }
     }

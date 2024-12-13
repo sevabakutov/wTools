@@ -51,19 +51,18 @@ mod private
           }
         };
         
-        let result = actions::gspread_cells_set::action
+        match actions::gspread_cells_set::action
         (
           &hub,
           select_row_by_key.as_str(),
           json.as_str(),
           spreadsheet_id,
           tab.as_str()
-        ).await;
-
-        match result
+        )
+        .await
         {
           Ok( msg ) => println!( "{}", msg ),
-          Err( error ) => println!( "{}", error )
+          Err( error ) => println!( "Error:\n{}", error )
         }
       }
     }

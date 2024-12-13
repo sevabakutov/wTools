@@ -10,7 +10,11 @@ mod private
   use std::fmt;
   use crate::*;
   use client::SheetsType;
-  use actions::gspread::Result;
+  use actions::gspread::
+  {
+    Error,
+    Result
+  };
   use format_tools::AsTable;
   use util::display_table::display_header;
   use ser::JsonValue;
@@ -37,19 +41,27 @@ mod private
   (
     hub : &SheetsType,
     spreadsheet_id : &str,
-    table_name: &str) -> Result< Vec< Vec< JsonValue > > >
+    table_name : &str
+  ) -> Result< Vec< Vec< JsonValue > > >
   {
-    let result = hub
+    match hub
     .spreadsheets()
     .values_get( spreadsheet_id, format!( "{}!A1:Z1", table_name ).as_str() )
     .doit()
-    .await?
-    .1
-    .values
-    .unwrap_or_else( | | Vec::new() );
-
-    Ok( result )
+    .await
+    {
+      Ok( ( _, response ) ) =>
+      {
+        match response.values
+        {
+          Some( values ) => Ok( values ),
+          None => Ok( Vec::new() )
+        }
+      },
+      Err( error ) => Err( Error::ApiError( error ) )
+    }
   }
+
 }
 
 crate::mod_interface!

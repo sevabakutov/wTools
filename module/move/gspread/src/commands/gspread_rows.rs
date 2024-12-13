@@ -50,26 +50,25 @@ mod private
           }
         };
 
-        let result = actions::gspread_get_rows::action
+        match actions::gspread_get_rows::action
         (
           hub,
           spreadsheet_id,
           tab.as_str()
-        ).await;
-
-        match result
+        )
+        .await
         {
           Ok( rows ) =>
           {
             let max_len = rows.iter().map(|row| row.len()).max().unwrap_or(0);
             let rows_wrapped: Vec<RowWrapper> = rows
-              .into_iter()
-              .map(|row| RowWrapper { row, max_len })
-              .collect();
+            .into_iter()
+            .map(|row| RowWrapper { row, max_len })
+            .collect();
 
-            println!( "Rows: \n {}", Report{ rows: rows_wrapped } );
+            println!( "Rows:\n{}", Report{ rows: rows_wrapped } );
           }
-          Err( error ) => println!( "Error: {}", error ),
+          Err( error ) => eprintln!( "Error:\n{}", error ),
         }
       }
     }

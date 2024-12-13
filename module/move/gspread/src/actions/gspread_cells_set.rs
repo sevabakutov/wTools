@@ -5,6 +5,11 @@
 mod private
 {
   use crate::*;
+  use actions::gspread::
+  {
+    Error,
+    Result
+  };
   use google_sheets4::api::
   {
     BatchUpdateValuesRequest, 
@@ -29,11 +34,11 @@ mod private
   fn parse_json
   (
     json_str : &str
-  ) -> Result< ParsedJson, String > 
+  ) -> Result< ParsedJson > 
   {
     serde_json::from_str::< ParsedJson >( json_str ).map_err
     (
-      | err | format!( "Failed to parse JSON: {}", err )
+      | error | Error::InvalidJSON( format!( "Failed to parse JSON: {}", error ) )
     )
   }
 
@@ -42,7 +47,7 @@ mod private
   fn check_select_row_by_key
   (
     key : &str
-  ) -> Result< (), String > 
+  ) -> Result< () > 
   {
     let keys = vec![ "id" ];
     if keys.contains( &key )
@@ -51,14 +56,17 @@ mod private
     } 
     else 
     {
-      Err( format!( "Invalid select_row_by_key: '{}'. Allowed keys: {:?}", key, keys ) )
+      Err
+      ( 
+        Error::ParseError( format!( "Invalid select_row_by_key: '{}'. Allowed keys: {:?}", key, keys ) ) 
+      )
     }
   }
 
   fn is_all_uppercase_letters
   (
     s : &str
-  ) -> Result< (), String >
+  ) -> Result< () >
   {
     if s.chars().all( | c | c.is_ascii_uppercase() ) 
     {
@@ -66,7 +74,10 @@ mod private
     } 
     else 
     {
-      Err( format!( "The string '{}' contains invalid characters. Only uppercase letters (A-Z) are allowed.", s ) )
+      Err
+      ( 
+        Error::ParseError( format!( "The string '{}' contains invalid characters. Only uppercase letters (A-Z) are allowed.", s ) ) 
+      )
     }
   }
 
@@ -77,7 +88,7 @@ mod private
     json_str : &str,
     spreadsheet_id : &str,
     table_name : &str
-  ) -> Result< String, String >
+  ) -> Result< String >
   {
     check_select_row_by_key( select_row_by_key )?;
 
@@ -86,7 +97,8 @@ mod private
     let row_id = pairs
     .columns
     .remove( select_row_by_key )
-    .ok_or_else( || format!( "Key '{}' not found in JSON", select_row_by_key ) )?;
+    .ok_or_else( || Error::ParseError( format!( "Key '{}' not found in JSON", select_row_by_key ) ) )?;
+
 
     let mut value_ranges= Vec::new();
 
@@ -112,18 +124,17 @@ mod private
       ..Default::default()
     };
 
-    let result = hub
+    match hub
     .spreadsheets()
     .values_batch_update( req, spreadsheet_id )
     .doit()
-    .await;
-
-    match result
+    .await
     {
       Ok( _ ) => Ok( format!( "Cells were sucsessfully updated!" ) ),
-      Err( error ) => Err( format!( "{}", error ) )
+      Err( error ) => Err( Error::ApiError( error ) )
     }
   }
+  
 }
 
 crate::mod_interface!

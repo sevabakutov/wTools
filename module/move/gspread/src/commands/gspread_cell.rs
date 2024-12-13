@@ -65,15 +65,14 @@ mod private
           }
         };
 
-        let result = actions::gspread_cell_get::action
+        match actions::gspread_cell_get::action
         (
           hub,
           spreadsheet_id,
           tab.as_str(),
           cel.as_str()
-        ).await;
-
-        match result
+        )
+        .await
         {
           Ok( value ) => println!( "Value: {}", value ),
           Err( error ) => println!( "Error: {}", error ),
@@ -92,16 +91,15 @@ mod private
           }
         };
 
-        let result = actions::gspread_cell_set::action
+        match actions::gspread_cell_set::action
         (
           hub,
           spreadsheet_id,
           tab.as_str(),
           cel.as_str(),
           val.as_str()
-        ).await;
-
-        match result
+        )
+        .await
         {
           Ok( msg ) => println!( "{}", msg ),
           Err( error ) => println!( "Error:\n{}", error ),

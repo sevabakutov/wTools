@@ -36,6 +36,18 @@ mod private
     (
       String
     ),
+
+    #[ error( "Invalid JSON format:\n{0}" ) ]
+    InvalidJSON
+    (
+      String
+    ),
+
+    #[ error( "Parse error:\n{0}" ) ]
+    ParseError
+    (
+      String
+    )
   }
 
   pub fn get_spreadsheet_id_from_url
