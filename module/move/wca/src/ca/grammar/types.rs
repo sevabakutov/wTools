@@ -1,5 +1,7 @@
+#[ allow( clippy::std_instead_of_alloc, clippy::std_instead_of_core ) ]
 mod private
 {
+  #[ allow( clippy::wildcard_imports ) ]
   use crate::*;
   use std::fmt::
   {
@@ -44,6 +46,8 @@ mod private
   pub trait TryCast< T >
   {
     /// return casted value
+    /// # Errors
+    /// qqq: doc
     fn try_cast( &self, value : String ) -> error::untyped::Result< T >;
   }
 
@@ -116,7 +120,7 @@ mod private
         }
         Value::List( list ) =>
         {
-          let list = list.iter().map( | element | element.to_string() ).join( "," );
+          let list = list.iter().map( std::string::ToString::to_string ).join( "," );
           write!( f, "{list}" )?;
         }
       }
@@ -135,7 +139,7 @@ mod private
           {
             match value
             {
-              #[ allow( clippy::redundant_closure_call ) ] // ok because of it improve understanding what is `value` at macro call
+              #[ allow( clippy::redundant_closure_call, clippy::cast_possible_truncation, clippy::cast_sign_loss ) ] // ok because of it improve understanding what is `value` at macro call
               $value_kind( value ) => ( $cast )( value ),
               _ => panic!( "Unknown cast variant. Got `{value:?}` and try to cast to `{}`", stringify!( $kind ) )
             }
@@ -170,8 +174,8 @@ mod private
     {
       match value
       {
-        Value::List( value ) => value.into_iter().map( | x | x.into() ).collect(),
-        _ => panic!( "Unknown cast variant. Got `{value:?}` and try to cast to `Vec<{}>`", std::any::type_name::< T >() )
+        Value::List( value ) => value.into_iter().map( std::convert::Into::into ).collect(),
+        _ => panic!( "Unknown cast variant. Got `{value:?}` and try to cast to `Vec<{}>`", core::any::type_name::< T >() )
       }
     }
   }

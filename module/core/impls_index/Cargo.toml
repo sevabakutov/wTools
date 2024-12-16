@@ -34,4 +34,4 @@ impls_index_meta = { workspace = true }
 
 [dev-dependencies]
 test_tools = { workspace = true }
-tempdir = { workspace = true }
+#tempdir = { version = "0.3.7" }
