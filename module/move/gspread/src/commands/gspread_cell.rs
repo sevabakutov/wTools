@@ -24,7 +24,7 @@ mod private
       Example: 'https://docs.google.com/spreadsheets/d/your_spreadsheet_id/edit?gid=0#gid=0'" ) ]
       url : String,
 
-      #[ arg( long, help = "Sheet name.\nExample: List1" ) ]
+      #[ arg( long, help = "Sheet name.\nExample: Sheet1" ) ]
       tab : String,
 
       #[ arg( long, help = "Cell id. You can set it in format:\n \
@@ -42,7 +42,7 @@ mod private
       Example: 'https://docs.google.com/spreadsheets/d/your_spreadsheet_id/edit?gid=0#gid=0'" ) ]
       url : String,
 
-      #[ arg( long, help = "Sheet name.\nExample: List1" ) ]
+      #[ arg( long, help = "Sheet name.\nExample: Sheet1" ) ]
       tab : String,
 
       #[ arg( long, help = "Cell id. You can set it in format:\n \

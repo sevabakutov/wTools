@@ -27,7 +27,7 @@ mod private
     Example: 'https://docs.google.com/spreadsheets/d/your_spreadsheet_id/edit?gid=0#gid=0'" ) ]
     pub url : String,
 
-    #[ arg( long, help = "Sheet name.\nExample: List1" ) ]
+    #[ arg( long, help = "Sheet name.\nExample: Sheet1" ) ]
     pub tab : String
   }
 
