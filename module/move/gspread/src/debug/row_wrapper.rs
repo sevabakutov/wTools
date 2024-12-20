@@ -7,7 +7,7 @@
 use super::*;
 use crate::*;
 use ser::JsonValue;
-
+use unicode_width::UnicodeWidthStr;
 
 #[ derive( Debug ) ]
 pub struct RowWrapper
@@ -43,6 +43,15 @@ for RowWrapper
     {
       let column_name = format!( "Column{}", index );
       let title = Box::leak( column_name.into_boxed_str() ) as &str;
+
+      let value_str = value.to_string().trim_matches('"').to_string();
+      let char_count = value_str.chars().count();
+      let byte_count = value_str.as_bytes().len();
+      let display_width = UnicodeWidthStr::width(value_str.as_str());
+      
+      eprintln!("DEBUG: Value: {}, Chars: {}, Bytes: {}, Display Width: {}", 
+              value_str, char_count, byte_count, display_width);
+
       dst.push( ( title, Some( Cow::Owned( value.to_string() ) ) ) )
     }
 

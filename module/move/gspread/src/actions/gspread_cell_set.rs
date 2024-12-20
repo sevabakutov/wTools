@@ -24,7 +24,7 @@ mod private
     table_name : &str,
     cell_id : &str,
     value : &str
-  ) -> Result< String >
+  ) -> Result< i32 >
   {
 
     let value = JsonValue::String( value.to_string() );
@@ -45,7 +45,7 @@ mod private
       {
         match response.updated_cells
         {
-          Some( number ) => Ok( format!( "You successfully update {} cell!", number ) ),
+          Some( number ) => Ok( number ),
           None => Err( Error::CellError( "Some problem with cell updating".to_string() ) )
         }
       }

@@ -65,7 +65,7 @@ mod private
               .into_iter()
               .map( | row | RowWrapper{ max_len: row.len(), row } )
               .collect();
-
+              
               println!( "Header:\n{}", Report{ rows: header_wrapped } );
             }
           Err( error ) => eprintln!( "Error:\n{}", error ),

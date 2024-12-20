@@ -111,7 +111,7 @@ mod private
         )
         .await
         {
-          Ok( msg ) => println!( "{}", msg ),
+          Ok( number ) => println!( "You successfully update {} cell!", number ),
           Err( error ) => println!( "Error:\n{}", error ),
         }
       }
