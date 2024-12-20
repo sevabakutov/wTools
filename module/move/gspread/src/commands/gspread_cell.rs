@@ -16,6 +16,13 @@ mod private
   pub enum Commands
   {
     /// Command to get a value from a sheet's cell
+    /// 
+    /// Command example:
+    /// 
+    /// gspread cell get
+    /// --url 'https://docs.google.com/spreadsheets/d/1EAEdegMpitv-sTuxt8mV8xQxzJE7h_J0MxQoyLH7xxU/edit?gid=0#gid=0'
+    /// --tab tab1
+    /// --cell A1
     #[ command( name = "get" ) ]
     Get
     {
@@ -34,6 +41,14 @@ mod private
     },
 
     /// Command to set a new value to a sheet's cell.
+    /// 
+    /// Command example:
+    /// 
+    /// gspread cell set
+    /// --url 'https://docs.google.com/spreadsheets/d/1EAEdegMpitv-sTuxt8mV8xQxzJE7h_J0MxQoyLH7xxU/edit?gid=0#gid=0'
+    /// --tab tab1
+    /// --cell A1
+    /// --val 13
     #[ command( name = "set" ) ]
     Set
     {

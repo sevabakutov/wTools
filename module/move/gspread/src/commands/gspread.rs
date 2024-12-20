@@ -36,6 +36,12 @@ mod private
   {
     
     /// Command to get header of a sheet. Header is a first raw.
+    /// 
+    /// Command example: 
+    /// 
+    /// gspread header
+    /// --url 'https://docs.google.com/spreadsheets/d/1EAEdegMpitv-sTuxt8mV8xQxzJE7h_J0MxQoyLH7xxU/edit?gid=0#gid=0'
+    /// --tab tab1
     #[ command ( name = "header" ) ]
     Header
     (
@@ -43,6 +49,12 @@ mod private
     ),
 
     /// Command to get all raws of a sheet but not header.
+    /// 
+    /// Command example:
+    /// 
+    /// gspread rows
+    /// --url 'https://docs.google.com/spreadsheets/d/1EAEdegMpitv-sTuxt8mV8xQxzJE7h_J0MxQoyLH7xxU/edit?gid=0#gid=0'
+    /// --tab tab1
     #[ command( name = "rows" ) ]
     Rows
     (

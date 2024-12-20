@@ -14,6 +14,14 @@ mod private
   pub enum Commands
   {
     /// Command to set values range to a google sheet
+    /// 
+    /// Command example:
+    /// 
+    /// gspread cells set
+    /// --url 'https://docs.google.com/spreadsheets/d/1EAEdegMpitv-sTuxt8mV8xQxzJE7h_J0MxQoyLH7xxU/edit?gid=0#gid=0'
+    /// --tab tab1
+    /// --select-row-by-key "id"
+    /// --json '{"id": "2", "A": "1", "B": "2"}'
     #[ command( name = "set" ) ]
     Set
     {
@@ -26,10 +34,10 @@ mod private
       Every key and value must be a string.
       Depending on the shell, different handling might be required.\n\
       Examples:\n\
-      1. --json '\"id\": \"3\", \"A\": \"1\", \"B\": \"2\"'\n\
-      2. --json \"\"id\": \"3\", \"A\": \"1\", \"B\": \"2\"\"\n\
-      3. --json '\\\"id\\\": \\\"3\\\", \\\"A\\\": \\\"1\\\", \\\"B\\\": \\\"2\\\"'\n\
-      4. --json \"\\\"id\\\": \\\"3\\\", \\\"A\\\": \\\"1\\\", \\\"B\\\": \\\"2\\\"\" " ) ]
+      1. --json '{\"id\": \"3\", \"A\": \"1\", \"B\": \"2\"}'\n\
+      2. --json \"{\"id\": \"3\", \"A\": \"1\", \"B\": \"2\"}\"\n\
+      3. --json '{\\\"id\\\": \\\"3\\\", \\\"A\\\": \\\"1\\\", \\\"B\\\": \\\"2\\\"}'\n\
+      4. --json \"{\\\"id\\\": \\\"3\\\", \\\"A\\\": \\\"1\\\", \\\"B\\\": \\\"2\\\"}\" " ) ]
       json : String,
 
       #[ arg( long, help = "Full URL of Google Sheet.\n\
