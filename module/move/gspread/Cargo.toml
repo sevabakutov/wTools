@@ -18,6 +18,7 @@ name = "main"
 path = "src/bin/main.rs"
 
 [features]
+with_online = []
 default = [ "enabled" ]
 full = [ "enabled" ]
 enabled = [
