@@ -18,7 +18,7 @@ async fn setup() -> ( SheetsType, &'static str )
   ( hub, spreadsheet_id )
 }
 #[ tokio::test ]
-async fn test_get_header()
+async fn test_get_header_with_online()
 {
   let ( hub, spreadsheet_id ) = setup().await;
   let table_name = "tab1";
@@ -36,7 +36,7 @@ async fn test_get_header()
 }
 
 #[ tokio::test ]
-async fn test_get_header_with_spaces()
+async fn test_get_header_with_spaces_with_online()
 {
   let ( hub, spreadsheet_id ) = setup().await;
   let table_name = "tab2";
@@ -54,7 +54,7 @@ async fn test_get_header_with_spaces()
 }
 
 #[ tokio::test ]
-async fn test_get_header_empty()
+async fn test_get_header_empty_with_online()
 {
   let ( hub, spreadsheet_id ) = setup().await;
   let table_name = "tab3";
@@ -72,7 +72,7 @@ async fn test_get_header_empty()
 }
 
 #[ tokio::test ]
-async fn test_get_header_with_empty_end()
+async fn test_get_header_with_empty_end_with_online()
 {
   let ( hub, spreadsheet_id ) = setup().await;
   let table_name = "tab4";

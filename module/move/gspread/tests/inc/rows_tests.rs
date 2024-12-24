@@ -19,7 +19,7 @@ async fn setup() -> ( SheetsType, &'static str )
 }
 
 #[ tokio::test ]
-async fn test_get_rows()
+async fn test_get_rows_with_online()
 {
   let ( hub, spreadsheet_id ) = setup().await;
   let table_name = "tab1";
@@ -47,7 +47,7 @@ async fn test_get_rows()
 }
 
 #[ tokio::test ]
-async fn test_get_rows_with_spaces()
+async fn test_get_rows_with_spaces_with_online()
 {
   let ( hub, spreadsheet_id ) = setup().await;
   let table_name = "tab2";
@@ -75,7 +75,7 @@ async fn test_get_rows_with_spaces()
 }
 
 #[ tokio::test ]
-async fn test_get_rows_empty()
+async fn test_get_rows_empty_with_online()
 {
   let ( hub, spreadsheet_id ) = setup().await;
   let table_name = "tab3";

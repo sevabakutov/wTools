@@ -21,7 +21,7 @@ async fn setup() -> ( SheetsType, &'static str, &'static str, &'static str )
 }
 
 #[ tokio::test ]
-async fn test_set_cells()
+async fn test_set_cells_with_online()
 {
   let 
   ( 
@@ -48,7 +48,7 @@ async fn test_set_cells()
 }
 
 #[ tokio::test ]
-async fn test_set_cells_wrong_row()
+async fn test_set_cells_wrong_row_with_online()
 {
   let 
   ( 

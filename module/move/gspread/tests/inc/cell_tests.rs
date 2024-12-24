@@ -21,7 +21,7 @@ async fn setup() -> ( SheetsType, &'static str, &'static str )
 }
 
 #[ tokio::test ]
-async fn test_get_cell()
+async fn test_get_cell_with_online()
 {
   let ( hub, spreadsheet_id, table_name ) = setup().await;
   let cell_id = "R2C1";
@@ -40,7 +40,7 @@ async fn test_get_cell()
 }
 
 #[ tokio::test ]
-async fn test_get_cell_empty()
+async fn test_get_cell_empty_with_online()
 {
   let ( hub, spreadsheet_id, table_name ) = setup().await;
   let cell_id = "R4C1";
@@ -59,7 +59,7 @@ async fn test_get_cell_empty()
 }
 
 #[ tokio::test ]
-async fn test_set_cell()
+async fn test_set_cell_with_online()
 {
   let ( hub, spreadsheet_id, table_name ) = setup().await;
   let cell_id = "R2C1";
@@ -79,7 +79,7 @@ async fn test_set_cell()
 }
 
 #[ tokio::test ]
-async fn test_set_empty_cell()
+async fn test_set_empty_cell_with_online()
 {
   let ( hub, spreadsheet_id, table_name ) = setup().await;
   let cell_id = "R4C1";
