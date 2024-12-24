@@ -1,3 +1,7 @@
+//!
+//! OAuth2 tests.
+//! 
+
 use httpmock::prelude::*;
 use reqwest;
 use serde_json::json;
