@@ -1,8 +1,6 @@
-#[ cfg( feature = "with_online" ) ]
 #[ allow( unused_imports ) ]
 use super::*;
 
-#[ cfg( feature = "with_online" ) ]
 use the_module::
 {
   hub,
@@ -12,7 +10,6 @@ use the_module::
   ser::JsonValue
 };
 
-#[ cfg( feature = "with_online" ) ]
 async fn setup() -> ( SheetsType, &'static str, &'static str )
 {
   let secret = Secret::load().expect( "Failed to load secret" );
@@ -23,7 +20,6 @@ async fn setup() -> ( SheetsType, &'static str, &'static str )
   ( hub, spreadsheet_id, table_name )
 }
 
-#[ cfg( feature = "with_online" ) ]
 #[ tokio::test ]
 async fn test_get_cell()
 {
@@ -43,7 +39,6 @@ async fn test_get_cell()
   assert_eq!( result, "Vsevolod" )
 }
 
-#[ cfg( feature = "with_online" ) ]
 #[ tokio::test ]
 async fn test_get_cell_empty()
 {
@@ -63,7 +58,6 @@ async fn test_get_cell_empty()
   assert_eq!( result, JsonValue::Null )
 }
 
-#[ cfg( feature = "with_online" ) ]
 #[ tokio::test ]
 async fn test_set_cell()
 {
@@ -84,7 +78,6 @@ async fn test_set_cell()
   assert!( result.is_ok() );
 }
 
-#[ cfg( feature = "with_online" ) ]
 #[ tokio::test ]
 async fn test_set_empty_cell()
 {

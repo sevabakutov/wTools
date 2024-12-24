@@ -1,8 +1,6 @@
-#[ cfg( feature = "with_online" ) ]
 #[ allow( unused_imports ) ]
 use super::*;
 
-#[ cfg( feature = "with_online" ) ]
 use the_module::
 {
   hub,
@@ -11,7 +9,6 @@ use the_module::
   SheetsType,
 };
 
-#[ cfg( feature = "with_online" ) ]
 async fn setup() -> ( SheetsType, &'static str, &'static str, &'static str )
 {
   let secret = Secret::load().expect( "Failed to load secret" );
@@ -23,7 +20,6 @@ async fn setup() -> ( SheetsType, &'static str, &'static str, &'static str )
   ( hub, select_row_by_key, spreadsheet_id, table_name )
 }
 
-#[ cfg( feature = "with_online" ) ]
 #[ tokio::test ]
 async fn test_set_cells()
 {
@@ -51,7 +47,6 @@ async fn test_set_cells()
   assert_eq!( result, "Cells were sucsessfully updated!" )
 }
 
-#[ cfg( feature = "with_online" ) ]
 #[ tokio::test ]
 async fn test_set_cells_wrong_row()
 {

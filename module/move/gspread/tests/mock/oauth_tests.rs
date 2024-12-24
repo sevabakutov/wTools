@@ -66,11 +66,12 @@ async fn oauth2_second_endpoint_with_mock()
 async fn oauth2_third_endpoint_with_mock()
 {
   let server = MockServer::start();
+  let body = r#"code=AUTHORIZATION_CODE&client_secret=YOUR_CLIENT_SECRET&"#;
   let mock = server.mock( | when, then | {
     when.method( POST )
       .path( "/token" )
       .header("Content-Type", "application/json" )
-      .body( r#"code=AUTHORIZATION_CODE&client_secret=YOUR_CLIENT_SECRET&"# );
+      .body( body );
     then.status( 200 )
       .header("Content-Type", "application/json" )
       .json_body
@@ -86,8 +87,6 @@ async fn oauth2_third_endpoint_with_mock()
         ) 
       );
   });
-
-  let body = r#"code=AUTHORIZATION_CODE&client_secret=YOUR_CLIENT_SECRET&"#;
 
   let response = reqwest::Client::new()
   .post( server.url( "/token" ) )

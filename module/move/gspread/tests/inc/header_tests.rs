@@ -1,8 +1,6 @@
-#[ cfg( feature = "with_online" ) ]
 #[ allow( unused_imports ) ]
 use super::*;
 
-#[ cfg( feature = "with_online" ) ]
 use the_module::
 {
   hub,
@@ -11,7 +9,6 @@ use the_module::
   SheetsType
 };
 
-#[ cfg( feature = "with_online" ) ]
 async fn setup() -> ( SheetsType, &'static str )
 {
   let secret = Secret::load().expect( "Failed to load secret" );
@@ -21,7 +18,6 @@ async fn setup() -> ( SheetsType, &'static str )
   ( hub, spreadsheet_id )
 }
 
-#[ cfg( feature = "with_online" ) ]
 #[ tokio::test ]
 async fn test_get_header()
 {
@@ -40,7 +36,6 @@ async fn test_get_header()
   assert_eq!( result, vec![ vec![ "Name", "Surname", "Age" ] ] );
 }
 
-#[ cfg( feature = "with_online" ) ]
 #[ tokio::test ]
 async fn test_get_header_with_spaces()
 {
@@ -59,7 +54,6 @@ async fn test_get_header_with_spaces()
   assert_eq!( result, vec![ vec![ "Name", "", "Age" ] ] );
 }
 
-#[ cfg( feature = "with_online" ) ]
 #[ tokio::test ]
 async fn test_get_header_empty()
 {
@@ -78,7 +72,6 @@ async fn test_get_header_empty()
   assert_eq!( result, Vec::< Vec< String > >::new() );
 }
 
-#[ cfg( feature = "with_online" ) ]
 #[ tokio::test ]
 async fn test_get_header_with_empty_end()
 {

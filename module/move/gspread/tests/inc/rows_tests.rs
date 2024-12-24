@@ -1,8 +1,6 @@
-#[ cfg( feature = "with_online" ) ]
 #[ allow( unused_imports ) ]
 use super::*;
 
-#[ cfg( feature = "with_online" ) ]
 use the_module::
 {
   hub,
@@ -11,7 +9,6 @@ use the_module::
   SheetsType
 };
 
-#[ cfg( feature = "with_online" ) ]
 async fn setup() -> ( SheetsType, &'static str )
 {
   let secret = Secret::load().expect( "Failed to load secret" );
@@ -21,7 +18,6 @@ async fn setup() -> ( SheetsType, &'static str )
   ( hub, spreadsheet_id )
 }
 
-#[ cfg( feature = "with_online" ) ]
 #[ tokio::test ]
 async fn test_get_rows()
 {
@@ -50,7 +46,6 @@ async fn test_get_rows()
   )
 }
 
-#[ cfg( feature = "with_online" ) ]
 #[ tokio::test ]
 async fn test_get_rows_with_spaces()
 {
@@ -79,7 +74,6 @@ async fn test_get_rows_with_spaces()
   )
 }
 
-#[ cfg( feature = "with_online" ) ]
 #[ tokio::test ]
 async fn test_get_rows_empty()
 {
