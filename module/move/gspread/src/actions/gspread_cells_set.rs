@@ -88,7 +88,7 @@ mod private
     json_str : &str,
     spreadsheet_id : &str,
     table_name : &str
-  ) -> Result< String >
+  ) -> Result< i32 >
   {
     check_select_row_by_key( select_row_by_key )?;
 
@@ -130,8 +130,15 @@ mod private
     .doit()
     .await
     {
-      Ok( _ ) => Ok( format!( "Cells were sucsessfully updated!" ) ),
-      Err( error ) => Err( Error::ApiError( error ) )
+      Ok( ( _, values ) ) => 
+      {
+        match values.total_updated_cells 
+        {
+          Some( val ) => Ok( val ),
+          None => Ok( 0 ),
+        }
+      }
+      Err( error ) => Err( Error::ApiError( error ) ),
     }
   }
   

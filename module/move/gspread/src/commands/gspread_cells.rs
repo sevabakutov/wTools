@@ -81,7 +81,7 @@ mod private
         )
         .await
         {
-          Ok( msg ) => println!( "{}", msg ),
+          Ok( val ) => println!( "{} cells were sucsessfully updated!", val ),
           Err( error ) => println!( "Error:\n{}", error )
         }
       }
