@@ -1,6 +1,6 @@
 <!-- {{# generate.module_header{} #}} -->
 
-# Module :: mod_interface
+# Module :: `mod_interface`
 <!--{ generate.module_header.start() }-->
  [![experimental](https://raster.shields.io/static/v1?label=&message=experimental&color=orange)](https://github.com/emersion/stability-badges#experimental) [![rust-status](https://github.com/Wandalen/wTools/actions/workflows/module_mod_interface_push.yml/badge.svg)](https://github.com/Wandalen/wTools/actions/workflows/module_mod_interface_push.yml) [![docs.rs](https://img.shields.io/docsrs/mod_interface?color=e3e8f0&logo=docs.rs)](https://docs.rs/mod_interface) [![discord](https://img.shields.io/discord/872391416519737405?color=eee&logo=discord&logoColor=eee&label=ask)](https://discord.gg/m3YfbXpUUY)
 <!--{ generate.module_header.end }-->
@@ -92,7 +92,8 @@ crate::mod_interface!
   use super::child;
 }
 
-fn main()
+
+// fn main()
 {
 
   assert!( child::prelude_thing(), "prelude thing of child is there" );
@@ -195,7 +196,7 @@ pub mod own
 {
   use super::*;
   pub use orphan::*;
-  pub use child::orphan::*;
+  pub use super::child::orphan::*;
   pub use super::child;
 }
 
@@ -226,7 +227,7 @@ pub mod prelude
 
 //
 
-fn main()
+// fn main()
 {
 
   assert!( child::prelude_thing(), "prelude thing of child is there" );
@@ -262,41 +263,6 @@ fn main()
 ```
 
 </details>
-
-As you can see:
-
-- The content of the `prelude` chapter is automatically propagated into the `exposed` chapter of the same layer.
-- The content of the `exposed` chapter is automatically propagated into the `orphan` chapter of the same layer.
-- The content of the `orphan` chapter is automatically propagated into the `own` chapter of the same layer.
-- The content of the `own` chapter is not automatically propagated anywhere.
-
-### `layer <layer1>` vs `use <layer1>`
-
-The `use <layer1>;` syntax is used to import a layer from anywhere within the project or even from external crates. This provides flexibility in how layers are organized, as the layer being used does not need to be a direct submodule of the current module. It allows you to bring any accessible layer into the current scope without enforcing a specific file structure. The visibility of the imported layer remains as it is defined in its original location, and this syntax does not inherently change that visibility.
-
-In contrast, the `layer <layer1>` syntax is used to establish a hierarchical relationship where the current module uses a child layer. This requires the child layer to be a direct submodule, meaning it must be physically present in the file structure as a submodule. The `layer <layer1>` syntax implies `pub mod layer1`, making the child layer publicly accessible as a submodule. This enforces a specific organizational structure, where the child layer is part of the current module's hierarchy, and its contents are directly accessible according to the defined propagation strategies.
-
-Thus, `layer <layer1>` acts as a shortcut, combining the definition of a reference to a module file and using it, while `use <layer1>` uses a module that is already defined somewhere, not necessarily in the same crate.
-
-### `reuse <layer1>` vs `use <layer1>`
-
-The `reuse <layer1>` syntax treats the child layer as an integral part of the parent layer, so the normal rules of propagation do not apply to the content of the child layer. Specifically, the `own` chapter of the child layer is imported into the `own` chapter of the parent layer, and the `orphan` chapter of the child layer is imported into the `orphan` chapter of the parent layer.
-
-In contrast, `use <layer1>` follows the standard propagation rules:
-
-- `child::own` is not propagated.
-- `child::orphan` is imported into `parent::own`.
-- `child::exposed` is imported into `parent::exposed`.
-- `child::prelude` is imported into `parent::prelude`.
-
-For `reuse <layer1>`, the propagation is as follows:
-
-- `child::own` is imported into `parent::own`.
-- `child::orphan` is imported into `parent::orphan`.
-- `child::exposed` is imported into `parent::exposed`.
-- `child::prelude` is imported into `parent::prelude`.
-
-`reusing` does not impact parent of parent or child of child.
 
 ### Debugging
 

@@ -1,5 +1,6 @@
 mod private
 {
+  #[ allow( clippy::wildcard_imports ) ]
   use crate::*;
 
   use help::{ HelpGeneratorOptions, LevelOfDetail, generate_help_content };
@@ -78,6 +79,8 @@ mod private
     /// Converts raw program to grammatically correct
     ///
     /// Converts all namespaces into it with `to_namespace` method.
+    /// # Errors
+    /// qqq: doc
     pub fn to_program
     (
       &self,
@@ -183,8 +186,9 @@ mod private
       Ok( subjects )
     }
 
-    // aaa : use typed error
-    // aaa : done.
+      // aaa : use typed error
+      // aaa : done.
+    #[ allow( clippy::manual_map ) ]
     fn extract_properties( command: &Command, raw_command : HashMap< String, String > )
     ->
     Result< HashMap< String, Value >, PropertyError >
@@ -224,7 +228,7 @@ mod private
 
       used_keys.flat_map( | key |
       {
-        reverse_aliases.get( key ).into_iter().flatten().map( | k | *k ).chain( Some( key ) )
+        reverse_aliases.get( key ).into_iter().flatten().copied().chain( Some( key ) )
       })
       .collect()
     }
@@ -232,6 +236,10 @@ mod private
     /// Converts raw command to grammatically correct
     ///
     /// Make sure that this command is described in the grammar and matches it(command itself and all it options too).
+    /// # Errors
+    /// qqq: doc
+    /// # Panics
+    /// qqq: doc
     // aaa : use typed error
     // aaa : done.
     pub fn to_command( &self, dictionary : &Dictionary, raw_command : ParsedCommand )
@@ -277,7 +285,7 @@ mod private
 
       Ok( VerifiedCommand
       {
-        phrase : cmd.phrase.to_owned(),
+        phrase : cmd.phrase.clone(),
         internal_command : false,
         args : Args( subjects ),
         props : Props( properties ),

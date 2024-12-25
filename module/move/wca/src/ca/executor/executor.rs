@@ -1,5 +1,6 @@
 mod private
 {
+  #[ allow( clippy::wildcard_imports ) ]
   use crate::*;
 
   use ca::help::{ HelpGeneratorOptions, generate_help_content, LevelOfDetail };
@@ -45,7 +46,8 @@ mod private
     /// # Returns
     ///
     /// A `Result` with `Ok( () )` if the execution was successful, or an `Err` containing an error message if an error occurred.
-    ///
+    /// # Errors
+    /// qqq: doc
     // aaa : use typed error
     // aaa : done
     pub fn program( &self, dictionary : &Dictionary, program : Program< VerifiedCommand > )
@@ -71,6 +73,10 @@ mod private
     /// # Returns
     ///
     /// Returns a Result indicating success or failure. If successful, returns `Ok(())`, otherwise returns an error.
+    /// # Errors
+    /// qqq: doc
+    /// # Panics
+    /// qqq: doc
     // aaa : use typed error
     // aaa : done
     pub fn command( &self, dictionary : &Dictionary, command : VerifiedCommand )
@@ -116,6 +122,7 @@ mod private
 
   // aaa : use typed error
   // aaa : done
+  #[ allow( clippy::needless_pass_by_value ) ]
   fn _exec_internal_command( dictionary : &Dictionary, command : VerifiedCommand )
   -> Result< (), InternalCommandError >
   {

@@ -1,5 +1,7 @@
+#[ allow( clippy::std_instead_of_alloc, clippy::std_instead_of_core ) ]
 mod private
 {
+  #[ allow( clippy::wildcard_imports ) ]
   use crate::*;
 
   // aaa : group
@@ -61,6 +63,7 @@ mod private
     /// let first_arg : &str = args[ 0 ].clone().into();
     /// assert_eq!( "Hello, World!", first_arg );
     /// ```
+    #[ must_use ]
     pub fn get_owned< T : From< Value > >( &self, index : usize ) -> Option< T >
     {
       self.0.get( index ).map( | arg | arg.to_owned().into() )
@@ -180,9 +183,9 @@ mod private
 
   pub struct Handler< I, O >( Box< dyn Fn( I ) -> O > );
 
-  impl< I, O > std::fmt::Debug for Handler< I, O >
+  impl< I, O > core::fmt::Debug for Handler< I, O >
   {
-    fn fmt( &self, f : &mut Formatter< '_ > ) -> std::fmt::Result
+    fn fmt( &self, f : &mut Formatter< '_ > ) -> core::fmt::Result
     {
       f.debug_struct( "Handler" ).finish_non_exhaustive()
     }
@@ -261,9 +264,9 @@ mod private
     WithContext( Rc< RoutineWithContextFn > ),
   }
 
-  impl std::fmt::Debug for Routine
+  impl core::fmt::Debug for Routine
   {
-    fn fmt( &self, f : &mut Formatter< '_ > ) -> std::fmt::Result
+    fn fmt( &self, f : &mut Formatter< '_ > ) -> core::fmt::Result
     {
       match self
       {
@@ -316,7 +319,7 @@ mod private
     {
       // We can't compare closures. Because every closure has a separate type, even if they're identical.
       // Therefore, we check that the two Rc's point to the same closure (allocation).
-      #[ allow( clippy::vtable_address_comparisons ) ]
+      #[ allow( ambiguous_wide_pointer_comparisons ) ]
       match ( self, other )
       {
         ( Routine::WithContext( this ), Routine::WithContext( other ) ) => Rc::ptr_eq( this, other ),
@@ -335,9 +338,9 @@ mod private
 
   // xxx
   // aaa : This is an untyped error because we want to provide a common interface for all commands, while also allowing users to propagate their own specific custom errors.
-  impl IntoResult for std::convert::Infallible { fn into_result( self ) -> error::untyped::Result< () > { Ok( () ) } }
+  impl IntoResult for core::convert::Infallible { fn into_result( self ) -> error::untyped::Result< () > { Ok( () ) } }
   impl IntoResult for () { fn into_result( self ) -> error::untyped::Result< () > { Ok( () ) } }
-  impl< E : std::fmt::Debug + std::fmt::Display + 'static > IntoResult
+  impl< E : core::fmt::Debug + std::fmt::Display + 'static > IntoResult
   for error::untyped::Result< (), E >
   {
     fn into_result( self ) -> error::untyped::Result< () >

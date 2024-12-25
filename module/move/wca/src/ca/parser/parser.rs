@@ -1,5 +1,6 @@
 mod private
 {
+  #[ allow( clippy::wildcard_imports ) ]
   use crate::*;
 
   use std::collections::HashMap;
@@ -32,6 +33,8 @@ mod private
     /// # Returns
     ///
     /// Returns a `Result` with a `Program` containing the parsed commands if successful, or an error if parsing fails.
+    /// # Errors
+    /// qqq: doc
     // aaa : use typed error
     // aaa : done.
     pub fn parse< As, A >( &self, args : As ) -> Result< Program< ParsedCommand >, ParserError >
@@ -57,7 +60,7 @@ mod private
     {
       if let Some( name ) = input.strip_prefix( '.' )
       {
-        name.is_empty() || name.starts_with( '?' ) || name.chars().next().is_some_and( | c | c.is_alphanumeric() )
+        name.is_empty() || name.starts_with( '?' ) || name.chars().next().is_some_and( char::is_alphanumeric )
       }
       else
       {
@@ -90,7 +93,7 @@ mod private
 
       i += relative_pos;
 
-      return Ok(
+      Ok(
       (
         ParsedCommand
         {
