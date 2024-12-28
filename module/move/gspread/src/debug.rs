@@ -9,12 +9,16 @@ use format_tools::
 };
 use std::borrow::Cow;
 
-pub mod row_wrapper;
+pub mod rows;
 
 crate::mod_interface!
 {
   exposed use
   {
-    row_wrapper::RowWrapper,
+    rows::
+    {
+      RowWrapper,
+      wrap_row
+    }
   };
 }

@@ -63,6 +63,7 @@ mod private
     }
   }
 
+  
   fn is_all_uppercase_letters
   (
     s : &str
@@ -99,23 +100,26 @@ mod private
     .remove( select_row_by_key )
     .ok_or_else( || Error::ParseError( format!( "Key '{}' not found in JSON", select_row_by_key ) ) )?;
 
-
     let mut value_ranges= Vec::new();
 
+    // wrap_row()
     for ( key, value ) in pairs.columns.into_iter()
     {
+      // There is no sense to use this function, instead we can just check if a char is uppercase if not then convert it to uppercase  
       is_all_uppercase_letters( key.as_str() )?;
       value_ranges.push
       ( 
-        ValueRange
+        ValueRange 
         { 
           range: Some( format!( "{}!{}{}", table_name, key, row_id ) ), 
           values: Some( vec![ vec![ JsonValue::String( value.to_string() ) ] ] ),
+          // Change to rows
           ..Default::default() 
         } 
       );
     };
 
+    // Also read about it and change values
     let req = BatchUpdateValuesRequest
     {
       value_input_option: Some( "USER_ENTERED".to_string() ),
