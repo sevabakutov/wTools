@@ -15,6 +15,9 @@ crate::mod_interface!
 {
   exposed use
   {
-    row_wrapper::RowWrapper,
+    row_wrapper::
+    {
+      RowWrapper
+    }
   };
 }

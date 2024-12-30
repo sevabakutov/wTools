@@ -18,6 +18,7 @@ name = "main"
 path = "src/bin/main.rs"
 
 [features]
+with_online = []
 default = [ "enabled" ]
 full = [ "enabled" ]
 enabled = [
@@ -44,6 +45,9 @@ error_tools = "0.19.0"
 derive_tools = { version = "0.32.0", features = ["full"] }
 serde_json = "1.0.132"
 regex = "1.11.1"
+unicode-width = "0.2.0"
 
 [dev-dependencies]
 test_tools = { workspace = true }
+httpmock = "0.7.0-rc.1"
+reqwest = "0.12.9"

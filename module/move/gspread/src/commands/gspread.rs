@@ -22,35 +22,53 @@ mod private
   #[ derive( Debug, Parser ) ]
   pub struct CommonArgs
   {
-    #[ arg( long ) ]
+    #[ arg( long, help = "Full URL of Google Sheet.\n\
+    It has to be inside of '' to avoid parse errors.\n\
+    Example: 'https://docs.google.com/spreadsheets/d/your_spreadsheet_id/edit?gid=0#gid=0'" ) ]
     pub url : String,
 
-    #[ arg( long ) ]
+    #[ arg( long, help = "Sheet name.\nExample: Sheet1" ) ]
     pub tab : String
   }
 
   #[ derive( Debug, Subcommand ) ]
   pub enum Command
   {
-
+    
+    /// Command to get header of a sheet. Header is a first raw.
+    /// 
+    /// Command example: 
+    /// 
+    /// gspread header
+    /// --url 'https://docs.google.com/spreadsheets/d/1EAEdegMpitv-sTuxt8mV8xQxzJE7h_J0MxQoyLH7xxU/edit?gid=0#gid=0'
+    /// --tab tab1
     #[ command ( name = "header" ) ]
     Header
     (
       CommonArgs
     ),
 
+    /// Command to get all raws of a sheet but not header.
+    /// 
+    /// Command example:
+    /// 
+    /// gspread rows
+    /// --url 'https://docs.google.com/spreadsheets/d/1EAEdegMpitv-sTuxt8mV8xQxzJE7h_J0MxQoyLH7xxU/edit?gid=0#gid=0'
+    /// --tab tab1
     #[ command( name = "rows" ) ]
     Rows
     (
       CommonArgs
     ),
 
+    /// Command to get or update a cell from a sheet.
     #[ command ( subcommand, name = "cell" ) ]
     Cell
     (
       gspread_cell::Commands
     ),
 
+    /// Commands to set a new value to a cell or get a value from a cell.
     #[ command ( subcommand, name = "cells" ) ]
     Cells
     (
@@ -85,7 +103,8 @@ mod private
 
       Command::Cells( cells_command) =>
       {
-        gspread_cells::command( hub, cells_command ).await;
+        // hub
+        gspread_cells::command( cells_command ).await;
       },
 
     }

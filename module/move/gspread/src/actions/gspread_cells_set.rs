@@ -5,35 +5,75 @@
 mod private
 {
   use crate::*;
-  use google_sheets4::api::
+  use actions::gspread::
   {
-    BatchUpdateValuesRequest, 
-    ValueRange
+    Error,
+    Result,
+    update_row
   };
-  use ser::
-  { 
-    Deserialize, 
-    JsonValue 
-  };
+  use ser:: Deserialize;
   use std::collections::HashMap;
 
-  /// Structure for --json value
+  /// Structure to keep rows key and new values for cells updating.
   #[ derive( Deserialize, Debug ) ]
-  struct ParsedJson
+  struct ParsedJson< 'a >
   {
-    #[ serde( flatten ) ]
-    columns : HashMap< String, String >
+    row_key : &'a str,
+    row_key_val : HashMap< String, String >
   }
   
-  /// Parse --json value
-  fn parse_json
+  /// Function to parse `--json` flag.
+  /// 
+  /// It retirive `--select-row-by-key` flag from json and set it to `row_key` field.
+  /// Other pairs it set to `row_key_val`
+  /// 
+  /// **Returns**
+  ///  - `ParsedJson` object
+  fn parse_json< 'a >
   (
-    json_str : &str
-  ) -> Result< ParsedJson, String > 
+    json_str : &'a str,
+    select_row_by_key : &str,
+  ) -> Result< ParsedJson< 'a > > 
   {
-    serde_json::from_str::< ParsedJson >( json_str ).map_err
+    let mut parsed_json: HashMap< String, String > = serde_json::from_str( json_str )
+    .map_err( | error | Error::InvalidJSON( format!( "Failed to parse JSON: {}", error ) ) )?;
+
+    let row_key = if let Some( row_key ) = parsed_json.remove( select_row_by_key ) 
+    {
+      Box::leak( row_key.into_boxed_str() )
+    } 
+    else 
+    {
+      return Err
+      (
+        Error::InvalidJSON
+        (
+          format!( "Key '{}' not found in JSON", select_row_by_key)
+        )
+      );
+    };
+
+    for ( col_name, _ ) in &parsed_json 
+    {
+      if !col_name.chars().all( | c | c.is_alphabetic() && c.is_uppercase() ) 
+      {
+        return Err
+        ( 
+          Error::InvalidJSON
+          ( 
+            format!( "Invalid column name: {}. Allowed only uppercase alphabetic letters (A-Z)", col_name )
+          )
+        );
+      }
+    };
+
+    Ok
     (
-      | err | format!( "Failed to parse JSON: {}", err )
+      ParsedJson
+      {
+        row_key : row_key,
+        row_key_val : parsed_json
+      }
     )
   }
 
@@ -42,7 +82,7 @@ mod private
   fn check_select_row_by_key
   (
     key : &str
-  ) -> Result< (), String > 
+  ) -> Result< () > 
   {
     let keys = vec![ "id" ];
     if keys.contains( &key )
@@ -51,79 +91,42 @@ mod private
     } 
     else 
     {
-      Err( format!( "Invalid select_row_by_key: '{}'. Allowed keys: {:?}", key, keys ) )
-    }
-  }
-
-  fn is_all_uppercase_letters
-  (
-    s : &str
-  ) -> Result< (), String >
-  {
-    if s.chars().all( | c | c.is_ascii_uppercase() ) 
-    {
-      Ok( () )
-    } 
-    else 
-    {
-      Err( format!( "The string '{}' contains invalid characters. Only uppercase letters (A-Z) are allowed.", s ) )
+      Err
+      ( 
+        Error::ParseError( format!( "Invalid select_row_by_key: '{}'. Allowed keys: {:?}", key, keys ) ) 
+      )
     }
   }
 
   pub async fn action
   (
-    hub : &SheetsType,
     select_row_by_key : &str,
     json_str : &str,
     spreadsheet_id : &str,
     table_name : &str
-  ) -> Result< String, String >
+  ) -> Result< i32 >
   {
     check_select_row_by_key( select_row_by_key )?;
 
-    let mut pairs = parse_json( json_str )?;
-
-    let row_id = pairs
-    .columns
-    .remove( select_row_by_key )
-    .ok_or_else( || format!( "Key '{}' not found in JSON", select_row_by_key ) )?;
-
-    let mut value_ranges= Vec::new();
-
-    for ( key, value ) in pairs.columns.into_iter()
+    match parse_json( json_str, select_row_by_key )
     {
-      is_all_uppercase_letters( key.as_str() )?;
-      value_ranges.push
-      ( 
-        ValueRange
-        { 
-          range: Some( format!( "{}!{}{}", table_name, key, row_id ) ), 
-          values: Some( vec![ vec![ JsonValue::String( value.to_string() ) ] ] ),
-          ..Default::default() 
-        } 
-      );
-    };
-
-    let req = BatchUpdateValuesRequest
-    {
-      value_input_option: Some( "USER_ENTERED".to_string() ),
-      data: Some( value_ranges ),
-      include_values_in_response: Some( true ),
-      ..Default::default()
-    };
-
-    let result = hub
-    .spreadsheets()
-    .values_batch_update( req, spreadsheet_id )
-    .doit()
-    .await;
-
-    match result
-    {
-      Ok( _ ) => Ok( format!( "Cells were sucsessfully updated!" ) ),
-      Err( error ) => Err( format!( "{}", error ) )
+      Ok( parsed_json ) => 
+      match update_row( spreadsheet_id, table_name, parsed_json.row_key, parsed_json.row_key_val ).await
+      {
+        Ok( response ) => 
+        {
+          match response.total_updated_cells 
+          {
+            Some( val ) => Ok( val ),
+            None => Ok( 0 ),
+          }
+        },
+        Err( error ) => Err( error )
+      }
+      Err( error ) => Err( error ),
     }
   }
+  
 }
 
 crate::mod_interface!

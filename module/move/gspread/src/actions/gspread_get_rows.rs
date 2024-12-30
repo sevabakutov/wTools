@@ -9,7 +9,11 @@ mod private
 {
   use crate::*;
   use client::SheetsType;
-  use actions::gspread::Result;
+  use actions::gspread::
+  {
+    Error,
+    Result
+  };
   use ser::JsonValue;
 
   pub async fn action
@@ -19,16 +23,22 @@ mod private
     table_name : &str
   ) -> Result< Vec< Vec < JsonValue > > >
   {
-    let result = hub
+    match hub
     .spreadsheets()
     .values_get( spreadsheet_id, format!( "{}!A2:Z", table_name ).as_str() )
     .doit()
-    .await?
-    .1
-    .values
-    .unwrap_or_else( | | Vec::new() );
-
-    Ok( result )
+    .await
+    {
+      Ok( ( _, response ) ) =>
+      {
+        match response.values
+        {
+          Some( values ) => Ok( values ),
+          None => Ok( Vec::new() )
+        }
+      },
+      Err( error ) => Err( Error::ApiError( error ) )
+    }
   }
 }
 
