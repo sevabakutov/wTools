@@ -2,7 +2,26 @@
 
 Follow these steps to create and configure your OAuth credentials for using Google APIs.
 
-## 1. Create API Credentials
+## 1. Configure Consent Screen
+
+1. Go to the [Google API Console](https://console.developers.google.com/).
+2. From the projects list, select an existing project or create a new one.
+3. Go to **OAuth consent screen**
+4. Choose **Extrenal** User Type
+5. Fill **App name**, **User support email** and **Developer contact information**. Click **continue**
+6. Click on **ADD OR REMOVE SCOPES**
+7. Add **.../auth/userinfo.email** and **.../auth/userinfo.profile** spoces.
+8. Finish configuration
+
+## 2. Enable Google Sheets API
+
+1. Go to the [Google API Console](https://console.developers.google.com/).
+2. In the left side menu, select **Enabled APIs & Services**.
+3. Click on **ENABLE APIS AND SERVICES**
+4. Search for **Google Sheets API**
+5. Click on **Enable**
+
+## 2. Create API Credentials
 
 1. Go to the [Google API Console](https://console.developers.google.com/).
 2. From the projects list, select an existing project or create a new one.
@@ -15,7 +34,7 @@ Follow these steps to create and configure your OAuth credentials for using Goog
 
 Once the credential is created, you will receive a **Client ID** and **Client Secret**. These are required for accessing the API.
 
-## 2. Store Your Credentials
+## 3. Store Your Credentials
 
 Save the **Client ID** and **Client Secret** in a `.env` within a `.secret` directory. The file should look like this:
 
@@ -24,11 +43,11 @@ CLIENT_ID=YOUR_CLIENT_ID
 CLIENT_SECRET=YOUR_SECRET_KEY
 ```
 
-## 3. Why do we need it?
+## 4. Why do we need it?
 
 After executing each command, you need to grant the GSPREAD program access to the Google API. You will receive a link that begin with 'Please direct your browser to https://....' that will redirect you to your browser, where you must authorize the access. You will need to select the appropriate Google account that has the credentials for the application. The **CLIENT_ID** and **CLIENT_SECRET** are set up to do this process.
 
-## 4. Troubleshooting
+## 5. Troubleshooting
 
 If you encounter a page displaying an error instead of the Google account selection screen, it is likely that you need to add **AUTH_URI** or **TOKEN_URI** to the .env file. In this case, all four secrets are required. To retrieve them, download the API key you created in JSON format. Open the file and copy the necessary keys into the .env file. After making these changes, your .env file should look like this:
 
