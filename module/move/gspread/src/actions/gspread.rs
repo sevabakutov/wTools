@@ -142,6 +142,7 @@ mod private
   /// It sends HTTP request to Google Sheets API and change row wich provided values. 
   /// 
   /// **Params**
+  ///  - `hub` : Configured hub.
   ///  - `spreadsheet_id` : Spreadsheet identifire.
   ///  - `sheet_name` : Sheet name.
   ///  - `row_key` : row's key.
@@ -191,6 +192,43 @@ mod private
     }
   }
 
+
+  /// Function to get header of a specific sheet
+  /// 
+  /// It sends HTTP request to Google Sheets API and rettrive header.
+  /// 
+  /// **Params**
+  ///  - `hub` : Configured hub.
+  ///  - `spreadsheet_id` : Spreadsheet identifire.
+  ///  - `sheet_name` : Sheet name.
+  /// 
+  /// **Returns**
+  ///  - `Result`
+  pub async fn get_header
+  (
+    hub : &SheetsType,
+    spreadsheet_id : &str,
+    sheet_name : &str, 
+  ) -> Result< Vec< Vec< JsonValue > > >
+  {
+    match hub
+    .spreadsheets()
+    .values_get( spreadsheet_id, format!( "{}!A1:Z1", sheet_name ).as_str() )
+    .doit()
+    .await
+    {
+      Ok( ( _, response ) ) =>
+      {
+        match response.values
+        {
+          Some( values ) => Ok( values ),
+          None => Ok( Vec::new() )
+        }
+      },
+      Err( error ) => Err( Error::ApiError( error ) )
+    }
+  }
+
   pub type Result< T > = core::result::Result< T, Error >;
 }
 
@@ -201,6 +239,7 @@ crate::mod_interface!
     Error,
     Result,
     update_row,
+    get_header,
     get_spreadsheet_id_from_url,
   };
 }
