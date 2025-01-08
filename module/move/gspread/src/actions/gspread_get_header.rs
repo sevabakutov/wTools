@@ -12,7 +12,8 @@ mod private
   use client::SheetsType;
   use actions::gspread::
   {
-    get_header, Result
+    get_header, 
+    Result
   };
   use format_tools::AsTable;
   use util::display_table::display_header;

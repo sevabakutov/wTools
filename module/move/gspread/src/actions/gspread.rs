@@ -18,8 +18,9 @@ mod private
   use std::collections::HashMap;
   use google_sheets4::api::
   {
-    BatchUpdateValuesResponse, 
     BatchUpdateValuesRequest, 
+    BatchUpdateValuesResponse, 
+    UpdateValuesResponse, 
     ValueRange
   };
 
@@ -264,7 +265,7 @@ mod private
     }
   }
 
-  /// Function to get a cell of a specific sheet
+  /// Function to get a specific cell of a specific sheet
   /// 
   /// It sends HTTP request to Google Sheets API and retrive cell.
   /// 
@@ -300,6 +301,47 @@ mod private
     }
   }
 
+  /// Function to set a new value to a specific cell of a specific sheet
+  /// 
+  /// It sends HTTP request to Google Sheets API and retrive cell.
+  /// 
+  /// **Params**
+  ///  - `hub` : Configured hub.
+  ///  - `spreadsheet_id` : Spreadsheet identifire.
+  ///  - `sheet_name` : Sheet name.
+  ///  - `cell_id` : Cell id.
+  ///  - `value` : New value to update.
+  /// 
+  /// **Returns**
+  ///  - `Result`
+  pub async fn set_cell
+  (
+    hub : &SheetsType,
+    spreadsheet_id : &str,
+    sheet_name : &str,
+    cell_id : &str,
+    value : &str
+  ) -> Result< UpdateValuesResponse >
+  {
+    let value = JsonValue::String( value.to_string() );
+    let value_range = ValueRange
+    {
+      values : Some( vec![ vec![ value ] ] ),
+      ..ValueRange::default()
+    };
+
+    match hub
+    .spreadsheets()
+    .values_update( value_range, spreadsheet_id, format!( "{}!{}", sheet_name, cell_id ).as_str() )
+    .value_input_option( "USER_ENTERED" )
+    .doit()
+    .await
+    {
+      Ok( ( _, response) ) => Ok( response ),
+      Err( error) => Err( Error::ApiError( error ) )
+    }
+  }
+
   pub type Result< T > = core::result::Result< T, Error >;
 }
 
@@ -309,6 +351,7 @@ crate::mod_interface!
   {
     Error,
     Result,
+    set_cell,
     get_cell,
     get_rows,
     update_row,

@@ -11,7 +11,8 @@ mod private
   use crate::*;
   use actions::gspread::
   {
-    get_cell, Result
+    get_cell, 
+    Result
   };
   use client::SheetsType;
   use ser::JsonValue;
