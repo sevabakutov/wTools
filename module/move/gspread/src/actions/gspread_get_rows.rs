@@ -11,7 +11,8 @@ mod private
   use client::SheetsType;
   use actions::gspread::
   {
-    get_rows, Result
+    get_rows, 
+    Result
   };
   use ser::JsonValue;
 

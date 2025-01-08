@@ -10,7 +10,9 @@ mod private
   use crate::*;
   use actions::gspread::
   { 
-    set_cell, Error, Result 
+    set_cell, 
+    Error, 
+    Result 
   };
   use client::SheetsType;
 
