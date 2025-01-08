@@ -7,7 +7,6 @@
 
 mod private
 {
-  use std::fmt;
   use crate::*;
   use client::SheetsType;
   use actions::gspread::
@@ -15,27 +14,7 @@ mod private
     get_header, 
     Result
   };
-  use format_tools::AsTable;
-  use util::display_table::display_header;
   use ser::JsonValue;
-
-  #[ derive( Debug ) ]
-  pub struct Report
-  {
-    pub rows : Vec< RowWrapper >
-  }
-
-  impl fmt::Display for Report
-  {
-    fn fmt
-    (
-      &self,
-      f : &mut fmt::Formatter
-    ) -> fmt::Result
-    {
-      display_header( &AsTable::new( &self.rows ), f )
-    }
-  }
 
   pub async fn action
   (
