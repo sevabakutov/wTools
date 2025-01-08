@@ -11,8 +11,7 @@ mod private
   use client::SheetsType;
   use actions::gspread::
   {
-    Error,
-    Result
+    get_rows, Result
   };
   use ser::JsonValue;
 
@@ -20,24 +19,13 @@ mod private
   (
     hub : &SheetsType,
     spreadsheet_id : &str,
-    table_name : &str
+    sheet_name : &str
   ) -> Result< Vec< Vec < JsonValue > > >
   {
-    match hub
-    .spreadsheets()
-    .values_get( spreadsheet_id, format!( "{}!A2:Z", table_name ).as_str() )
-    .doit()
-    .await
+    match get_rows( hub, spreadsheet_id, sheet_name ).await
     {
-      Ok( ( _, response ) ) =>
-      {
-        match response.values
-        {
-          Some( values ) => Ok( values ),
-          None => Ok( Vec::new() )
-        }
-      },
-      Err( error ) => Err( Error::ApiError( error ) )
+      Ok( rows ) => Ok( rows ),
+      Err( error ) => Err( error )
     }
   }
 }

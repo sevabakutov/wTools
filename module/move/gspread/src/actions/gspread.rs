@@ -192,10 +192,9 @@ mod private
     }
   }
 
-
   /// Function to get header of a specific sheet
   /// 
-  /// It sends HTTP request to Google Sheets API and rettrive header.
+  /// It sends HTTP request to Google Sheets API and retrive header.
   /// 
   /// **Params**
   ///  - `hub` : Configured hub.
@@ -229,6 +228,78 @@ mod private
     }
   }
 
+  /// Function to get rows of a specific sheet
+  /// 
+  /// It sends HTTP request to Google Sheets API and retrive all rows but not header.
+  /// 
+  /// **Params**
+  ///  - `hub` : Configured hub.
+  ///  - `spreadsheet_id` : Spreadsheet identifire.
+  ///  - `sheet_name` : Sheet name.
+  /// 
+  /// **Returns**
+  ///  - `Result`
+  pub async fn get_rows
+  (
+    hub : &SheetsType,
+    spreadsheet_id : &str,
+    sheet_name : &str, 
+  ) -> Result< Vec< Vec< JsonValue > > >
+  {
+    match hub
+    .spreadsheets()
+    .values_get( spreadsheet_id, format!( "{}!A2:Z", sheet_name ).as_str() )
+    .doit()
+    .await
+    {
+      Ok( ( _, response ) ) =>
+      {
+        match response.values
+        {
+          Some( values ) => Ok( values ),
+          None => Ok( Vec::new() )
+        }
+      },
+      Err( error ) => Err( Error::ApiError( error ) )
+    }
+  }
+
+  /// Function to get a cell of a specific sheet
+  /// 
+  /// It sends HTTP request to Google Sheets API and retrive cell.
+  /// 
+  /// **Params**
+  ///  - `hub` : Configured hub.
+  ///  - `spreadsheet_id` : Spreadsheet identifire.
+  ///  - `sheet_name` : Sheet name.
+  ///  - `cell_id` : Cell id.
+  /// 
+  /// **Returns**
+  ///  - `Result`
+  pub async fn get_cell
+  (
+    hub : &SheetsType,
+    spreadsheet_id : &str,
+    sheet_name : &str,
+    cell_id : &str
+  ) -> Result< JsonValue >
+  {
+    match hub
+    .spreadsheets()
+    .values_get( spreadsheet_id, format!( "{}!{}", sheet_name, cell_id ).as_str() )
+    .doit()
+    .await
+    {
+      Ok( ( _, response ) ) => 
+      match response.values
+      {
+        Some( values ) => Ok( values.get( 0 ).unwrap().get( 0 ).unwrap().clone() ),
+        None => Ok( JsonValue::Null.clone() )
+      }
+      Err( error ) => Err( Error::ApiError( error ) )
+    }
+  }
+
   pub type Result< T > = core::result::Result< T, Error >;
 }
 
@@ -238,6 +309,8 @@ crate::mod_interface!
   {
     Error,
     Result,
+    get_cell,
+    get_rows,
     update_row,
     get_header,
     get_spreadsheet_id_from_url,
