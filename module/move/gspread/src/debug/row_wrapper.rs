@@ -52,7 +52,6 @@ for RowWrapper
     //adding empty values for missing cells
     for index in self.row.len()..self.max_len
     {
-      let column_name = format!( "Column{}", index );
       let column_name = format!( "{}", index );
       let title = Box::leak( column_name.into_boxed_str() ) as &str;
       dst.push( ( title, Some( Cow::Owned( "".to_string() ) ) ) );

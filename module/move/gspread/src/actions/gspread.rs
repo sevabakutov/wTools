@@ -151,19 +151,13 @@ mod private
   ///  - `Result`
   pub async fn update_row
   (
+    hub : &SheetsType,
     spreadsheet_id : &str,
     sheet_name : &str,
     row_key : &str,
     row_key_val : HashMap< String, String >
   ) -> Result< BatchUpdateValuesResponse >
   {
-    let secret = Secret::read();
-    let hub = hub(&secret)
-    .await
-    .map_err( | _ | {
-      Error::HubError( format!( "Failed to create a hub. Ensure that you have a .env file with Secrets" ) )
-    })?;
-
     let mut value_ranges = Vec::with_capacity( row_key_val.len() );
 
     for ( col_name, value ) in row_key_val {

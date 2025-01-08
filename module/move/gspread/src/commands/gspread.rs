@@ -103,8 +103,7 @@ mod private
 
       Command::Cells( cells_command) =>
       {
-        // hub
-        gspread_cells::command( cells_command ).await;
+        gspread_cells::command( hub, cells_command ).await;
       },
 
     }

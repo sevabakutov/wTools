@@ -53,7 +53,7 @@ mod private
 
   pub async fn command
   (
-    // hub : &SheetsType,
+    hub : &SheetsType,
     commands : Commands
   )
   {
@@ -73,7 +73,7 @@ mod private
         
         match actions::gspread_cells_set::action
         (
-          // &hub,
+          &hub,
           select_row_by_key.as_str(),
           json.as_str(),
           spreadsheet_id,

@@ -100,6 +100,7 @@ mod private
 
   pub async fn action
   (
+    hub : &SheetsType,
     select_row_by_key : &str,
     json_str : &str,
     spreadsheet_id : &str,
@@ -111,7 +112,7 @@ mod private
     match parse_json( json_str, select_row_by_key )
     {
       Ok( parsed_json ) => 
-      match update_row( spreadsheet_id, table_name, parsed_json.row_key, parsed_json.row_key_val ).await
+      match update_row( hub, spreadsheet_id, table_name, parsed_json.row_key, parsed_json.row_key_val ).await
       {
         Ok( response ) => 
         {
