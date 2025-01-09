@@ -15,14 +15,42 @@ mod private
   use crate::*;
   use ser::JsonValue;
 
-  /// Structure to display a raw in console.
-  /// 
-  /// It implements `TableWithFields` and `Fields` traits.
-  /// These implementations allow to display a HTTP requests results in table view in console using `format_tools`.
-  ///  
-  /// **Fields**
-  ///  - `row` : Sheet's row. Header is also a row.
-  ///  - `max_len` : Max length of our table. It is necessary for correct displaying of the table.
+  /// # RowWrapper
+  ///
+  /// A structure used to display a row in the console in a table format.
+  ///
+  /// This structure is designed for displaying the results of HTTP requests in a tabular format 
+  /// using the `format_tools` crate. It implements the `TableWithFields` and `Fields` traits 
+  /// to enable this functionality.
+  ///
+  /// ## Fields:
+  /// - `row`:  
+  ///   A `Vec<JsonValue>` representing a single row of the table. This can include headers or data rows.
+  /// - `max_len`:  
+  ///   An `usize` specifying the maximum number of columns in the table.  
+  ///   This ensures proper alignment and display of the table in the console.
+  ///
+  /// ## Traits Implemented:
+  /// - `TableWithFields`:  
+  /// - `Fields<&'_ str, Option<Cow<'_, str>>>`:  
+  ///
+  /// **Usage example:**
+  /// ```rust
+  /// let row = RowWrapper 
+  /// {
+  ///   row: vec![json!("value1"), json!("value2"), json!("value3")],
+  ///   max_len: 5,
+  /// };
+  /// for (key, value) in row.fields() 
+  /// {
+  ///   println!("Column: {}, Value: {:?}", key, value);
+  /// }
+  /// ```
+  ///
+  /// ## Implementation Details:
+  /// - Missing cells in a row are filled with empty strings (`""`) to ensure all rows have `max_len` columns.
+  /// - Keys (column names) are dynamically generated based on the column index.
+  /// - Values are sanitized to remove unnecessary characters such as leading/trailing quotes.
   #[ derive( Debug, Clone ) ]
   pub struct RowWrapper
   {
