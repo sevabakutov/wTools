@@ -9,6 +9,7 @@ mod private
   use regex::Regex;
   use error_tools::typed::Error;
   use derive_tools::AsRefStr;
+  use serde_json::json;
   use crate::*;
   use ser::
   {
@@ -316,13 +317,13 @@ mod private
         ValueRange 
         { 
           major_dimension: Some( String::from( "ROWS" ) ),
-          values: Some( vec![ vec![ JsonValue::String( value ) ] ] ),
+          values: Some( vec![ vec![ json!( value ) ] ] ),
           range: Some( format!( "{}!{}{}", sheet_name, col_name, row_key ) ), 
         }
       )
     }
 
-    // Creating request variable.
+    // Creating request.
     let req = BatchUpdateValuesRequest
     {
       value_input_option: Some( "USER_ENTERED".to_string() ),
@@ -571,10 +572,9 @@ mod private
   ) -> Result< UpdateValuesResponse >
   {
     // Creating JSON with value to update.
-    let value = JsonValue::String( value.to_string() );
     let value_range = ValueRange
     {
-      values : Some( vec![ vec![ value ] ] ),
+      values : Some( vec![ vec![ json!( value ) ] ] ),
       ..ValueRange::default()
     };
 
