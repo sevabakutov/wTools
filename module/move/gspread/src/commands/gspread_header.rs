@@ -13,10 +13,16 @@ mod private
   use format_tools::AsTable;
   use util::display_table::display_header;
 
-  /// Structure to display retrieved header to console using `format_tools`.
-  /// 
-  /// **Fields**
-  ///  - `header` : Retrieved header.
+  /// # Report
+  ///
+  /// A structure to display the retrieved header in the console using `format_tools`.
+  ///
+  /// ## Fields:
+  /// - `header`:  
+  ///   A `Vec<RowWrapper>` representing the retrieved header rows.
+  ///
+  /// ## Usage:
+  /// This structure is used in conjunction with the `fmt::Display` trait to render the header in a formatted table view.
   #[ derive( Debug ) ]
   pub struct Report
   {
@@ -25,7 +31,15 @@ mod private
 
   impl fmt::Display for Report
   {
-    /// Calls `display_header` function, which calls appropriate functions from `format tools`.
+    /// Formats the header for display by calling the `display_header` function,
+    /// which uses appropriate functions from `format_tools`.
+    ///
+    /// ## Parameters:
+    /// - `f`:  
+    ///   A mutable reference to the `fmt::Formatter` used to write the formatted output.
+    ///
+    /// ## Returns:
+    /// - `fmt::Result` 
     fn fmt
     (
       &self,
@@ -36,6 +50,19 @@ mod private
     }
   }
 
+  /// # `command`
+  ///
+  /// Processes the `header` command by retrieving the header (first row) from a specified Google Sheet
+  /// and displaying it in a table format in the console.
+  ///
+  /// ## Parameters:
+  /// - `hub`:  
+  ///   A reference to the `SheetsType` client used to interact with the Google Sheets API.
+  /// - `args`:  
+  ///   A `CommonArgs` instance containing the sheet's URL and tab name.
+  /// 
+  /// ## Errors:
+  /// - Prints an error message if the spreadsheet ID extraction or header retrieval fails.
   pub async fn command
   (
     hub : &SheetsType,
