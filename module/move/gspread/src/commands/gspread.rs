@@ -19,11 +19,22 @@ mod private
     gspread_cells
   };
 
-  /// Structure with common command line arguments for `gspread` commands.
-  /// 
-  /// **Arguments**
-  ///  - `url` : Google spreadsheet url.
-  ///  - `tab` : Name of a specific sheet.
+  /// # CommonArgs
+  ///
+  /// Structure containing common command-line arguments for `gspread` commands.
+  ///
+  /// ## Fields:
+  /// - `url`:  
+  ///   The full URL of the Google Sheet.  
+  ///   Example: `'https://docs.google.com/spreadsheets/d/your_spreadsheet_id/edit?gid=0#gid=0'`
+  /// - `tab`:  
+  ///   The name of the specific sheet to target.  
+  ///   Example: `Sheet1`
+  ///
+  /// ## Example:
+  /// ```bash
+  /// gspread rows --url 'https://docs.google.com/spreadsheets/d/.../edit?gid=0#gid=0' --tab Sheet1
+  /// ```
   #[ derive( Debug, Parser ) ]
   pub struct CommonArgs
   {
@@ -36,19 +47,44 @@ mod private
     pub tab : String
   }
 
-  /// All `gspread` commands.
-  /// 
-  /// **Commands**
-  ///  - `Header` : Retrieve header from a specific sheet.
-  ///  - `Rows` : Retrieve rows from a specific sheet.
-  ///  - `Cell` : Retrieve or updates cell of a specific sheet.
-  ///  - `Cells` : Update a selected row of a specific sheet.
+  /// # Command
+  ///
+  /// Enum representing all available `gspread` commands.
+  ///
+  /// ## Variants:
+  /// - `Header`: Retrieves the header (first row) of a specific sheet.
+  /// - `Rows`: Retrieves all rows (excluding the header) from a specific sheet.
+  /// - `Cell`: Retrieves or updates a single cell in a sheet.
+  /// - `Cells`: Updates multiple cells in a specific row.
+  ///
+  /// ## Examples:
+  /// - Retrieve the header:
+  /// ```bash
+  /// gspread header --url 'https://docs.google.com/spreadsheets/d/.../edit?gid=0#gid=0' --tab Sheet1
+  /// ```
+  /// - Retrieve all rows:
+  /// ```bash
+  /// gspread rows --url 'https://docs.google.com/spreadsheets/d/.../edit?gid=0#gid=0' --tab Sheet1
+  /// ```
+  /// - Retrieve a single cell:
+  /// ```bash
+  /// gspread cell get --url 'https://docs.google.com/spreadsheets/d/.../edit?gid=0#gid=0' --tab Sheet1 --cell A1
+  /// ```
+  /// - Update a single cell:
+  /// ```bash
+  /// gspread cell set --url 'https://docs.google.com/spreadsheets/d/.../edit?gid=0#gid=0' --tab Sheet1 --cell A1 --val NewVal
+  /// ```
+  /// - Update multiple cells in a single row:
+  /// ```bash
+  /// gspread cells set
+  /// --url 'https://docs.google.com/spreadsheets/d/1EAEdegMpitv-sTuxt8mV8xQxzJE7h_J0MxQoyLH7xxU/edit?gid=0#gid=0' --tab Sheet1 --select-row-by-key "id" --json '{"id": "2", "A": "1", "B": "2"}'
+  /// ```
   #[ derive( Debug, Subcommand ) ]
   pub enum Command
   {
-    /// Command to get header of a sheet. Header is a first raw.
-    /// 
-    /// Command example: 
+    /// Retrieves the header (first row) of a specific sheet.
+    ///
+    /// **Example:**
     /// 
     /// gspread header
     /// --url 'https://docs.google.com/spreadsheets/d/1EAEdegMpitv-sTuxt8mV8xQxzJE7h_J0MxQoyLH7xxU/edit?gid=0#gid=0'
@@ -59,9 +95,9 @@ mod private
       CommonArgs
     ),
 
-    /// Command to get all raws of a sheet but not header.
+    /// Retrieves all raws of a specific sheet but not header.
     /// 
-    /// Command example:
+    /// **Example**:
     /// 
     /// gspread rows
     /// --url 'https://docs.google.com/spreadsheets/d/1EAEdegMpitv-sTuxt8mV8xQxzJE7h_J0MxQoyLH7xxU/edit?gid=0#gid=0'
@@ -72,14 +108,14 @@ mod private
       CommonArgs
     ),
 
-    /// Command to get or update a cell from a sheet.
+    /// Retrieves or updates a single cell in specific sheet.
     #[ command ( subcommand, name = "cell" ) ]
     Cell
     (
       gspread_cell::Commands
     ),
 
-    /// Commands to set a new value to a cell or get a value from a cell.
+    /// Updates multiple values in a single row of a specific sheet.
     #[ command ( subcommand, name = "cells" ) ]
     Cells
     (
@@ -88,6 +124,29 @@ mod private
 
   }
 
+  /// # `command`
+  ///
+  /// Executes the appropriate `gspread` command.
+  ///
+  /// ## Parameters:
+  /// - `hub`:  
+  ///   A reference to the `SheetsType` client for interacting with the Google Sheets API.
+  /// - `command`:  
+  ///   The `Command` enum specifying which operation to execute.
+  /// 
+  /// ## Usage example:
+  /// ```rust
+  /// let secret = Secret::read();
+  /// let hub = hub( &secret ).await?;
+  /// let cli = Cli::parse();
+  /// match cli.command
+  /// {
+  ///  CliCommand::GSpread( cmd ) =>
+  ///  {
+  ///    commands::gspread::command( &hub, cmd ).await;
+  ///  }
+  /// }
+  /// ```
   pub async fn command
   (
     hub : &SheetsType,
