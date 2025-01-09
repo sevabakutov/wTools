@@ -10,6 +10,10 @@ mod private
   use crate::*;
   use actions::gspread::get_spreadsheet_id_from_url;
 
+  /// Subcommands for `CELLS` command.
+  /// 
+  /// **Commands**
+  ///  - `Set` : Update a specific row.
   #[ derive( Debug, Subcommand ) ]
   pub enum Commands
   {

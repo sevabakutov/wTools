@@ -12,6 +12,11 @@ mod private
   use actions::gspread::get_spreadsheet_id_from_url;
   use client::SheetsType;
 
+  /// Subcommands for `CELL` command.
+  /// 
+  /// **Commands**
+  ///  - `Get` : Retrieve a value of a specific cell.
+  ///  - `Set` : Update a specific cell.
   #[ derive( Debug, Subcommand ) ]
   pub enum Commands
   {

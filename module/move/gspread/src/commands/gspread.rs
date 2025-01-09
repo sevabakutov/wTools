@@ -19,6 +19,11 @@ mod private
     gspread_cells
   };
 
+  /// Structure with common command line arguments for `gspread` commands.
+  /// 
+  /// **Arguments**
+  ///  - `url` : Google spreadsheet url.
+  ///  - `tab` : Name of a specific sheet.
   #[ derive( Debug, Parser ) ]
   pub struct CommonArgs
   {
@@ -31,10 +36,16 @@ mod private
     pub tab : String
   }
 
+  /// All `gspread` commands.
+  /// 
+  /// **Commands**
+  ///  - `Header` : Retrieve header from a specific sheet.
+  ///  - `Rows` : Retrieve rows from a specific sheet.
+  ///  - `Cell` : Retrieve or updates cell of a specific sheet.
+  ///  - `Cells` : Update a selected row of a specific sheet.
   #[ derive( Debug, Subcommand ) ]
   pub enum Command
   {
-    
     /// Command to get header of a sheet. Header is a first raw.
     /// 
     /// Command example: 
@@ -85,7 +96,6 @@ mod private
   {
     match command
     {
-
       Command::Header( header_command ) =>
       {
         gspread_header::command( hub, header_command ).await;
@@ -105,7 +115,6 @@ mod private
       {
         gspread_cells::command( hub, cells_command ).await;
       },
-
     }
   }
 

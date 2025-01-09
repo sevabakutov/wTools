@@ -13,6 +13,10 @@ mod private
   use format_tools::AsTable;
   use util::display_table::display_rows;
 
+  /// Structure to display retrieved rows to console using `format_tools`.
+  /// 
+  /// **Fields**
+  ///  - `rows` : Retrieved rows.
   pub struct Report
   {
     pub rows : Vec< RowWrapper >
@@ -20,6 +24,7 @@ mod private
 
   impl fmt::Display for Report
   {
+    /// Calls `display_rows` function, which calls appropriate functions from `format tools`.
     fn fmt
     (
       &self,

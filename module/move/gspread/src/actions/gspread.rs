@@ -116,7 +116,13 @@ mod private
     )
   }
 
-  /// Retrive spreadsheet id from url
+  /// Function to retrieve spreadsheet id from passed url.
+  /// 
+  /// **Params**
+  ///  - `url` : Google spreadsheet url.
+  /// 
+  /// **Return**
+  ///  - `Result`
   pub fn get_spreadsheet_id_from_url
   (
     url : &str

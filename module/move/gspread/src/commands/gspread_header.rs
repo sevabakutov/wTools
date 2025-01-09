@@ -13,21 +13,26 @@ mod private
   use format_tools::AsTable;
   use util::display_table::display_header;
 
+  /// Structure to display retrieved header to console using `format_tools`.
+  /// 
+  /// **Fields**
+  ///  - `header` : Retrieved header.
   #[ derive( Debug ) ]
   pub struct Report
   {
-    pub rows : Vec< RowWrapper >
+    pub header : Vec< RowWrapper >
   }
 
   impl fmt::Display for Report
   {
+    /// Calls `display_header` function, which calls appropriate functions from `format tools`.
     fn fmt
     (
       &self,
       f : &mut fmt::Formatter
     ) -> fmt::Result
     {
-      display_header( &AsTable::new( &self.rows ), f )
+      display_header( &AsTable::new( &self.header ), f )
     }
   }
 
@@ -66,7 +71,7 @@ mod private
               .map( | row | RowWrapper{ max_len: row.len(), row } )
               .collect();
               
-              println!( "Header:\n{}", Report{ rows: header_wrapped } );
+              println!( "Header:\n{}", Report{ header: header_wrapped } );
             }
           Err( error ) => eprintln!( "Error:\n{}", error ),
         }
