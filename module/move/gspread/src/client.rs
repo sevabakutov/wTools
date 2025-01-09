@@ -4,11 +4,16 @@
 
 mod private
 {
-
+  use std::error::Error;
+  use crate::*;
+  use secret::Secret;
   use google_sheets4 as sheets4;
-  use sheets4::Sheets;
-  use sheets4::hyper_rustls;
-  use sheets4::hyper_util;
+  use sheets4::
+  {
+    Sheets,
+    hyper_rustls,
+    hyper_util
+  };
   use sheets4::yup_oauth2::
   {
     self,
@@ -18,13 +23,33 @@ mod private
 
   pub use hyper_util::client::legacy::Client;
 
-  use std::error::Error;
-
-  use crate::*;
-  use secret::Secret;
-
+  /// # SheetsType
+  ///
+  /// A type alias for `Sheets<hyper_rustls::HttpsConnector<HttpConnector>>` representing HTTP connector.
   pub type SheetsType = Sheets< hyper_rustls::HttpsConnector< HttpConnector > >;
 
+  /// # `hub`
+  ///
+  /// Initializes and configures a Google Sheets client (`SheetsType`) using the provided secrets.
+  ///
+  /// ## Parameters:
+  /// - `secrets`:  
+  ///   A reference to a `Secret` struct containing credentials and URIs required for authentication.
+  ///
+  /// ## Returns:
+  /// - `Result<SheetsType, Box<dyn Error>>`:  
+  ///
+  /// ## Example:
+  /// ```rust
+  /// async fn example() -> Result<(), Box<dyn Error>> 
+  /// {
+  ///   let secrets = Secret::read();
+  ///   let hub = hub(&secrets).await?;
+  ///
+  ///   // Use `hub` to interact with the Google Sheets API.
+  ///   Ok(())
+  /// }
+  /// ```
   pub async fn hub( secrets: &Secret ) -> Result< SheetsType, Box< dyn Error > >
   {
     let secret: ApplicationSecret = ApplicationSecret
