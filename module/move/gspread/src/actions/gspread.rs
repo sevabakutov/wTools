@@ -24,12 +24,112 @@ mod private
     ValueRange
   };
 
+  /// # Error
+  ///
+  /// Represents errors that can occur while interacting with the Google Sheets API 
+  /// or during related operations in the application.
+  ///
+  /// ## Variants:
+  ///
+  /// ### `ApiError`
+  ///
+  /// Represents an error returned by the Google Sheets API.
+  ///
+  /// **Details:**  
+  /// This error occurs when the API returns a specific error message.  
+  /// The error message from the Google Sheets API is stored and displayed.
+  ///
+  /// **Fields:**  
+  /// - `google_sheets4::Error`:  
+  ///   The raw error returned by the API.
+  ///
+  /// **Example:**  
+  /// ```
+  /// Error::ApiError(google_sheets4::Error::new(...))
+  /// ```
+  ///
+  /// ### `HubError`
+  ///
+  /// Represents an error that occurs while initializing Google Sheets Hub.
+  ///
+  /// **Details:**  
+  /// This error indicates that the application failed to properly configure with the Google Sheets Hub.
+  ///
+  /// **Fields:**  
+  /// - `String`:  
+  ///   A detailed error message describing the issue.
+  ///
+  /// **Example:**  
+  /// ```
+  /// Error::HubError("Failed to initialize hub.".to_string())
+  /// ```
+  ///
+  /// ### `InvalidUrl`
+  ///
+  /// Represents an error caused by an invalid URL format.
+  ///
+  /// **Details:**  
+  /// This error occurs when the provided URL does not match the expected format.
+  ///
+  /// **Fields:**  
+  /// - `String`:  
+  ///   The invalid URL or a message describing the issue.
+  ///
+  /// **Example:**  
+  /// ```
+  /// Error::InvalidUrl("Invalid spreadsheet URL.".to_string())
+  /// ```
+  ///
+  /// ### `CellError`
+  ///
+  /// Represents an error related to a cell in the spreadsheet.
+  ///
+  /// **Details:**  
+  /// This error indicates that a cell was not retrieved or updated successfully.
+  ///
+  /// **Fields:**  
+  /// - `String`:  
+  ///   A message describing the issue with the cell.
+  ///
+  /// **Example:**  
+  /// ```
+  /// Error::CellError("Failed to update cell A1.".to_string())
+  /// ```
+  ///
+  /// ### `InvalidJSON`
+  ///
+  /// Represents an error caused by invalid JSON input or parsing issues.
+  ///
+  /// **Details:**  
+  /// This error occurs when the provided JSON data does not conform to the expected structure or format.
+  ///
+  /// **Fields:**  
+  /// - `String`:  
+  ///   A detailed error message describing the JSON issue.
+  ///
+  /// **Example:**  
+  /// ```
+  /// Error::InvalidJSON("Missing required field in JSON.".to_string())
+  /// ```
+  ///
+  /// ### `ParseError`
+  ///
+  /// Represents a generic parsing error.
+  ///
+  /// **Details:**  
+  /// This error is raised when a string or other input cannot be parsed into the expected format or structure.
+  ///
+  /// **Fields:**  
+  /// - `String`:  
+  ///   A message describing the parse error.
+  ///
+  /// **Example:**  
+  /// ```
+  /// Error::ParseError("Failed to parse date string.".to_string())
+  /// ```
   #[ ser::serde_as ]
   #[ derive( Debug, Error, AsRefStr, ser::Serialize ) ]
   #[ serde( tag = "type", content = "data" ) ]
-
-  /// Represents errors that can occur while interacting with the Google Sheets API 
-  /// or during related operations in the application.
   pub enum Error
   {
     /// Represents an error returned by the Google Sheets API.
@@ -116,13 +216,21 @@ mod private
     )
   }
 
-  /// Function to retrieve spreadsheet id from passed url.
-  /// 
-  /// **Params**
-  ///  - `url` : Google spreadsheet url.
-  /// 
-  /// **Return**
-  ///  - `Result`
+  /// # `get_spreadsheet_id_from_url`
+  ///
+  /// Retrieves the spreadsheet ID from the provided Google Sheets URL.
+  ///
+  /// ## Parameters:
+  /// - `url`:  
+  ///   A `&str` containing the full URL of the Google spreadsheet.  
+  ///
+  /// ## Returns:
+  /// - `Result<&str>`
+  ///
+  /// ## Errors:
+  /// - `Error::InvalidUrl`:  
+  ///   Occurs when the URL does not match the expected format.  
+  ///   Suggests copying the entire URL directly from the browser.
   pub fn get_spreadsheet_id_from_url
   (
     url : &str
@@ -144,19 +252,52 @@ mod private
     )
   }
 
-  /// Function to update a row on a Google Sheet.
+  /// # `update_row`
+  ///
+  /// Updates a specific row in a Google Sheet with the provided values.
+  ///
+  /// ## Parameters:
+  /// - `hub`:  
+  ///   A reference to the `SheetsType` client configured for the Google Sheets API.
+  /// - `spreadsheet_id`:  
+  ///   A `&str` representing the unique identifier of the spreadsheet.
+  /// - `sheet_name`:  
+  ///   A `&str` specifying the name of the sheet.
+  /// - `row_key`:  
+  ///   A `&str` representing the row's key (e.g., the row index).
+  /// - `row_key_val`:  
+  ///   A `HashMap<String, String>` where:  
+  ///   - Key: The column name (e.g., "A", "B").  
+  ///   - Value: The new value to set in the corresponding cell.
+  ///
+  /// ## Returns:
+  /// - `Result<BatchUpdateValuesResponse>`
+  ///
+  /// ## Example:
+  /// ```rust
+  /// use std::collections::HashMap;
   /// 
-  /// It sends HTTP request to Google Sheets API and change row wich provided values. 
+  /// async fn example(hub: &SheetsType, spreadsheet_id: &str, sheet_name: &str) -> Result<(), Error> 
+  /// {
+  ///   let mut row_key_val = HashMap::new();
+  ///   row_key_val.insert("A".to_string(), "New Value 1".to_string());
+  ///   row_key_val.insert("B".to_string(), "New Value 2".to_string());
   /// 
-  /// **Params**
-  ///  - `hub` : Configured hub.
-  ///  - `spreadsheet_id` : Spreadsheet identifire.
-  ///  - `sheet_name` : Sheet name.
-  ///  - `row_key` : row's key.
-  ///  - `row_key_val` : pairs of key value, where key is a column name and value is a new value.
-  /// 
-  /// **Returns**
-  ///  - `Result`
+  ///   match update_row(hub, spreadsheet_id, sheet_name, "1", row_key_val).await 
+  ///   {
+  ///     Ok(response) => println!("Row updated successfully: {:?}", response),
+  ///     Err(error) => eprintln!("Failed to update row: {}", error),
+  ///   }
+  ///   Ok(())
+  /// }
+  /// ```
+  ///
+  /// ## Errors:
+  /// - `Error::ApiError`:  
+  ///   Occurs if the Google Sheets API returns an error, e.g., due to invalid input or insufficient permissions.
+  ///
+  /// ## Notes:
+  /// - The `value_input_option` is set to `"USER_ENTERED"`, meaning the input values will be parsed as if entered by a user.
   pub async fn update_row
   (
     hub : &SheetsType,
@@ -166,6 +307,7 @@ mod private
     row_key_val : HashMap< String, String >
   ) -> Result< BatchUpdateValuesResponse >
   {
+    // Cretaing JSON with values to update. 
     let mut value_ranges = Vec::with_capacity( row_key_val.len() );
 
     for ( col_name, value ) in row_key_val {
@@ -180,6 +322,7 @@ mod private
       )
     }
 
+    // Creating request variable.
     let req = BatchUpdateValuesRequest
     {
       value_input_option: Some( "USER_ENTERED".to_string() ),
@@ -188,6 +331,7 @@ mod private
       ..Default::default()
     };
 
+    // Making HTTP request.
     match hub
     .spreadsheets()
     .values_batch_update( req, spreadsheet_id )
@@ -199,17 +343,43 @@ mod private
     }
   }
 
-  /// Function to get header of a specific sheet
-  /// 
-  /// It sends HTTP request to Google Sheets API and retrive header.
-  /// 
-  /// **Params**
-  ///  - `hub` : Configured hub.
-  ///  - `spreadsheet_id` : Spreadsheet identifire.
-  ///  - `sheet_name` : Sheet name.
-  /// 
-  /// **Returns**
-  ///  - `Result`
+  /// # `get_header`
+  ///
+  /// Retrieves the header row of a specific sheet.
+  ///
+  /// ## Parameters:
+  /// - `hub`:  
+  ///   A reference to the `SheetsType` client configured for the Google Sheets API.
+  /// - `spreadsheet_id`:  
+  ///   A `&str` representing the unique identifier of the spreadsheet.
+  /// - `sheet_name`:  
+  ///   A `&str` specifying the name of the sheet whose header is to be retrieved.
+  ///
+  /// ## Returns:
+  /// - `Result<Vec<Vec<JsonValue>>>`
+  ///
+  /// ## Example:
+  /// ```rust
+  /// async fn example(hub: &SheetsType, spreadsheet_id: &str, sheet_name: &str) 
+  /// {
+  ///   match get_header(hub, spreadsheet_id, sheet_name).await 
+  ///   {
+  ///     Ok(header) => 
+  ///     {
+  ///       println!("Header: {:?}", header);
+  ///     }
+  ///     Err(error) => 
+  ///     {
+  ///       eprintln!("Failed to retrieve header: {}", error);
+  ///     }
+  ///   }
+  /// }
+  /// ```
+  ///
+  /// ## Errors:
+  /// - `Error::ApiError`:  
+  ///   Occurs if the Google Sheets API returns an error, such as an invalid spreadsheet ID
+  ///   or insufficient permissions.
   pub async fn get_header
   (
     hub : &SheetsType,
@@ -217,6 +387,7 @@ mod private
     sheet_name : &str, 
   ) -> Result< Vec< Vec< JsonValue > > >
   {
+    // Making HTTP request.
     match hub
     .spreadsheets()
     .values_get( spreadsheet_id, format!( "{}!A1:Z1", sheet_name ).as_str() )
@@ -235,17 +406,43 @@ mod private
     }
   }
 
-  /// Function to get rows of a specific sheet
-  /// 
-  /// It sends HTTP request to Google Sheets API and retrive all rows but not header.
-  /// 
-  /// **Params**
-  ///  - `hub` : Configured hub.
-  ///  - `spreadsheet_id` : Spreadsheet identifire.
-  ///  - `sheet_name` : Sheet name.
-  /// 
-  /// **Returns**
-  ///  - `Result`
+  /// # `get_rows`
+  ///
+  /// Retrieves all rows (excluding the header) from a specific sheet.
+  ///
+  /// ## Parameters:
+  /// - `hub`:  
+  ///   A reference to the `SheetsType` client configured for the Google Sheets API.
+  /// - `spreadsheet_id`:  
+  ///   A `&str` representing the unique identifier of the spreadsheet.
+  /// - `sheet_name`:  
+  ///   A `&str` specifying the name of the sheet whose rows are to be retrieved.
+  ///
+  /// ## Returns:
+  /// - `Result<Vec<Vec<JsonValue>>>`
+  ///
+  /// ## Example:
+  /// ```rust
+  /// async fn example(hub: &SheetsType, spreadsheet_id: &str, sheet_name: &str) 
+  /// {
+  ///   match get_rows(hub, spreadsheet_id, sheet_name).await 
+  ///   {
+  ///     Ok(rows) => 
+  ///     {
+  ///       println!("Rows: {:?}", rows);
+  ///     }
+  ///     Err(error) => 
+  ///     {
+  ///       eprintln!("Failed to retrieve rows: {}", error);
+  ///     }
+  ///   }
+  /// }
+  /// ```
+  ///
+  /// ## Errors:
+  /// - `Error::ApiError`:  
+  ///   Occurs if the Google Sheets API returns an error, such as an invalid spreadsheet ID
+  ///   or insufficient permissions.
   pub async fn get_rows
   (
     hub : &SheetsType,
@@ -253,6 +450,7 @@ mod private
     sheet_name : &str, 
   ) -> Result< Vec< Vec< JsonValue > > >
   {
+    // Making HTTP request.
     match hub
     .spreadsheets()
     .values_get( spreadsheet_id, format!( "{}!A2:Z", sheet_name ).as_str() )
@@ -271,18 +469,39 @@ mod private
     }
   }
 
-  /// Function to get a specific cell of a specific sheet
-  /// 
-  /// It sends HTTP request to Google Sheets API and retrive cell.
-  /// 
-  /// **Params**
-  ///  - `hub` : Configured hub.
-  ///  - `spreadsheet_id` : Spreadsheet identifire.
-  ///  - `sheet_name` : Sheet name.
-  ///  - `cell_id` : Cell id.
-  /// 
-  /// **Returns**
-  ///  - `Result`
+  /// # `get_cell`
+  ///
+  /// Retrieves the value of a specific cell from a Google Sheet.
+  ///
+  /// ## Parameters:
+  /// - `hub`:  
+  ///   A reference to the `SheetsType` client configured for the Google Sheets API.
+  /// - `spreadsheet_id`:  
+  ///   A `&str` representing the unique identifier of the spreadsheet.
+  /// - `sheet_name`:  
+  ///   A `&str` specifying the name of the sheet where the cell is located.
+  /// - `cell_id`:  
+  ///   A `&str` representing the cell ID in the format `A1`, where `A` is the column and `1` is the row.
+  ///
+  /// ## Returns:
+  /// - `Result<JsonValue>`:
+  ///
+  /// ## Example:
+  /// ```rust
+  /// async fn example(hub: &SheetsType, spreadsheet_id: &str, sheet_name: &str, cell_id: &str) 
+  /// {
+  ///   match get_cell(hub, spreadsheet_id, sheet_name, cell_id).await 
+  ///   {
+  ///     Ok(value) => println!("Cell value: {:?}", value),
+  ///     Err(error) => eprintln!("Failed to retrieve cell value: {}", error),
+  ///   }
+  /// }
+  /// ```
+  ///
+  /// ## Errors:
+  /// - `Error::ApiError`:  
+  ///   Occurs if the Google Sheets API returns an error, such as an invalid spreadsheet ID
+  ///   or insufficient permissions.
   pub async fn get_cell
   (
     hub : &SheetsType,
@@ -291,6 +510,7 @@ mod private
     cell_id : &str
   ) -> Result< JsonValue >
   {
+    // Making HTTP request.
     match hub
     .spreadsheets()
     .values_get( spreadsheet_id, format!( "{}!{}", sheet_name, cell_id ).as_str() )
@@ -307,19 +527,40 @@ mod private
     }
   }
 
-  /// Function to set a new value to a specific cell of a specific sheet
-  /// 
-  /// It sends HTTP request to Google Sheets API and retrive cell.
-  /// 
-  /// **Params**
-  ///  - `hub` : Configured hub.
-  ///  - `spreadsheet_id` : Spreadsheet identifire.
-  ///  - `sheet_name` : Sheet name.
-  ///  - `cell_id` : Cell id.
-  ///  - `value` : New value to update.
-  /// 
-  /// **Returns**
-  ///  - `Result`
+  /// # `set_cell`
+  ///
+  /// Updates the value of a specific cell in a Google Sheet.
+  ///
+  /// ## Parameters:
+  /// - `hub`:  
+  ///   A reference to the `SheetsType` client configured for the Google Sheets API.
+  /// - `spreadsheet_id`:  
+  ///   A `&str` representing the unique identifier of the spreadsheet.
+  /// - `sheet_name`:  
+  ///   A `&str` specifying the name of the sheet where the cell is located.
+  /// - `cell_id`:  
+  ///   A `&str` representing the cell ID in the format `A1`, where `A` is the column and `1` is the row.
+  /// - `value`:  
+  ///   A `&str` containing the new value to update in the cell.
+  ///
+  /// ## Returns:
+  /// - `Result<UpdateValuesResponse>`
+  ///
+  /// ## Example:
+  /// ```rust
+  /// async fn example(hub: &SheetsType, spreadsheet_id: &str, sheet_name: &str, cell_id: &str, value: &str) 
+  /// {
+  ///   match set_cell(hub, spreadsheet_id, sheet_name, cell_id, value).await 
+  ///   {
+  ///     Ok(response) => println!("Cell updated successfully: {:?}", response),
+  ///     Err(error) => eprintln!("Failed to update cell: {}", error),
+  ///   }
+  /// }
+  /// ```
+  ///
+  /// ## Errors:
+  /// - `Error::ApiError`:  
+  ///   Occurs if the Google Sheets API returns an error, such as invalid input or insufficient permissions.
   pub async fn set_cell
   (
     hub : &SheetsType,
@@ -329,6 +570,7 @@ mod private
     value : &str
   ) -> Result< UpdateValuesResponse >
   {
+    // Creating JSON with value to update.
     let value = JsonValue::String( value.to_string() );
     let value_range = ValueRange
     {
@@ -336,6 +578,7 @@ mod private
       ..ValueRange::default()
     };
 
+    // Making HTTP request.
     match hub
     .spreadsheets()
     .values_update( value_range, spreadsheet_id, format!( "{}!{}", sheet_name, cell_id ).as_str() )
@@ -348,6 +591,7 @@ mod private
     }
   }
 
+  /// Type alias for `core::result::Result< T, Error >`.
   pub type Result< T > = core::result::Result< T, Error >;
 }
 

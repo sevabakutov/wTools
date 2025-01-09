@@ -1,7 +1,7 @@
 //!
-//! Action for command "header"
+//! Action for the command "header".
 //!
-//! It returns header (first row)
+//! Retrieves the header (first row) from the specified Google Sheet.
 //!
 
 

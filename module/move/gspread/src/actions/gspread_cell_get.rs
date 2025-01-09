@@ -1,13 +1,11 @@
 //!
-//! Action for command "cell get"
+//! Action for the command "cell get".
 //!
-//! It returns a selected cell
+//! Retrieves the value of a selected cell from the specified Google Sheet.
 //!
 
 mod private
 {
-  
-
   use crate::*;
   use actions::gspread::
   {

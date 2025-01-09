@@ -14,11 +14,15 @@ mod private
   use ser::Deserialize;
   use std::collections::HashMap;
 
-  /// Structure to keep rows key and new values for cells updating.
-  /// 
-  /// **Fields**
-  ///  - `row_key` : Row's primary key.
-  ///  - `row_key_val` : New values to update.
+  /// # ParsedJson
+  ///
+  /// A structure to store the row's primary key and new values for cell updates.
+  ///
+  /// ## Fields:
+  /// - `row_key`:  
+  ///   The primary key of the row.
+  /// - `row_key_val`:  
+  ///   A map of column names to new values.
   #[ derive( Deserialize, Debug ) ]
   struct ParsedJson< 'a >
   {
@@ -26,17 +30,18 @@ mod private
     row_key_val : HashMap< String, String >
   }
   
-  /// Function to parse `--json` flag.
-  /// 
-  /// It retirive `--select-row-by-key` flag from json and set it to `row_key` field.
-  /// Other pairs it set to `row_key_val`
-  /// 
-  /// **Params**
-  ///  - `json_str` : Passed JSON.
-  ///  - `select_row_by_key` : Passed select-row-by-key.
-  /// 
-  /// **Returns**
-  ///  - `ParsedJson` object
+  /// # `parse_json`
+  ///
+  /// Parses the `--json` flag to extract the row key and values to update.
+  ///
+  /// ## Parameters:
+  /// - `json_str`:  
+  ///   The JSON string passed via the `--json` flag.
+  /// - `select_row_by_key`:  
+  ///   The key to use for identifying the row (e.g., `"id"`).
+  ///
+  /// ## Returns:
+  /// - `Result<ParsedJson>`
   fn parse_json< 'a >
   (
     json_str : &'a str,
@@ -85,16 +90,16 @@ mod private
     )
   }
 
-  /// Function to check if passed json contains row's primary key.
-  /// 
-  /// **Available keys**
-  ///  - `id` : row's primary key.
-  /// 
-  /// **Params**
-  ///  - `key` : Row's primary key.
-  /// 
-  /// **Return**
-  ///  - `Result`
+  /// # `check_select_row_by_key`
+  ///
+  /// Validates if the provided row key is allowed.
+  ///
+  /// ## Parameters:
+  /// - `key`:  
+  ///   The row's primary key.
+  ///
+  /// ## Returns:
+  /// - `Result<()>`
   fn check_select_row_by_key
   (
     key : &str

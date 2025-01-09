@@ -1,7 +1,7 @@
 //!
-//! Action for command "rows"
+//! Action for the command "rows".
 //!
-//! It returns all rows but not header
+//! Retrieves all rows from the specified Google Sheet, excluding the header.
 //!
 
 

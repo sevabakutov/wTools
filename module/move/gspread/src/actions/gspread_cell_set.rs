@@ -1,7 +1,7 @@
 //!
-//! Action for command "cell set"
+//! Action for the command "cell set".
 //!
-//! It updates a selected cell
+//! Updates the value of a selected cell in the specified Google Sheet.
 //!
 
 
