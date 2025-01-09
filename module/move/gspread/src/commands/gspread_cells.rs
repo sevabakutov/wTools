@@ -10,16 +10,50 @@ mod private
   use crate::*;
   use actions::gspread::get_spreadsheet_id_from_url;
 
-  /// Subcommands for `CELLS` command.
+  /// # Commands
+  ///
+  /// Subcommands for the `CELLS` command.
+  ///
+  /// ## Variants:
   /// 
-  /// **Commands**
-  ///  - `Set` : Update a specific row.
+  /// ### `Set`
+  ///
+  /// Updates a specific row in a Google Sheet with a given set of values.
+  ///
+  /// **Arguments:**
+  /// - `select_row_by_key`:  
+  ///   A string specifying the identifier of the row to update.  
+  ///   Example: `"id"`.
+  ///
+  /// - `json`:  
+  ///   A string containing the key-value pairs for the update.  
+  ///   The keys are column names (only Latin letters), and the values are strings.  
+  ///   Depending on the shell, the JSON format may vary:
+  ///   - Example 1: `'{\"id\": \"3\", \"A\": \"1\", \"B\": \"2\"}'`
+  ///   - Example 2: `"{\"id\": \"3\", \"A\": \"1\", \"B\": \"2\"}"`
+  ///
+  /// - `url`:  
+  ///   The full URL of the Google Sheet.  
+  ///   Example: `'https://docs.google.com/spreadsheets/d/your_spreadsheet_id/edit?gid=0#gid=0'`.
+  ///
+  /// - `tab`:  
+  ///   The name of the specific sheet to target.  
+  ///   Example: `Sheet1`.
+  ///
+  /// **Example:**
+  /// ```bash
+  /// gspread cells set \
+  /// --url 'https://docs.google.com/spreadsheets/d/1EAEdegMpitv-sTuxt8mV8xQxzJE7h_J0MxQoyLH7xxU/edit?gid=0#gid=0' \
+  /// --tab tab1 \
+  /// --select-row-by-key "id" \
+  /// --json '{"id": "2", "A": "1", "B": "2"}'
+  /// ```
   #[ derive( Debug, Subcommand ) ]
   pub enum Commands
   {
-    /// Command to set values range to a google sheet
+    /// Updates a specific row in a Google Sheet with a given set of values.
     /// 
-    /// Command example:
+    /// **Example**:
     /// 
     /// gspread cells set
     /// --url 'https://docs.google.com/spreadsheets/d/1EAEdegMpitv-sTuxt8mV8xQxzJE7h_J0MxQoyLH7xxU/edit?gid=0#gid=0'
@@ -55,6 +89,18 @@ mod private
 
   }
 
+  /// # `command`
+  ///
+  /// Executes the specified subcommand for the `CELLS` command.
+  ///
+  /// ## Parameters:
+  /// - `hub`:  
+  ///   A reference to the `SheetsType` client used to interact with the Google Sheets API.
+  /// - `commands`:  
+  ///   A variant of the `Commands` enum specifying the operation to execute.
+  ///
+  /// ## Errors:
+  /// - Prints an error message if the spreadsheet ID extraction or row update fails.
   pub async fn command
   (
     hub : &SheetsType,
