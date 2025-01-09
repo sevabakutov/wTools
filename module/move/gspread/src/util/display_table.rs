@@ -13,16 +13,25 @@ mod private
     TableOutputFormat
   };
 
-  /// Function to display rows in a table view.
-  /// 
-  /// It calles `display_data` function.
-  /// 
-  /// **Params**
-  ///  - `data` : Data to display.
-  ///  - `f` : Formatter.
-  /// 
-  /// **Return**
-  ///  - `Result`
+  /// # `display_rows`
+  ///
+  /// Displays rows of data in a table view.
+  ///
+  /// This function calls `display_data` internally to format and render the data in a tabular format.
+  ///
+  /// ## Parameters:
+  /// - `data`:  
+  ///   A reference to an object implementing the `TableFormatter` trait, which provides the data to display.
+  /// - `f`:  
+  ///   A mutable reference to a `fmt::Formatter` used for formatting the output.
+  ///
+  /// ## Returns:
+  /// - `fmt::Result`:  
+  ///
+  /// ## Example:
+  /// ```rust
+  /// display_rows(&my_data, &mut formatter)?;
+  /// ```
   pub fn display_rows< 'a >
   (
     data :  &'a impl TableFormatter< 'a >,
@@ -32,16 +41,25 @@ mod private
     display_data( data, f, output_format::Table::default() )
   }
 
-  /// Function to display header in a table view.
-  /// 
-  /// It calles `display_data` function.
-  /// 
-  /// **Params**
-  ///  - `data` : Data to display.
-  ///  - `f` : Formatter.
-  /// 
-  /// **Return**
-  ///  - `Result`
+  /// # `display_header`
+  ///
+  /// Displays the header of a table view.
+  ///
+  /// This function calls `display_data` internally to format and render the header in a tabular format.
+  ///
+  /// ## Parameters:
+  /// - `data`:  
+  ///   A reference to an object implementing the `TableFormatter` trait, which provides the header data to display.
+  /// - `f`:  
+  ///   A mutable reference to a `fmt::Formatter` used for formatting the output.
+  ///
+  /// ## Returns:
+  /// - `fmt::Result`:  
+  ///
+  /// ## Example:
+  /// ```rust
+  /// display_header(&my_data, &mut formatter)?;
+  /// ```
   pub fn display_header < 'a >
   (
     data : &'a impl TableFormatter< 'a >,
@@ -51,17 +69,27 @@ mod private
     display_data( data, f, output_format::Table::default() )
   }
 
-  /// Function to display data in a table view.
-  /// 
-  /// It creates printer and context objects and then passes them to `TableFormatter::fmt`.
-  /// 
-  /// **Params**
-  ///  - `data` : Data to display.
-  ///  - `f` : Formatter.
-  ///  - `format` : Output format.
-  /// 
-  /// **Return**
-  ///  - `Result`
+  /// # `display_data`
+  ///
+  /// Displays data in a table view with a specific output format.
+  ///
+  /// This function creates a printer and context objects and delegates the rendering logic to `TableFormatter::fmt`.
+  ///
+  /// ## Parameters:
+  /// - `data`:  
+  ///   A reference to an object implementing the `TableFormatter` trait, which provides the data to display.
+  /// - `f`:  
+  ///   A mutable reference to a `fmt::Formatter` used for formatting the output.
+  /// - `format`:  
+  ///   An object implementing the `TableOutputFormat` trait, defining the desired output format for the table.
+  ///
+  /// ## Returns:
+  /// - `fmt::Result`:  
+  ///
+  /// ## Example:
+  /// ```rust
+  /// display_data(&my_data, &mut formatter, output_format::Table::default())?;
+  /// ```
   pub fn display_data < 'a >
   (
     data : &'a impl TableFormatter< 'a >,
