@@ -13,10 +13,16 @@ mod private
   use format_tools::AsTable;
   use util::display_table::display_rows;
 
-  /// Structure to display retrieved rows to console using `format_tools`.
-  /// 
-  /// **Fields**
-  ///  - `rows` : Retrieved rows.
+  /// # Report
+  ///
+  /// A structure to display retrieved rows in the console using `format_tools`.
+  ///
+  /// ## Fields:
+  /// - `rows`:  
+  ///   A `Vec<RowWrapper>` containing the rows to be displayed.
+  ///
+  /// ## Usage:
+  /// This structure is used in conjunction with the `fmt::Display` trait to render rows in a formatted table view.
   pub struct Report
   {
     pub rows : Vec< RowWrapper >
@@ -24,7 +30,15 @@ mod private
 
   impl fmt::Display for Report
   {
-    /// Calls `display_rows` function, which calls appropriate functions from `format tools`.
+    /// Formats the rows for display by calling the `display_rows` function,
+    /// which uses appropriate functions from `format_tools`.
+    ///
+    /// ## Parameters:
+    /// - `f`:  
+    ///   A mutable reference to the `fmt::Formatter` used to write the formatted output.
+    ///
+    /// ## Returns:
+    /// - `fmt::Result`:  
     fn fmt
     (
       &self,
@@ -35,6 +49,19 @@ mod private
     }
   }
 
+  /// # `command`
+  ///
+  /// Processes the `rows` command by retrieving rows from a specified Google Sheet
+  /// and displaying them in a table format in the console.
+  ///
+  /// ## Parameters:
+  /// - `hub`:  
+  ///   A reference to the `SheetsType` client used to interact with the Google Sheets API.
+  /// - `args`:  
+  ///   A `CommonArgs` instance containing the sheet's URL and tab name.
+  ///
+  /// ## Errors:
+  /// - Prints an error message if the spreadsheet ID extraction or row retrieval fails.
   pub async fn command
   (
     hub : &SheetsType,
