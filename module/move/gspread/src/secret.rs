@@ -1,5 +1,5 @@
 //!
-//! Tool's secret
+//! Module to manage with secrets.
 //!
 
 mod private
