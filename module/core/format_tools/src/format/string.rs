@@ -74,8 +74,7 @@ mod private
     for line in lines( text )
     {
       height += 1;
-      // let line_length = line.chars().count();
-      let line_length = line.as_bytes().len();
+      let line_length = line.chars().count();
       if line_length > width
       {
         width = line_length;

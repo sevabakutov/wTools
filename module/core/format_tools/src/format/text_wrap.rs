@@ -163,9 +163,7 @@ mod private
         {
           if col_lines.len() > i
           {
-            let wrap_width = col_lines.iter().map( |c| c.len() ).max().unwrap_or(0);
-            // let wrap_width = col_lines.iter().map( |c| c.as_bytes().len() ).max().unwrap_or(0);
-
+            let wrap_width = col_lines.iter().map( |c| c.as_bytes().len() ).max().unwrap_or(0);
             row_vec.push( WrappedCell { wrap_width , content : col_lines[ i ].clone() } );
           }
           else

@@ -229,8 +229,6 @@ mod private
   #[ derive( Debug, Default ) ]
   pub struct RowDescriptor
   {
-
-    
     /// Index of the row.
     pub irow : usize,
     /// Height of the row.
