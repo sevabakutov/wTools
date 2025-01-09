@@ -14,6 +14,27 @@ mod private
   use error_tools::typed::Error;
   use ser::DisplayFromStr;
 
+  /// # Secret's Errors
+  /// 
+  /// This enumeration defines errors that can occur while working with secrets.
+  /// 
+  /// **Errors:**
+  /// 
+  /// - `SecretFileIllformed`
+  ///   - Occurs when the secret file is not properly formatted.
+  ///   - Associated data:
+  ///     - `dotenv::Error`: Provides details about the specific formatting issue.
+  /// 
+  /// - `VariableMissing`
+  ///   - Indicates that a required variable is missing from the secret configuration.
+  ///   - Associated data:
+  ///     - `&'static str`: The name of the missing variable.
+  /// 
+  /// - `VariableIllformed`
+  ///   - Signals an issue while processing a specific secret variable.
+  ///   - Associated data:
+  ///     - `&'static str`: The name of the variable that caused the issue.
+  ///     - `String`: Detailed error message or explanation.
   #[ ser::serde_as ]
   #[ derive( Debug, Error, ser::Serialize ) ]
   #[ serde( tag = "type", content = "data" ) ]
@@ -35,8 +56,49 @@ mod private
 
   }
 
+  /// # Result
+  ///
+  /// A type alias for `std::result::Result` with the error type `Error`.
   pub type Result< R > = std::result::Result< R, Error >;
 
+  /// # Secret
+  ///
+  /// A struct that represents configuration secrets loaded from a `.env` file.
+  ///
+  /// This structure contains essential fields required for authentication and token management,
+  /// such as client credentials and URIs.
+  ///
+  /// ## Fields
+  ///
+  /// - `CLIENT_SECRET`  
+  ///   - A `String` containing the client secret used for authentication.
+  /// - `CLIENT_ID`  
+  ///   - A `String` containing the client ID associated with the application.
+  /// - `AUTH_URI`  
+  ///   - A `String` representing the authentication URI used for OAuth2 flows.  
+  ///   - Defaults to `"https://accounts.google.com/o/oauth2/auth"` if not specified in the `.env` file.
+  /// - `TOKEN_URI`  
+  ///   - A `String` representing the token URI used to retrieve OAuth2 tokens.  
+  ///   - Defaults to `"https://oauth2.googleapis.com/token"` if not specified in the `.env` file.
+  ///
+  /// ## Usage
+  ///
+  /// The `Secret` struct is intended to be loaded from a `.env` file using the `dotenv` crate.
+  /// It provides methods for loading and accessing these secrets within the application.
+  ///
+  /// Example of fields in a `.env` file:
+  /// ```text
+  /// CLIENT_SECRET=your_client_secret
+  /// CLIENT_ID=your_client_id
+  /// AUTH_URI=https://accounts.google.com/o/oauth2/auth
+  /// TOKEN_URI=https://oauth2.googleapis.com/token
+  /// ```
+  ///
+  /// Example usage:
+  /// ```rust
+  /// let secret = Secret::read();
+  /// println!("Client ID: {}", secret.CLIENT_ID);
+  /// ```
   #[ derive( Debug ) ]
   #[ allow( non_snake_case ) ]
   pub struct Secret
@@ -106,6 +168,19 @@ Add missing secret to .env file in .secret directory. Example: MISSING_SECRET=YO
 
   }
 
+  /// # `var`
+  ///
+  /// Retrieves the value of an environment variable, or returns a default value if the variable is not set.
+  ///
+  /// **Parameters:**
+  /// - `name`:  
+  ///   A `&'static str` specifying the name of the environment variable to retrieve.
+  /// - `default`:  
+  ///   An `Option<&'static str>` containing the default value to return if the variable is not set.  
+  ///   If `None`, an error is returned when the variable is missing.
+  ///
+  /// **Returns:**  
+  /// - `Result<String>`:  
   fn var
   (
     name : &'static str,
@@ -129,6 +204,19 @@ Add missing secret to .env file in .secret directory. Example: MISSING_SECRET=YO
     }
   }
 
+  /// # `_var_path`
+  ///
+  /// Retrieves the value of an environment variable, interprets it as a path, and converts it to an absolute path.
+  ///
+  /// **Parameters:**
+  /// - `name`:  
+  ///   A `&'static str` specifying the name of the environment variable to retrieve.
+  /// - `default`:  
+  ///   An `Option<&'static str>` containing the default value to use if the variable is not set.  
+  ///   If `None`, an error is returned when the variable is missing.
+  ///
+  /// **Returns:**  
+  /// - `Result<pth::AbsolutePath>`
   fn _var_path
   (
     name : &'static str,
@@ -144,7 +232,6 @@ Add missing secret to .env file in .secret directory. Example: MISSING_SECRET=YO
 
 crate::mod_interface!
 {
-
   own use
   {
     Error,
@@ -155,5 +242,4 @@ crate::mod_interface!
   {
     Secret,
   };
-
 }
