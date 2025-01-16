@@ -591,8 +591,8 @@ mod private
     }
   }
 
-  /// Type alias for `core::result::Result< T, Error >`.
-  pub type Result< T > = core::result::Result< T, Error >;
+  /// Type alias for `std::result::Result< T, Error >`.
+  pub type Result< T > = std::result::Result< T, Error >;
 }
 
 crate::mod_interface!
