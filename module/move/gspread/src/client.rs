@@ -32,25 +32,23 @@ mod private
 
 
   // TODO: Implement
-  pub struct GspreadClient 
+  pub enum GspreadClient 
   {
-    pub hub : Option<SheetsType>,
-    endpoint: Option<String>
-
+    GoogleHub(SheetsType),
+    MockHub(String),
   }
 
   // TODO: Implement.
   impl GspreadClient 
   {
-    // Should be a default implementation.
-    // pub fn new() -> GspreadClient 
-    // {
-
-    // }
-
     pub fn builder() -> GspreadClientBuilder
     {
       GspreadClientBuilder::new()
+    }
+
+    pub fn foo() -> bool
+    {
+      true
     }
 
     // pub async fn update
@@ -132,27 +130,13 @@ mod private
 
       if self.endpoint.is_some()
       {
-        return Ok
-        (
-          GspreadClient 
-          {
-            hub : None,
-            endpoint : self.endpoint
-          }
-        );
+        return Ok( GspreadClient::MockHub( self.endpoint.unwrap() ) );
       }
 
       if self.secret.is_some()
       {
         let hub = hub( self.secret.unwrap() ).await?;
-        return Ok
-        (
-          GspreadClient
-          {
-            hub : Some(hub),
-            endpoint : None
-          }  
-        )
+        return Ok( GspreadClient::GoogleHub( hub ) );
       }
 
       Err( Error::HubError( "Build error. Endpoint or secret were not set up. You can use with_secret method for normal usage or with_endpoint method for mock testing.".to_string() ) )
@@ -181,7 +165,7 @@ mod private
   ///   Ok(())
   /// }
   /// ```
-  pub async fn hub( secrets: Secret ) -> Result< SheetsType >
+  async fn hub( secrets: Secret ) -> Result< SheetsType >
   {
     let secret: ApplicationSecret = ApplicationSecret
     {
@@ -224,8 +208,9 @@ crate::mod_interface!
 {
   exposed use
   {
-    hub,
+    // hub,
     Client,
-    SheetsType
+    SheetsType,
+    GspreadClient
   };
 }
