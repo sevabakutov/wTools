@@ -14,18 +14,17 @@ mod private
     Error, 
     Result 
   };
-  use client::SheetsType;
 
   pub async fn action
   (
-    hub : &SheetsType,
+    client : &GspreadClient,
     spreadsheet_id : &str,
     sheet_name : &str,
     cell_id : &str,
     value : &str
   ) -> Result< i32 >
   {
-    match set_cell( hub, spreadsheet_id, sheet_name, cell_id, value ).await
+    match set_cell( client, spreadsheet_id, sheet_name, cell_id, value ).await
     {
       Ok( response ) =>
       {

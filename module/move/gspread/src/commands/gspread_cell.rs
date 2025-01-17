@@ -10,7 +10,6 @@ mod private
   use crate::*;
   use actions;
   use actions::gspread::get_spreadsheet_id_from_url;
-  use client::SheetsType;
 
   /// # Commands
   ///
@@ -135,8 +134,11 @@ mod private
   /// Executes the specified subcommand for the `CELL` command.
   ///
   /// ## Parameters:
-  /// - `hub`:  
-  ///   A reference to the `SheetsType` client used to interact with the Google Sheets API.
+  /// - `client`:  
+  ///   A `GspreadClient` enum.
+  ///   - `Variants`: 
+  ///     `SheetsType` variant is used for interacting with the Google Sheets API. 
+  ///     `MockClient` variant is used for mock testing.
   /// - `commands`:  
   ///   A variant of the `Commands` enum specifying the operation to execute.
   ///
@@ -144,7 +146,7 @@ mod private
   /// - Prints an error message if the spreadsheet ID extraction, retrieval, or update fails.
   pub async fn command
   (
-    hub : &SheetsType,
+    client : &GspreadClient,
     commands : Commands
   )
   {
@@ -164,7 +166,7 @@ mod private
 
         match actions::gspread_cell_get::action
         (
-          hub,
+          client,
           spreadsheet_id,
           tab.as_str(),
           cell.as_str()
@@ -190,7 +192,7 @@ mod private
 
         match actions::gspread_cell_set::action
         (
-          hub,
+          client,
           spreadsheet_id,
           tab.as_str(),
           cell.as_str(),

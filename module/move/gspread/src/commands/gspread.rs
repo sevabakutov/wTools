@@ -9,8 +9,6 @@ mod private
   use clap::{ Subcommand, Parser };
 
   use crate::*;
-  use client::SheetsType;
-
   use commands::
   {
     gspread_header,
@@ -30,11 +28,6 @@ mod private
   /// - `tab`:  
   ///   The name of the specific sheet to target.  
   ///   Example: `Sheet1`
-  ///
-  /// ## Example:
-  /// ```bash
-  /// gspread rows --url 'https://docs.google.com/spreadsheets/d/.../edit?gid=0#gid=0' --tab Sheet1
-  /// ```
   #[ derive( Debug, Parser ) ]
   pub struct CommonArgs
   {
@@ -129,27 +122,16 @@ mod private
   /// Executes the appropriate `gspread` command.
   ///
   /// ## Parameters:
-  /// - `hub`:  
-  ///   A reference to the `SheetsType` client for interacting with the Google Sheets API.
+  /// - `client`:  
+  ///   A `GspreadClient` enum.
+  ///   - `Variants`: 
+  ///     `SheetsType` variant is used for interacting with the Google Sheets API. 
+  ///     `MockClient` variant is used for mock testing.
   /// - `command`:  
   ///   The `Command` enum specifying which operation to execute.
-  /// 
-  /// ## Usage example:
-  /// ```rust
-  /// let secret = Secret::read();
-  /// let hub = hub( &secret ).await?;
-  /// let cli = Cli::parse();
-  /// match cli.command
-  /// {
-  ///  CliCommand::GSpread( cmd ) =>
-  ///  {
-  ///    commands::gspread::command( &hub, cmd ).await;
-  ///  }
-  /// }
-  /// ```
   pub async fn command
   (
-    hub : &SheetsType,
+    client : &GspreadClient,
     command : Command,
   )
   {
@@ -157,22 +139,22 @@ mod private
     {
       Command::Header( header_command ) =>
       {
-        gspread_header::command( hub, header_command ).await;
+        gspread_header::command( client, header_command ).await;
       },
 
       Command::Rows( rows_command ) =>
       {
-        gspread_rows::command( hub, rows_command ).await;
+        gspread_rows::command( client, rows_command ).await;
       },
 
       Command::Cell( cell_command ) =>
       {
-        gspread_cell::command( hub, cell_command ).await;
+        gspread_cell::command( client, cell_command ).await;
       },
 
       Command::Cells( cells_command) =>
       {
-        gspread_cells::command( hub, cells_command ).await;
+        gspread_cells::command( client, cells_command ).await;
       },
     }
   }

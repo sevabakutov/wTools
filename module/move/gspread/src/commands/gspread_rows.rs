@@ -6,12 +6,11 @@ mod private
 {
   use std::fmt;
   use crate::*;
-  use commands::gspread::CommonArgs;
-  use client::SheetsType;
   use actions;
-  use actions::gspread::get_spreadsheet_id_from_url;
   use format_tools::AsTable;
+  use commands::gspread::CommonArgs;
   use util::display_table::display_rows;
+  use actions::gspread::get_spreadsheet_id_from_url;
 
   /// # Report
   ///
@@ -55,8 +54,11 @@ mod private
   /// and displaying them in a table format in the console.
   ///
   /// ## Parameters:
-  /// - `hub`:  
-  ///   A reference to the `SheetsType` client used to interact with the Google Sheets API.
+  /// - `client`:  
+  ///   A `GspreadClient` enum.
+  ///   - `Variants`: 
+  ///     `SheetsType` variant is used for interacting with the Google Sheets API. 
+  ///     `MockClient` variant is used for mock testing.
   /// - `args`:  
   ///   A `CommonArgs` instance containing the sheet's URL and tab name.
   ///
@@ -64,7 +66,7 @@ mod private
   /// - Prints an error message if the spreadsheet ID extraction or row retrieval fails.
   pub async fn command
   (
-    hub : &SheetsType,
+    client : &GspreadClient,
     args : CommonArgs
   )
   {
@@ -84,7 +86,7 @@ mod private
 
         match actions::gspread_get_rows::action
         (
-          hub,
+          client,
           spreadsheet_id,
           tab.as_str()
         )

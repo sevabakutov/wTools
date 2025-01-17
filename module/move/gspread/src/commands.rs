@@ -22,19 +22,6 @@ mod private
   /// ## Fields:
   /// - `command`:  
   ///   A `CliCommand` enum that specifies the root command and its subcommands.
-  ///
-  /// **Usage example:**
-  /// ```rust
-  /// let cli = Cli::parse();
-  /// match cli.command 
-  /// {
-  ///   CliCommand::GSpread(command) => 
-  ///   {
-  ///     // Handle Google Sheets commands
-  ///     command.execute();
-  ///   }
-  /// }
-  /// ```
   #[ derive ( Debug, Parser ) ]
   pub struct Cli
   {
@@ -53,17 +40,6 @@ mod private
   /// - `GSpread`:  
   ///   Handles commands related to Google Sheets (`gspread`).  
   ///   Delegates to the `gspread::Command` for further subcommands and logic.
-  ///
-  /// **Usage example:**
-  /// ```rust
-  /// match cli.command 
-  /// {
-  ///   CliCommand::GSpread(gspread_command) => 
-  ///   {
-  ///     gspread_command.execute();
-  ///   }
-  /// }
-  /// ```
   #[ derive ( Debug, Subcommand ) ]
   pub enum CliCommand
   {

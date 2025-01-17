@@ -5,63 +5,95 @@
 //!   - everything is fake: spreadsheet_id, sheet's name, range and response json
 //! 
 
+use dotenv::dotenv;
+use gspread::{actions::gspread::update_row, GspreadClient, Secret};
 use httpmock::prelude::*;
-use reqwest;
 
-#[ tokio::test ]
-async fn test_set_cells_with_mock()
-{
+#[tokio::test]
+async fn test_update_row_with_mock() {
+  dotenv().ok();
+
+  let secret = Secret::read();
+
   let server = MockServer::start();
-  let body = r#"{ "id": "2", "A": "new_val1", "B": "new_val2"}"#;
-  let mock = server.mock( | when, then | {
-    when.method( POST )
-      .path( "/v4/spreadsheets/12345/values/tab3!A2:B2" )
-      .header( "Content-Type", "application/json" )
-      .body( body );
-    // returns amount of updated cells
-    then.status( 201 )
-      .header( "Content-Type", "application/json" )
-      .body( "2" );
-  } );
 
-  let response = reqwest::Client::new()
-  .post( server.url( "/v4/spreadsheets/12345/values/tab3!A2:B2" ) )
-  .header( "Content-Type", "application/json" )
-  .body( body )
-  .send()
+  let mock_patch_a = server.mock( |when, then | {
+    when.method( POST );
+    then.status( 200 )
+      .header( "Content-Type", "application/json" )
+      .body
+      (
+        r#"
+        {
+          "spreadsheetId": "12345",
+          "updatedRange": "tab2!A5",
+          "updatedRows": 1,
+          "updatedColumns": 1,
+          "updatedCells": 1,
+          "updatedData": {
+            "range": "tab2!A5",
+            "values": [["Hello"]]
+          }
+        }
+        "#
+      );
+  });
+
+  let mock_patch_b = server.mock( |when, then | {
+    when.method( POST );
+    then.status( 200 )
+      .header("Content-Type", "application/json")
+      .body
+      (
+        r#"
+        {
+          "spreadsheetId": "12345",
+          "updatedRange": "tab2!B5",
+          "updatedRows": 1,
+          "updatedColumns": 1,
+          "updatedCells": 1,
+          "updatedData": {
+            "range": "tab2!B5",
+            "values": [["World"]]
+          }
+        }
+        "#
+      );
+  });
+
+  let client = GspreadClient::builder()
+  .with_endpoint( server.url("") )
+  .with_secret( &secret )
+  .build()
   .await
-  .unwrap();
+  .expect( "Some error while building the client." );
 
-  mock.assert();
+  let mut row_key_val = std::collections::HashMap::new();
+  row_key_val.insert("A".to_string(), "Hello".to_string());
+  row_key_val.insert("B".to_string(), "World".to_string());
 
-  assert_eq!( response.status(), 201 );
-}
-
-#[ tokio::test ]
-async fn test_set_cells_wrong_row_with_mock()
-{
-  let server = MockServer::start();
-  let body = r#"{ "id": "a", "A": "new_val1", "B": "new_val2"}"#;
-  let response_body = r#"{"error":{"code":400,"message":"Invalid data[0]: Unable to parse range: tab3!Aa","status":"INVALID_ARGUMENT"}}"#;
-  let mock = server.mock( | when, then | {
-    when.method( POST )
-      .path( "/v4/spreadsheets/12345/values/tab3!Aa:Ba" )
-      .header( "Content-Type", "application/json" )
-      .body( body );
-    then.status( 400 )
-      .header( "Content-Type", "application/json" )
-      .body( response_body );
-  } );
-
-  let response = reqwest::Client::new()
-  .post( server.url( "/v4/spreadsheets/12345/values/tab3!Aa:Ba" ) )
-  .header( "Content-Type", "application/json" )
-  .body( body )
-  .send()
+  let batch_result = update_row(
+      &client,
+      "12345",
+      "tab2",
+      "5",
+      row_key_val
+  )
   .await
-  .unwrap();
+  .expect( "update_row failed in mock test" );
 
-  mock.assert();
+  mock_patch_a.assert();
+  mock_patch_b.assert();
 
-  assert_eq!( response.status(), 400 );
+  assert_eq!( batch_result.spreadsheet_id.as_deref(), Some( "12345" ) );
+  assert_eq!( batch_result.total_updated_cells, Some( 2 ) );
+  assert_eq!( batch_result.total_updated_rows, Some( 2 ) );
+  assert_eq!( batch_result.total_updated_columns, Some( 2 ) );
+
+  if let Some( responses ) = &batch_result.responses 
+  {
+    assert_eq!( responses.len(), 2 );
+  }
+  
+  println!( "Batch update result: {:?}", batch_result );
 }

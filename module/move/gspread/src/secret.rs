@@ -93,12 +93,6 @@ mod private
   /// AUTH_URI=https://accounts.google.com/o/oauth2/auth
   /// TOKEN_URI=https://oauth2.googleapis.com/token
   /// ```
-  ///
-  /// Example usage:
-  /// ```rust
-  /// let secret = Secret::read();
-  /// println!("Client ID: {}", secret.CLIENT_ID);
-  /// ```
   #[ derive( Debug ) ]
   #[ allow( non_snake_case ) ]
   pub struct Secret

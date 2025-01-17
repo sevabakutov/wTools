@@ -27,11 +27,6 @@ mod private
   ///
   /// ## Returns:
   /// - `fmt::Result`:  
-  ///
-  /// ## Example:
-  /// ```rust
-  /// display_rows(&my_data, &mut formatter)?;
-  /// ```
   pub fn display_rows< 'a >
   (
     data :  &'a impl TableFormatter< 'a >,
@@ -55,11 +50,6 @@ mod private
   ///
   /// ## Returns:
   /// - `fmt::Result`:  
-  ///
-  /// ## Example:
-  /// ```rust
-  /// display_header(&my_data, &mut formatter)?;
-  /// ```
   pub fn display_header < 'a >
   (
     data : &'a impl TableFormatter< 'a >,
@@ -85,11 +75,6 @@ mod private
   ///
   /// ## Returns:
   /// - `fmt::Result`:  
-  ///
-  /// ## Example:
-  /// ```rust
-  /// display_data(&my_data, &mut formatter, output_format::Table::default())?;
-  /// ```
   pub fn display_data < 'a >
   (
     data : &'a impl TableFormatter< 'a >,

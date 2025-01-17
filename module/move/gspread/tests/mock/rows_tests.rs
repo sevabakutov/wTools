@@ -1,93 +1,54 @@
-//!
-//! Get rows tests.
-//! In these examples:
-//!   - url is /v4/spreadsheets/{spreadsheet_id}}/values/{range}
-//!   - everything is fake: spreadsheet_id, sheet's name, range and response json
-//! 
-
+use dotenv::dotenv;
+use gspread::{actions::gspread::get_rows, GspreadClient, Secret};
 use httpmock::prelude::*;
-use reqwest;
+use gspread::ser::JsonValue;
 
-#[ tokio::test ]
-async fn test_get_rows_with_mock()
-{
+#[tokio::test]
+async fn test_get_rows_with_mock() {
+  dotenv().ok();
+
+  let secret = Secret::read();
+
   let server = MockServer::start();
-  let body = r#"{"A2" : "Steeve", "B2": "John", "A3": "Seva", "B3": "Oleg" }"#;
-  let mock = server.mock( | when, then | {
-    when.method( GET )
-      .path( "/v4/spreadsheets/12345/values/A2:B3" );
-    then.status( 200 )
-      .header( "Content-Type", "application/json" )
-      .body( body );
-  });
 
-  let response = reqwest::get
-  ( 
-    server.url
-    ( 
-      "/v4/spreadsheets/12345/values/A2:B3" 
-    ) 
-  )
+  let body = r#"
+  {
+    "range": "tab2!A2:Z999",
+    "majorDimension": "ROWS",
+    "values": [
+      ["Row2Col1", "Row2Col2"],
+      ["Row3Col1", "Row3Col2"]
+    ]
+  }
+  "#;
+
+  let mock = server.mock( | when, then | {
+    when.method(GET)
+      .path("/v4/spreadsheets/12345/values/tab2!A2:Z");
+    then.status(200)
+      .header("Content-Type", "application/json")
+      .body(body);
+  } );
+
+  let client = GspreadClient::builder()
+  .with_endpoint( server.url("" ) )
+  .with_secret( &secret )
+  .build()
   .await
-  .unwrap();
+  .expect( "Some error while building the client." );
+
+  let rows = get_rows( &client, "12345", "tab2" )
+  .await
+  .expect( "get_rows failed" );
 
   mock.assert();
 
-  assert_eq!( response.status(), 200 );
-}
+  assert_eq!( rows.len(), 2 );
+  assert_eq!( rows[0].len(), 2 );
+  assert_eq!( rows[0][0], JsonValue::String( "Row2Col1".to_string() ) );
+  assert_eq!( rows[0][1], JsonValue::String( "Row2Col2".to_string() ) );
 
-#[ tokio::test ]
-async fn test_get_rows_with_spaces_with_mock()
-{
-  let server = MockServer::start();
-  let body = r#"{"A2" : "Steeve", "B2": "", "A3": "Seva", "B3": "Oleg" }"#;
-  let mock = server.mock( | when, then | {
-    when.method( GET )
-      .path( "/v4/spreadsheets/12345/values/A2:B3" );
-    then.status( 200 )
-      .header( "Content-Type", "application/json" )
-      .body( body );
-  });
-
-  let response = reqwest::get
-  ( 
-    server.url
-    ( 
-      "/v4/spreadsheets/12345/values/A2:B3" 
-    ) 
-  )
-  .await
-  .unwrap();
-
-  mock.assert();
-
-  assert_eq!( response.status(), 200 );
-}
-
-#[ tokio::test ]
-async fn test_get_rows_empty_with_mock()
-{
-  let server = MockServer::start();
-  let body = r#"{}"#;
-  let mock = server.mock( | when, then | {
-    when.method( GET )
-      .path( "/v4/spreadsheets/12345/values/A2:B3" );
-    then.status( 200 )
-      .header( "Content-Type", "application/json" )
-      .body( body );
-  });
-
-  let response = reqwest::get
-  ( 
-    server.url
-    ( 
-      "/v4/spreadsheets/12345/values/A2:B3" 
-    ) 
-  )
-  .await
-  .unwrap();
-
-  mock.assert();
-
-  assert_eq!( response.status(), 200 );
+  assert_eq!( rows[1].len(), 2);
+  assert_eq!( rows[1][0], JsonValue::String( "Row3Col1".to_string() ) );
+  assert_eq!( rows[1][1], JsonValue::String( "Row3Col2".to_string() ) );
 }

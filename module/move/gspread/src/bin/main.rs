@@ -4,9 +4,8 @@ use dotenv::dotenv;
 
 use gspread::
 {
-  client::hub,
-  commands::{ Cli, CliCommand, self },
-  secret::Secret,
+  commands::{ self, Cli, CliCommand },
+  secret::Secret, GspreadClient,
 };
 
 #[ tokio::main ]
@@ -16,7 +15,10 @@ async fn main() -> Result< (), Box< dyn Error > >
 
   let secret = Secret::read();
 
-  let hub = hub( &secret ).await?;
+  let hub = GspreadClient::builder()
+  .with_secret( &secret )
+  .build()
+  .await?;
 
   let cli = Cli::parse();
 

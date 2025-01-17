@@ -8,7 +8,6 @@
 mod private
 {
   use crate::*;
-  use client::SheetsType;
   use actions::gspread::
   {
     get_rows, 
@@ -18,12 +17,12 @@ mod private
 
   pub async fn action
   (
-    hub : &SheetsType,
+    client : &GspreadClient,
     spreadsheet_id : &str,
     sheet_name : &str
   ) -> Result< Vec< Vec < JsonValue > > >
   {
-    match get_rows( hub, spreadsheet_id, sheet_name ).await
+    match get_rows( client, spreadsheet_id, sheet_name ).await
     {
       Ok( rows ) => Ok( rows ),
       Err( error ) => Err( error )

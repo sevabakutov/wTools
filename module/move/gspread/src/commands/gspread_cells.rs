@@ -94,8 +94,11 @@ mod private
   /// Executes the specified subcommand for the `CELLS` command.
   ///
   /// ## Parameters:
-  /// - `hub`:  
-  ///   A reference to the `SheetsType` client used to interact with the Google Sheets API.
+  /// - `client`:  
+  ///   A `GspreadClient` enum.
+  ///   - `Variants`: 
+  ///     `SheetsType` variant is used for interacting with the Google Sheets API. 
+  ///     `MockClient` variant is used for mock testing.
   /// - `commands`:  
   ///   A variant of the `Commands` enum specifying the operation to execute.
   ///
@@ -103,7 +106,7 @@ mod private
   /// - Prints an error message if the spreadsheet ID extraction or row update fails.
   pub async fn command
   (
-    hub : &SheetsType,
+    client : &GspreadClient,
     commands : Commands
   )
   {
@@ -123,7 +126,7 @@ mod private
         
         match actions::gspread_cells_set::action
         (
-          &hub,
+          client,
           select_row_by_key.as_str(),
           json.as_str(),
           spreadsheet_id,

@@ -1,123 +1,52 @@
-//!
-//! Get header tests.
-//! In these examples:
-//!   - url is /v4/spreadsheets/{spreadsheet_id}}/values/{range}
-//!   - everything is fake: spreadsheet_id, sheet's name, range and response json
-//! 
-
+use dotenv::dotenv;
+use gspread::{actions::gspread::get_header, GspreadClient, Secret};
 use httpmock::prelude::*;
-use reqwest;
+use gspread::ser::JsonValue;
 
 
-#[ tokio::test ]
-async fn test_get_header()
-{
+#[tokio::test]
+async fn test_get_header_with_mock_should_work() {
+  dotenv().ok();
+
+  let secret = Secret::read();
+
   let server = MockServer::start();
-  let body = r#"{ "A1": "Name", "B1": "Surname", "C1": "Age" }"#;
+
+  let body = r#"
+  {
+    "range": "tab2!A1:Z1",
+    "majorDimension": "ROWS",
+    "values": [
+      ["ID", "Name", "Email"]
+    ]
+  }
+  "#;
+
   let mock = server.mock( | when, then | {
     when.method( GET )
-      .path( "/v4/spreadsheets/12345/values/tab1!A1:Z1" );
-    then.status( 200 )
-      .header("Content-Type", "application/json" )
+      .path( "/v4/spreadsheets/12345/values/tab2!A1:Z1" );
+    then.status(200)
+      .header( "Content-Type", "application/json" )
       .body( body );
-  } );
+  });
 
-  let response = reqwest::get
-  ( 
-    server.url
-    ( 
-      "/v4/spreadsheets/12345/values/tab1!A1:Z1"
-    ) 
-  )
+  let client = GspreadClient::builder()
+  .with_endpoint( server.url("") )
+  .with_secret( &secret )
+  .build()
   .await
-  .unwrap();
+  .expect( "Some error while building the client." );
+
+  let header = get_header( &client, "12345", "tab2" )
+  .await
+  .expect( "get_header failed" );
 
   mock.assert();
 
-  assert_eq!( response.status(), 200 )
+  assert_eq!( header.len(), 1, "Header should have one row" );
+  assert_eq!( header[0].len(), 3, "Header row should have 3 columns" );
 
-}
-
-#[ tokio::test ]
-async fn test_get_header_with_spaces_with_mock()
-{
-  let server = MockServer::start();
-  let body = r#"{ "A1": "Name", "B1": "", "C1": "Age" }"#;
-  let mock = server.mock( | when, then | {
-    when.method( GET )
-      .path( "/v4/spreadsheets/12345/values/tab1!A1:Z1" );
-    then.status( 200 )
-      .header("Content-Type", "application/json" )
-      .body( body );
-  } );
-
-  let response = reqwest::get
-  ( 
-    server.url
-    ( 
-      "/v4/spreadsheets/12345/values/tab1!A1:Z1"
-    ) 
-  )
-  .await
-  .unwrap();
-
-  mock.assert();
-
-  assert_eq!( response.status(), 200 )
-}
-
-#[ tokio::test ]
-async fn test_get_header_empty_with_mock()
-{
-  let server = MockServer::start();
-
-  let mock = server.mock( | when, then | {
-    when.method( GET )
-      .path( "/v4/spreadsheets/12345/values/tab1!A1:Z1" );
-    then.status( 200 )
-      .header("Content-Type", "application/json" )
-      .body( r#"{}"# );
-  } );
-
-  let response = reqwest::get
-  ( 
-    server.url
-    ( 
-      "/v4/spreadsheets/12345/values/tab1!A1:Z1"
-    ) 
-  )
-  .await
-  .unwrap();
-
-  mock.assert();
-
-  assert_eq!( response.status(), 200 )
-}
-
-#[ tokio::test ]
-async fn test_get_header_with_empty_end_with_mock()
-{
-  let server = MockServer::start();
-  let body = r#"{ "A1": "Name", "B1": "Surname" }"#;
-  let mock = server.mock( | when, then | {
-    when.method( GET )
-      .path( "/v4/spreadsheets/12345/values/tab1!A1:Z1" );
-    then.status( 200 )
-      .header("Content-Type", "application/json" )
-      .body( body );
-  } );
-
-  let response = reqwest::get
-  ( 
-    server.url
-    ( 
-      "/v4/spreadsheets/12345/values/tab1!A1:Z1"
-    ) 
-  )
-  .await
-  .unwrap();
-
-  mock.assert();
-
-  assert_eq!( response.status(), 200 )
+  assert_eq!( header[0][0], JsonValue::String( "ID".to_string() ) );
+  assert_eq!( header[0][1], JsonValue::String( "Name".to_string() ) );
+  assert_eq!( header[0][2], JsonValue::String( "Email".to_string() ) );
 }

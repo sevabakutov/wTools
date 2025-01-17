@@ -34,19 +34,6 @@ mod private
   /// - `TableWithFields`:  
   /// - `Fields<&'_ str, Option<Cow<'_, str>>>`:  
   ///
-  /// **Usage example:**
-  /// ```rust
-  /// let row = RowWrapper 
-  /// {
-  ///   row: vec![json!("value1"), json!("value2"), json!("value3")],
-  ///   max_len: 5,
-  /// };
-  /// for (key, value) in row.fields() 
-  /// {
-  ///   println!("Column: {}, Value: {:?}", key, value);
-  /// }
-  /// ```
-  ///
   /// ## Implementation Details:
   /// - Missing cells in a row are filled with empty strings (`""`) to ensure all rows have `max_len` columns.
   /// - Keys (column names) are dynamically generated based on the column index.
