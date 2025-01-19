@@ -11,7 +11,8 @@ mod private
     Result,
     update_row
   };
-  use ser::Deserialize;
+  use client::client::Client;
+  use ser::{Deserialize, JsonValue};
   use std::collections::HashMap;
 
   /// # ParsedJson
@@ -24,10 +25,10 @@ mod private
   /// - `row_key_val`:  
   ///   A map of column names to new values.
   #[ derive( Deserialize, Debug ) ]
-  struct ParsedJson< 'a >
+  struct ParsedJson
   {
-    row_key : &'a str,
-    row_key_val : HashMap< String, String >
+    row_key : JsonValue,
+    row_key_val : HashMap< String, JsonValue >
   }
   
   /// # `parse_json`
@@ -42,18 +43,19 @@ mod private
   ///
   /// ## Returns:
   /// - `Result<ParsedJson>`
-  fn parse_json< 'a >
+  fn parse_json
   (
-    json_str : &'a str,
+    json_str : &str,
     select_row_by_key : &str,
-  ) -> Result< ParsedJson< 'a > > 
+  ) -> Result< ParsedJson > 
   {
-    let mut parsed_json: HashMap< String, String > = serde_json::from_str( json_str )
+    let mut parsed_json: HashMap< String, JsonValue > = serde_json::from_str( json_str )
     .map_err( | error | Error::InvalidJSON( format!( "Failed to parse JSON: {}", error ) ) )?;
 
     let row_key = if let Some( row_key ) = parsed_json.remove( select_row_by_key ) 
     {
-      Box::leak( row_key.into_boxed_str() )
+      row_key
+      // Box::leak( row_key.into_boxed_str() )
     } 
     else 
     {
@@ -61,7 +63,7 @@ mod private
       (
         Error::InvalidJSON
         (
-          format!( "Key '{}' not found in JSON", select_row_by_key)
+          format!( "Key '{}' not found in JSON", select_row_by_key )
         )
       );
     };
@@ -121,12 +123,12 @@ mod private
 
   pub async fn action
   (
-    client : &GspreadClient,
+    client : &Client,
     select_row_by_key : &str,
     json_str : &str,
     spreadsheet_id : &str,
     table_name : &str
-  ) -> Result< i32 >
+  ) -> Result< u32 >
   {
     check_select_row_by_key( select_row_by_key )?;
 
@@ -137,7 +139,7 @@ mod private
       {
         Ok( response ) => 
         {
-          match response.total_updated_cells 
+          match response.total_updated_cells
           {
             Some( val ) => Ok( val ),
             None => Ok( 0 ),

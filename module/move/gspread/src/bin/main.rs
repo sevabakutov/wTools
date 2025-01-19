@@ -2,11 +2,16 @@ use std::error::Error;
 use clap::Parser;
 use dotenv::dotenv;
 
-use gspread::
+use gspread::*;
+use secret::Secret;
+use client::client::Client;
+use commands::
 {
-  commands::{ self, Cli, CliCommand },
-  secret::Secret, GspreadClient,
+  self,
+  Cli,
+  CliCommand
 };
+
 
 #[ tokio::main ]
 async fn main() -> Result< (), Box< dyn Error > >
@@ -15,10 +20,10 @@ async fn main() -> Result< (), Box< dyn Error > >
 
   let secret = Secret::read();
 
-  let hub = GspreadClient::builder()
-  .with_secret( &secret )
-  .build()
-  .await?;
+  let client = Client::former()
+  .auth( &secret )
+  .await?
+  .form();
 
   let cli = Cli::parse();
 
@@ -26,7 +31,7 @@ async fn main() -> Result< (), Box< dyn Error > >
   {
     CliCommand::GSpread( cmd ) =>
     {
-      commands::gspread::command( &hub, cmd ).await;
+      commands::gspread::command( &client, cmd ).await;
     }
   }
 

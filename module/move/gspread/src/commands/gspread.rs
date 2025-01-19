@@ -7,6 +7,7 @@ mod private
 {
 
   use clap::{ Subcommand, Parser };
+use client::client::Client;
 
   use crate::*;
   use commands::
@@ -131,7 +132,7 @@ mod private
   ///   The `Command` enum specifying which operation to execute.
   pub async fn command
   (
-    client : &GspreadClient,
+    client : &Client,
     command : Command,
   )
   {

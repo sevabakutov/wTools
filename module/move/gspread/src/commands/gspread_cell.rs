@@ -6,6 +6,7 @@ mod private
 {
 
   use clap::Subcommand;
+use client::client::Client;
 
   use crate::*;
   use actions;
@@ -146,7 +147,7 @@ mod private
   /// - Prints an error message if the spreadsheet ID extraction, retrieval, or update fails.
   pub async fn command
   (
-    client : &GspreadClient,
+    client : &Client,
     commands : Commands
   )
   {

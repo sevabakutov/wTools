@@ -14,17 +14,19 @@ mod private
     Error, 
     Result 
   };
+  use client::client::Client;
+  use serde_json::json;
 
   pub async fn action
   (
-    client : &GspreadClient,
+    client : &Client,
     spreadsheet_id : &str,
     sheet_name : &str,
     cell_id : &str,
     value : &str
-  ) -> Result< i32 >
+  ) -> Result< u32 >
   {
-    match set_cell( client, spreadsheet_id, sheet_name, cell_id, value ).await
+    match set_cell( client, spreadsheet_id, sheet_name, cell_id, json!( value ) ).await
     {
       Ok( response ) =>
       {

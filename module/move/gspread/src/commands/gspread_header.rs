@@ -6,7 +6,8 @@ mod private
 {
   use std::fmt;
   use crate::*;
-  use commands::gspread::CommonArgs;
+  use client::client::Client;
+use commands::gspread::CommonArgs;
   use actions;
   use actions::gspread::get_spreadsheet_id_from_url;
   use format_tools::AsTable;
@@ -67,7 +68,7 @@ mod private
   /// - Prints an error message if the spreadsheet ID extraction or header retrieval fails.
   pub async fn command
   (
-    client : &GspreadClient,
+    client : &Client,
     args : CommonArgs,
   )
   {

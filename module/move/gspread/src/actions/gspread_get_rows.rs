@@ -13,11 +13,12 @@ mod private
     get_rows, 
     Result
   };
-  use ser::JsonValue;
+  use client::client::Client;
+use ser::JsonValue;
 
   pub async fn action
   (
-    client : &GspreadClient,
+    client : &Client,
     spreadsheet_id : &str,
     sheet_name : &str
   ) -> Result< Vec< Vec < JsonValue > > >

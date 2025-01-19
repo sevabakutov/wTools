@@ -6,7 +6,8 @@
 
 mod private
 {
-  use regex::Regex;
+  use client::client::{BatchUpdateValuesRequest, BatchUpdateValuesResponse, Client, Dimension, UpdateValuesResponse, ValueInputOption, ValueRange, ValueRenderOption};
+use regex::Regex;
   use error_tools::typed::Error;
   use derive_tools::AsRefStr;
   use serde_json::json;
@@ -17,13 +18,6 @@ mod private
     JsonValue
   };
   use std::collections::HashMap;
-  use google_sheets4::api::
-  {
-    BatchUpdateValuesRequest, 
-    BatchUpdateValuesResponse, 
-    UpdateValuesResponse, 
-    ValueRange
-  };
 
   /// # Error
   ///
@@ -114,13 +108,11 @@ mod private
     #[ error( "Google Sheets returned error:\n{0}" ) ]
     ApiError
     (
-      #[ from ]
-      #[ serde_as( as = "DisplayFromStr" ) ]
-      google_sheets4::Error
+      String
     ),
 
-    #[ error( "Mock Google API returned error:\n{0}" ) ]
-    MockApiError
+    #[ error( "Authentication error:\n{0}" ) ]
+    AuthError
     (
       String
     ),
@@ -258,101 +250,46 @@ mod private
   /// - The `value_input_option` is set to `"USER_ENTERED"`, meaning the input values will be parsed as if entered by a user.
   pub async fn update_row
   (
-    client : &GspreadClient,
-    // hub : &SheetsType,
+    client : &Client,
     spreadsheet_id : &str,
     sheet_name : &str,
-    row_key : &str,
-    row_key_val : HashMap< String, String >
+    row_key : JsonValue,
+    row_key_val : HashMap< String, JsonValue >
   ) -> Result< BatchUpdateValuesResponse >
   {
-    match client
+    let mut value_ranges = Vec::with_capacity( row_key_val.len() );
+
+    for ( col_name, value ) in row_key_val 
     {
-      GspreadClient::GoogleHub( hub ) =>
-      {
-        // Cretaing JSON with values to update. 
-        let mut value_ranges = Vec::with_capacity( row_key_val.len() );
-
-        for ( col_name, value ) in row_key_val {
-          value_ranges.push
-          (
-            ValueRange 
-            { 
-              major_dimension: Some( String::from( "ROWS" ) ),
-              values: Some( vec![ vec![ json!( value ) ] ] ),
-              range: Some( format!( "{}!{}{}", sheet_name, col_name, row_key ) ), 
-            }
-          )
+      value_ranges.push
+      (
+        ValueRange
+        { 
+          major_dimension: Some( Dimension::Row ),
+          values: Some( vec![ vec![ value ] ] ),
+          range: Some( format!( "{}!{}{}", sheet_name, col_name, row_key ) ),
         }
-
-        // Creating request.
-        let req = BatchUpdateValuesRequest
-        {
-          value_input_option: Some( "USER_ENTERED".to_string() ),
-          data: Some( value_ranges ),
-          include_values_in_response: Some( true ),
-          ..Default::default()
-        };
-
-        // Making HTTP request.
-        match hub
-        .spreadsheets()
-        .values_batch_update( req, spreadsheet_id )
-        .doit()
-        .await
-        {
-          Ok( ( _, response ) ) => Ok( response ),
-          Err( error ) => Err( Error::ApiError( error ) ),
-        }
-      },
-
-      GspreadClient::MockHub(mock_client) => 
-      {
-        let mut update_responses = Vec::with_capacity( row_key_val.len() );
-
-        for (col_name, value) in row_key_val 
-        {
-          let range_str = format!( "{}!{}{}", sheet_name, col_name, row_key );
-          let value_range = ValueRange 
-          {
-            major_dimension: Some( "ROWS".to_string() ),
-            values: Some( vec![ vec![ json!( value ) ] ] ),
-            range: Some( range_str.clone() ),
-          };
-
-          let update_result = mock_client
-          .spreadsheet()
-          .values_update( value_range, spreadsheet_id, &range_str )
-          .doit()
-          .await?;
-
-          update_responses.push( update_result );
-        }
-        
-        let total_updated_cells = update_responses.iter().fold( 0, | acc, r | {
-            acc + r.updated_cells.unwrap_or( 0 )
-        });
-        let total_updated_rows = update_responses.iter().fold( 0, | acc, r | {
-            acc + r.updated_rows.unwrap_or( 0 )
-        });
-        let total_updated_cols = update_responses.iter().fold( 0, | acc, r | {
-            acc + r.updated_columns.unwrap_or( 0 )
-        });
-
-        let batch_response = BatchUpdateValuesResponse 
-        {
-          spreadsheet_id: Some( spreadsheet_id.to_string() ),
-          total_updated_cells: Some( total_updated_cells ),
-          total_updated_rows: Some( total_updated_rows ),
-          total_updated_columns: Some( total_updated_cols ),
-          total_updated_sheets: None,
-          responses: Some( update_responses.into_iter().map( | ur| ur.into() ).collect() ),
-        };
-
-        Ok( batch_response )
-      }
+      )
     }
-    
+
+    let request = BatchUpdateValuesRequest
+    {
+      data : value_ranges,
+      value_input_option : ValueInputOption::UserEntered,
+      include_values_in_response : Some( true ),
+      response_value_render_option : Some( ValueRenderOption::FormattedValue ),
+      response_date_time_render_option : Default::default()
+    };
+
+    match client
+    .spreadsheet()
+    .values_batch_update(spreadsheet_id, request)
+    .doit()
+    .await
+    {
+      Ok( response ) => Ok( response ),
+      Err( error ) => Err( error )
+    }
   }
 
   /// # `get_header`
@@ -377,7 +314,7 @@ mod private
   pub async fn get_header
   (
 
-    client : &GspreadClient,
+    client : &Client,
     // hub : &SheetsType,
     spreadsheet_id : &str,
     sheet_name : &str, 
@@ -386,46 +323,13 @@ mod private
     let range = format!( "{}!A1:Z1", sheet_name );
 
     match client
+    .spreadsheet()
+    .values_get( spreadsheet_id, &range )
+    .doit()
+    .await
     {
-      GspreadClient::GoogleHub( hub ) => 
-      {
-        match hub
-        .spreadsheets()
-        .values_get( spreadsheet_id, &range )
-        .doit()
-        .await
-        {
-          Ok( ( _, response ) ) =>
-          {
-            match response.values
-            {
-              Some( values ) => Ok( values ),
-              None => Ok( Vec::new() )
-            }
-          },
-          Err( error ) => Err( Error::ApiError( error ) )
-        }
-      },
-
-      GspreadClient::MockHub( mock_client ) => 
-      {
-        match mock_client
-        .spreadsheet()
-        .values_get( spreadsheet_id, &range )
-        .doit()
-        .await
-        {
-          Ok( response ) =>
-          {
-            match response.values
-            {
-              Some( values ) => Ok( values ),
-              None => Ok( Vec::new() )
-            }
-          },
-          Err( error ) => Err( error )
-        }
-      }
+      Ok( response ) => Ok( response.values.unwrap() ),
+      Err( error ) => Err( error )
     }
     
   }
@@ -451,7 +355,7 @@ mod private
   ///   or insufficient permissions.
   pub async fn get_rows
   (
-    client : &GspreadClient,
+    client : &Client,
     // hub : &SheetsType,
     spreadsheet_id : &str,
     sheet_name : &str, 
@@ -460,46 +364,13 @@ mod private
     let range = format!( "{}!A2:Z", sheet_name );
 
     match client
+    .spreadsheet()
+    .values_get( spreadsheet_id, &range )
+    .doit()
+    .await
     {
-      GspreadClient::GoogleHub( hub ) => 
-      {
-        match hub
-        .spreadsheets()
-        .values_get( spreadsheet_id, &range )
-        .doit()
-        .await
-        {
-          Ok( ( _, response ) ) =>
-          {
-            match response.values
-            {
-              Some( values ) => Ok( values ),
-              None => Ok( Vec::new() )
-            }
-          },
-          Err( error ) => Err( Error::ApiError( error ) )
-        }
-      },
-
-      GspreadClient::MockHub( mock_server ) => 
-      {
-        match mock_server
-        .spreadsheet()
-        .values_get( spreadsheet_id, &range )
-        .doit()
-        .await
-        {
-          Ok( response ) =>
-          {
-            match response.values
-            {
-              Some( values ) => Ok( values ),
-              None => Ok( Vec::new() )
-            }
-          },
-          Err( error ) => Err( error )
-        }
-      }
+      Ok( response ) => Ok( response.values.unwrap() ),
+      Err( error ) => Err( error )
     }
     
   }
@@ -527,7 +398,7 @@ mod private
   ///   or insufficient permissions.
   pub async fn get_cell
   (
-    client : &GspreadClient,
+    client : &Client,
     spreadsheet_id : &str,
     sheet_name : &str,
     cell_id : &str
@@ -535,44 +406,24 @@ mod private
   {
     let range = format!( "{}!{}", sheet_name, cell_id );
 
-    // Making HTTP request.
     match client
+    .spreadsheet()
+    .values_get( spreadsheet_id, &range )
+    .doit()
+    .await
     {
-      GspreadClient::GoogleHub( hub ) => 
-      {
-        match hub
-        .spreadsheets()
-        .values_get( spreadsheet_id, &range )
-        .doit()
-        .await
-        {
-          Ok( ( _, response ) ) => 
-          match response.values
-          {
-            Some( values ) => Ok( values.get( 0 ).unwrap().get( 0 ).unwrap().clone() ),
-            None => Ok( JsonValue::Null.clone() )
-          }
-          Err( error ) => Err( Error::ApiError( error ) )
-        }    
-      },
-
-      GspreadClient::MockHub( mock_client ) =>
-      {
-        match mock_client
-        .spreadsheet()
-        .values_get( spreadsheet_id, &range )
-        .doit()
-        .await
-        {
-          Ok( response ) => 
-          match response.values
-          {
-            Some( values ) => Ok( values.get( 0 ).unwrap().get( 0 ).unwrap().clone() ),
-            None => Ok( JsonValue::Null.clone() )
-          }
-          Err( error ) => Err( error )
-        }
-      }
+      Ok( response ) => Ok
+      ( 
+        response
+        .values
+        .unwrap()
+        .get( 0 )
+        .unwrap()
+        .get( 0 )
+        .unwrap()
+        .clone() 
+      ),
+      Err( error ) => Err( error )
     }
   }
 
@@ -600,55 +451,33 @@ mod private
   ///   Occurs if the Google Sheets API returns an error, such as invalid input or insufficient permissions.
   pub async fn set_cell
   (
-    // hub : &SheetsType,
-    client : &GspreadClient,
+    client : &Client,
     spreadsheet_id : &str,
     sheet_name : &str,
     cell_id : &str,
-    value : &str
+    value : JsonValue
   ) -> Result< UpdateValuesResponse >
   {
+    let range = format!( "{}!{}", sheet_name, cell_id );
+
     // Creating JSON with value to update.
     let value_range = ValueRange
     {
-      values : Some( vec![ vec![ json!( value ) ] ] ),
+      values : Some( vec![ vec![ value ] ] ),
       ..ValueRange::default()
     };
 
-    let range = format!( "{}!{}", sheet_name, cell_id );
-
     match client
+    .spreadsheet()
+    .values_update( value_range, spreadsheet_id, &range )
+    .doit()
+    .await
     {
-      GspreadClient::GoogleHub( hub ) => 
-      {
-        match hub
-        .spreadsheets()
-        .values_update( value_range, spreadsheet_id, &range )
-        .value_input_option( "USER_ENTERED" )
-        .doit()
-        .await
-        {
-          Ok( ( _, response) ) => Ok( response ),
-          Err( error) => Err( Error::ApiError( error ) )
-        }
-      },
-
-      GspreadClient::MockHub( mock_client ) => 
-      {
-        match mock_client
-        .spreadsheet()
-        .values_update( value_range, spreadsheet_id, &range )
-        .doit()
-        .await
-        {
-          Ok( response ) => Ok( response ),
-          Err( error ) => Err( error )
-        }
-      }
+      Ok( response ) => Ok( response ),
+      Err( error ) => Err( error )
     }
-    
   }
-
+    
   /// Type alias for `std::result::Result< T, Error >`.
   pub type Result< T > = std::result::Result< T, Error >;
 }
