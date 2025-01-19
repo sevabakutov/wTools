@@ -245,7 +245,7 @@ use former::Former;
       let token = access_token.token().unwrap();
 
       let response = reqwest::Client::new()
-      .post( endpoint )
+      .put( endpoint )
       .query( &query )
       .json( &self._value_range )
       .bearer_auth( token )
@@ -277,11 +277,6 @@ use former::Former;
     pub client : &'a Client,
     pub _spreadsheet_id : String,
     pub _request : BatchUpdateValuesRequest
-    // pub _data : Vec< ValueRange >,
-    // pub _value_input_option : ValueInputOption,
-    // pub _include_values_in_response : Option< bool >,
-    // pub _response_value_render_option : Option< ValueRenderOption >,
-    // pub _response_date_time_render_option : Option< DateTimeRenderOption >,
   }
 
   impl ValuesBatchUpdateMethod<'_>
@@ -371,21 +366,32 @@ use former::Former;
   #[ derive( Debug, Deserialize ) ]
   pub struct UpdateValuesResponse
   {
+    #[ serde( rename = "spreadsheetId" ) ]
     pub spreadsheet_id : Option< String >,
+    #[ serde( rename = "updatedRange" ) ]
     pub updated_range : Option< String >,
+    #[ serde( rename = "updatedRows" ) ]
     pub updated_rows : Option< u32 >,
+    #[ serde( rename = "updatedColumns" ) ]
     pub updated_columns : Option< u32 >,
+    #[ serde( rename = "updatedCells" ) ]
     pub updated_cells : Option< u32 >,
+    #[ serde( rename = "updatedData" ) ]
     pub updated_data : Option< ValueRange >
   }
 
   #[ derive( Debug, Deserialize ) ]
   pub struct BatchUpdateValuesResponse
   {
+    #[ serde( rename = "spreadsheetId" ) ]
     pub spreadsheet_id : Option< String >,
+    #[ serde( rename = "totalUpdatedRows" ) ]
     pub total_updated_rows : Option< u32 >,
+    #[ serde( rename = "totalUpdatedColumns" ) ]
     pub total_updated_columns : Option< u32 >,
+    #[ serde( rename = "totalUpdatedCells" ) ]
     pub total_updated_cells : Option< u32 >,
+    #[ serde( rename = "totalUpdatedSheets" ) ]
     pub total_updated_sheets : Option< u32 >,
     pub responses : Option< Vec< ValueRange > >
   }
