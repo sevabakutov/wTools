@@ -1,43 +1,49 @@
-use dotenv::dotenv;
-use gspread::{actions::gspread::get_rows, GspreadClient, Secret};
+use gspread::{actions::gspread::get_rows, gcore::client::{Client, Dimension, ValueRange}};
 use httpmock::prelude::*;
 use gspread::ser::JsonValue;
+use serde_json::json;
 
+/// # What
+/// We check that requesting all rows from the second row onward (below the header)
+/// correctly parses the response and returns the expected result.
+///
+/// # How
+/// 1. Start a `MockServer` to send `GET /12345/values/tab2!A2:Z999`.
+/// 2. Return a predefined `ValueRange` with multiple rows of data.
+/// 3. Call `get_rows()`, passing the table and sheet.
+/// 4. Verify that the array of returned rows matches the expected structure and values.
 #[tokio::test]
 async fn test_get_rows_with_mock() {
-  dotenv().ok();
-
-  let secret = Secret::read();
+  let spreadsheet_id = "12345";
+  let body = ValueRange
+  {
+    major_dimension : Some( Dimension::Row ),
+    range : Some( "tab2!A2:Z999".to_string() ),
+    values : Some
+    ( 
+      vec!
+      [ 
+        vec![ json!( "Row2Col1" ), json!( "Row2Col2" ) ], 
+        vec![ json!( "Row3Col1" ), json!( "Row3Col2" ) ] 
+      ] 
+    )
+  };
 
   let server = MockServer::start();
 
-  let body = r#"
-  {
-    "range": "tab2!A2:Z999",
-    "majorDimension": "ROWS",
-    "values": [
-      ["Row2Col1", "Row2Col2"],
-      ["Row3Col1", "Row3Col2"]
-    ]
-  }
-  "#;
-
   let mock = server.mock( | when, then | {
-    when.method(GET)
-      .path("/v4/spreadsheets/12345/values/tab2!A2:Z");
-    then.status(200)
-      .header("Content-Type", "application/json")
-      .body(body);
+    when.method( GET )
+      .path( "/12345/values/tab2!A2:Z" );
+    then.status( 200 )
+      .header( "Content-Type", "application/json" )
+      .json_body_obj( &body );
   } );
 
-  let client = GspreadClient::builder()
-  .with_endpoint( server.url("" ) )
-  .with_secret( &secret )
-  .build()
-  .await
-  .expect( "Some error while building the client." );
+  let client = Client::former()
+  .endpoint( server.url("" ) )
+  .form();
 
-  let rows = get_rows( &client, "12345", "tab2" )
+  let rows = get_rows( &client, spreadsheet_id, "tab2" )
   .await
   .expect( "get_rows failed" );
 

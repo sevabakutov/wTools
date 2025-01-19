@@ -7,13 +7,10 @@
 mod private
 {
   use crate::*;
-  use actions::gspread::
-  {
-    get_cell, 
-    Result
-  };
-  use client::client::Client;
-use ser::JsonValue;
+  use actions::gspread::get_cell;
+  use gcore::error::Result;
+  use gcore::client::Client;
+  use ser::JsonValue;
 
   pub async fn action
   (

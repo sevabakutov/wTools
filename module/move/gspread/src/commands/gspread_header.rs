@@ -6,7 +6,7 @@ mod private
 {
   use std::fmt;
   use crate::*;
-  use client::client::Client;
+  use gcore::client::Client;
 use commands::gspread::CommonArgs;
   use actions;
   use actions::gspread::get_spreadsheet_id_from_url;

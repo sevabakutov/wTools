@@ -8,13 +8,13 @@
 mod private
 {
   use crate::*;
-  use actions::gspread::
-  { 
-    set_cell, 
-    Error, 
-    Result 
-  };
-  use client::client::Client;
+  use actions::gspread::set_cell;
+  use gcore::error::
+  {
+    Error,
+    Result
+  }; 
+  use gcore::client::Client;
   use serde_json::json;
 
   pub async fn action

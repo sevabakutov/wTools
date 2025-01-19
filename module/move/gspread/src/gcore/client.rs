@@ -2,30 +2,27 @@ mod private
 {
 
   use crate::*;
-  use actions::gspread::{Error, Result};
-use former::Former;
+  use gcore::error::
+  {
+    Error,
+    Result
+  };
+  use former::Former;
   use reqwest;
   use serde::{Deserialize, Serialize};
   use ser::JsonValue;
-  use yup_oauth2::{authenticator::Authenticator, ApplicationSecret};
-  use hyper_util::client::legacy::connect::HttpConnector;
-  use hyper_rustls::HttpsConnector;
+  use yup_oauth2;
 
   
   /// Gspread Client. 
   #[ derive( Former ) ]
   pub struct Client
   {
+    #[ former( default = "" ) ]
     #[ scalar( setter = false ) ]
-    auth : Authenticator< HttpsConnector< HttpConnector > >,
+    token : String,
     #[ former( default = "https://sheets.googleapis.com/v4/spreadsheets".to_string() ) ]
     endpoint : String,
-    #[ former( default = vec![ 
-      "https://www.googleapis.com/auth/spreadsheets",
-      "https://www.googleapis.com/auth/spreadsheets.readonly"
-      ] 
-    ) ]
-    scopes : Vec< &'static str >
   }
 
   impl Client
@@ -45,11 +42,11 @@ use former::Former;
   where
     Definition : former::FormerDefinition< Storage = ClientFormerStorage >,
   {
-    pub async fn auth( mut self, secret : &Secret ) -> Result< Self >
+    pub async fn token( mut self, secret : &Secret ) -> Result< Self >
     {
-      debug_assert!( self.storage.auth.is_none() );
+      debug_assert!( self.storage.token.is_none() );
 
-      let secret: ApplicationSecret = ApplicationSecret
+      let secret: yup_oauth2::ApplicationSecret = yup_oauth2::ApplicationSecret
       {
         client_id : secret.CLIENT_ID.clone(),
         auth_uri : secret.AUTH_URI.clone(),
@@ -66,7 +63,20 @@ use former::Former;
       .await
       .map_err( | err | Error::AuthError( err.to_string() ) )?;
 
-      self.storage.auth = Some( authenticator );
+      let scopes = vec!
+      [ 
+        "https://www.googleapis.com/auth/spreadsheets",
+        "https://www.googleapis.com/auth/spreadsheets.readonly" 
+      ];
+
+      let access_token = authenticator
+      .token( &scopes )
+      .await
+      .map_err( | err | Error::AuthError( err.to_string() ) )?;
+
+      let token = access_token.token().unwrap();
+      
+      self.storage.token = Some( token.to_string() );
 
       Ok( self )
     }
@@ -131,10 +141,6 @@ use former::Former;
         client : self.client,
         _spreadsheet_id : spreadsheet_id.to_string(),
         _request : req,
-        // _value_input_option : ValueInputOption::default(),
-        // _include_values_in_response : Default::default(),
-        // _response_date_time_render_option : Default::default(),
-        // _response_value_render_option : Default::default()
       }
     }
   }
@@ -168,19 +174,10 @@ use former::Former;
         date_time_render_option : self._date_time_render_option
       };
 
-      let access_token = self
-      .client
-      .auth
-      .token( &self.client.scopes )
-      .await
-      .map_err( | err | Error::AuthError( err.to_string() ) )?;
-
-      let token = access_token.token().unwrap();
-
       let response = reqwest::Client::new()
       .get( endpoint )
       .query( &query )
-      .bearer_auth( token )
+      .bearer_auth( &self.client.token )
       .send()
       .await
       .map_err( | err | Error::ApiError( err.to_string() ) )?;
@@ -235,20 +232,11 @@ use former::Former;
         response_date_time_render_option : self._response_date_time_render_option
       };
 
-      let access_token = self
-      .client
-      .auth
-      .token( &self.client.scopes )
-      .await
-      .map_err( | err | Error::AuthError( err.to_string() ))?;
-
-      let token = access_token.token().unwrap();
-
       let response = reqwest::Client::new()
       .put( endpoint )
       .query( &query )
       .json( &self._value_range )
-      .bearer_auth( token )
+      .bearer_auth( &self.client.token )
       .send()
       .await
       .map_err( | err | Error::ApiError( err.to_string() ) )?;
@@ -290,19 +278,10 @@ use former::Former;
         self._spreadsheet_id
       );
 
-      let access_token = self
-      .client
-      .auth
-      .token( &self.client.scopes )
-      .await
-      .map_err( | err | Error::AuthError( err.to_string() ) )?;
-
-      let token = access_token.token().unwrap();
-
       let response = reqwest::Client::new()
       .post( endpoint )
       .json( &self._request )
-      .bearer_auth( token )
+      .bearer_auth( &self.client.token )
       .send()
       .await
       .map_err( | err | Error::ApiError( err.to_string() ) )?;
@@ -363,7 +342,7 @@ use former::Former;
     pub response_date_time_render_option : Option< DateTimeRenderOption >,
   }
 
-  #[ derive( Debug, Deserialize ) ]
+  #[ derive( Debug, Serialize, Deserialize ) ]
   pub struct UpdateValuesResponse
   {
     #[ serde( rename = "spreadsheetId" ) ]
@@ -380,7 +359,7 @@ use former::Former;
     pub updated_data : Option< ValueRange >
   }
 
-  #[ derive( Debug, Deserialize ) ]
+  #[ derive( Debug, Serialize, Deserialize ) ]
   pub struct BatchUpdateValuesResponse
   {
     #[ serde( rename = "spreadsheetId" ) ]

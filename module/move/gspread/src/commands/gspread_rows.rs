@@ -7,7 +7,7 @@ mod private
   use std::fmt;
   use crate::*;
   use actions;
-  use client::client::Client;
+  use gcore::client::Client;
 use format_tools::AsTable;
   use commands::gspread::CommonArgs;
   use util::display_table::display_rows;

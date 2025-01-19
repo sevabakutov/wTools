@@ -4,7 +4,7 @@ use dotenv::dotenv;
 
 use gspread::*;
 use secret::Secret;
-use client::client::Client;
+use gcore::client::Client;
 use commands::
 {
   self,
@@ -21,7 +21,7 @@ async fn main() -> Result< (), Box< dyn Error > >
   let secret = Secret::read();
 
   let client = Client::former()
-  .auth( &secret )
+  .token( &secret )
   .await?
   .form();
 

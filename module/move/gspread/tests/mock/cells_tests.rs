@@ -1,99 +1,92 @@
-//!
-//! Set cells tests.
-//! In these examples:
-//!   - url is /v4/spreadsheets/{spreadsheet_id}}/values/{range}
-//!   - everything is fake: spreadsheet_id, sheet's name, range and response json
-//! 
-
-use dotenv::dotenv;
-use gspread::{actions::gspread::update_row, GspreadClient, Secret};
+use gspread::*;
+use actions::gspread::update_row; 
+use gcore::client::
+{
+  Client,
+  Dimension, 
+  ValueRange,
+  BatchUpdateValuesResponse 
+};
 use httpmock::prelude::*;
+use serde_json::json;
 
+/// # What
+/// We check that updating a row in a Google Spreadsheet returns the correct response.
+///
+/// # How
+/// 1. Start a `MockServer` to send `POST /12345/values:batchUpdate`.
+/// 2. Return a predefined `BatchUpdateValuesResponse`.
+/// 3. Call `update_row()`, passing the necessary parameters.
+/// 4. Verify that the number of updated cells, rows, and columns matches the expected result.
 #[tokio::test]
 async fn test_update_row_with_mock() {
-  dotenv().ok();
+  let spreadsheet_id = "12345";
 
-  let secret = Secret::read();
+  let value_ranges = vec!
+  [
+    ValueRange
+    {
+      major_dimension : Some( Dimension::Row ),
+      range : Some( "tab2!A5".to_string() ),
+      values : Some( vec![ vec![ json!( "Hello" ) ] ] )
+    },
+
+    ValueRange
+    {
+      major_dimension : Some( Dimension::Row ),
+      range : Some( "tab2!A7".to_string() ),
+      values : Some( vec![ vec![ json!( 123 ) ] ] )
+    },
+  ];
+
+  let response_body = BatchUpdateValuesResponse
+  {
+    spreadsheet_id : Some( spreadsheet_id.to_string() ),
+    total_updated_rows : Some( 2 ),
+    total_updated_columns : Some( 1 ),
+    total_updated_cells : Some( 2 ),
+    total_updated_sheets : Some( 1 ),
+    responses : Some( value_ranges )
+  };
 
   let server = MockServer::start();
 
-  let mock_patch_a = server.mock( |when, then | {
-    when.method( POST );
+  let mock = server.mock( |when, then | {
+    when.method( POST )
+      .path( "/12345/values:batchUpdate" );
     then.status( 200 )
       .header( "Content-Type", "application/json" )
-      .body
-      (
-        r#"
-        {
-          "spreadsheetId": "12345",
-          "updatedRange": "tab2!A5",
-          "updatedRows": 1,
-          "updatedColumns": 1,
-          "updatedCells": 1,
-          "updatedData": {
-            "range": "tab2!A5",
-            "values": [["Hello"]]
-          }
-        }
-        "#
-      );
+      .json_body_obj( &response_body );
   });
 
-  let mock_patch_b = server.mock( |when, then | {
-    when.method( POST );
-    then.status( 200 )
-      .header("Content-Type", "application/json")
-      .body
-      (
-        r#"
-        {
-          "spreadsheetId": "12345",
-          "updatedRange": "tab2!B5",
-          "updatedRows": 1,
-          "updatedColumns": 1,
-          "updatedCells": 1,
-          "updatedData": {
-            "range": "tab2!B5",
-            "values": [["World"]]
-          }
-        }
-        "#
-      );
-  });
-
-  let client = GspreadClient::builder()
-  .with_endpoint( server.url("") )
-  .with_secret( &secret )
-  .build()
-  .await
-  .expect( "Some error while building the client." );
+  let client = Client::former()
+  .endpoint( server.url("") )
+  .form();
 
   let mut row_key_val = std::collections::HashMap::new();
-  row_key_val.insert("A".to_string(), "Hello".to_string());
-  row_key_val.insert("B".to_string(), "World".to_string());
+  row_key_val.insert( "A".to_string(), serde_json::Value::String( "Hello".to_string() ) );
+  row_key_val.insert( "B".to_string(), serde_json::Value::Number( serde_json::Number::from( 123 ) ) );
 
-  let batch_result = update_row(
-      &client,
-      "12345",
-      "tab2",
-      "5",
-      row_key_val
+  let batch_result = update_row
+  ( 
+    &client, 
+    spreadsheet_id, 
+    "tab2", 
+    serde_json::Value::String( "5".to_string() ), 
+    row_key_val
   )
   .await
   .expect( "update_row failed in mock test" );
 
-  mock_patch_a.assert();
-  mock_patch_b.assert();
+  mock.assert();
 
-  assert_eq!( batch_result.spreadsheet_id.as_deref(), Some( "12345" ) );
+  assert_eq!( batch_result.spreadsheet_id.as_deref(), Some( spreadsheet_id ) );
   assert_eq!( batch_result.total_updated_cells, Some( 2 ) );
   assert_eq!( batch_result.total_updated_rows, Some( 2 ) );
-  assert_eq!( batch_result.total_updated_columns, Some( 2 ) );
+  assert_eq!( batch_result.total_updated_columns, Some( 1 ) );
 
   if let Some( responses ) = &batch_result.responses 
   {
     assert_eq!( responses.len(), 2 );
   }
-  
-  println!( "Batch update result: {:?}", batch_result );
 }

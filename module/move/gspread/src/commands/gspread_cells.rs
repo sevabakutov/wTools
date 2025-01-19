@@ -6,7 +6,7 @@
 mod private
 {
   use clap::Subcommand;
-use client::client::Client;
+use gcore::client::Client;
 
   use crate::*;
   use actions::gspread::get_spreadsheet_id_from_url;

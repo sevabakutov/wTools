@@ -1,43 +1,42 @@
-use dotenv::dotenv;
-use gspread::{actions::gspread::get_header, GspreadClient, Secret};
+use gspread::{actions::gspread::get_header, gcore::client::{Client, Dimension, ValueRange}};
 use httpmock::prelude::*;
 use gspread::ser::JsonValue;
+use serde_json::json;
 
-
+/// # What
+/// We check that requesting the header row (first row) of a sheet in a Google Spreadsheet
+/// returns the correct set of column values.
+///
+/// # How
+/// 1. Start a `MockServer` to send `GET /12345/values/tab2!A1:Z1`.
+/// 2. Return a predefined `ValueRange` containing `"ID"`, `"Name"`, and `"Email"`.
+/// 3. Call `get_header()`, passing the table and sheet.
+/// 4. Verify that the returned header row has exactly three columns as expected.
 #[tokio::test]
 async fn test_get_header_with_mock_should_work() {
-  dotenv().ok();
-
-  let secret = Secret::read();
+  let spreadsheet_id = "12345";
+  let body = ValueRange
+  {
+    major_dimension : Some( Dimension::Row ),
+    range : Some( "tab2!A1:Z1".to_string() ),
+    values : Some( vec![ vec![ json!( "ID" ), json!( "Name" ), json!( "Email" ) ] ] )
+  };
 
   let server = MockServer::start();
 
-  let body = r#"
-  {
-    "range": "tab2!A1:Z1",
-    "majorDimension": "ROWS",
-    "values": [
-      ["ID", "Name", "Email"]
-    ]
-  }
-  "#;
-
   let mock = server.mock( | when, then | {
     when.method( GET )
-      .path( "/v4/spreadsheets/12345/values/tab2!A1:Z1" );
+      .path( "/12345/values/tab2!A1:Z1" );
     then.status(200)
       .header( "Content-Type", "application/json" )
-      .body( body );
+      .json_body_obj( &body );
   });
 
-  let client = GspreadClient::builder()
-  .with_endpoint( server.url("") )
-  .with_secret( &secret )
-  .build()
-  .await
-  .expect( "Some error while building the client." );
+  let client = Client::former()
+  .endpoint( server.url("") )
+  .form();
 
-  let header = get_header( &client, "12345", "tab2" )
+  let header = get_header( &client, spreadsheet_id, "tab2" )
   .await
   .expect( "get_header failed" );
 

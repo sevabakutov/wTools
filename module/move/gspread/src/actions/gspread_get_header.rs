@@ -8,13 +8,10 @@
 mod private
 {
   use crate::*;
-  use actions::gspread::
-  {
-    get_header, 
-    Result
-  };
-  use client::client::Client;
-use ser::JsonValue;
+  use actions::gspread::get_header; 
+  use gcore::client::Client;
+  use gcore::error::Result;
+  use ser::JsonValue;
 
   pub async fn action
   (

@@ -5,14 +5,18 @@
 mod private
 {
   use crate::*;
-  use actions::gspread::
+  use actions::gspread::update_row;
+  use gcore::client::Client;
+  use gcore::error::
   {
     Error,
-    Result,
-    update_row
+    Result
   };
-  use client::client::Client;
-  use ser::{Deserialize, JsonValue};
+  use ser::
+  {
+    Deserialize, 
+    JsonValue
+  };
   use std::collections::HashMap;
 
   /// # ParsedJson

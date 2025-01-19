@@ -24,7 +24,7 @@ pub mod ser
 crate::mod_interface!
 {
 
-  layer client;
+  layer gcore;
   layer debug;
   layer commands;
   layer actions;
