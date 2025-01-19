@@ -4,20 +4,13 @@
 
 mod private
 {
-  use crate::*;
-  use actions::gspread::update_row;
-  use gcore::client::Client;
-  use gcore::error::
-  {
-    Error,
-    Result
-  };
-  use ser::
-  {
-    Deserialize, 
-    JsonValue
-  };
   use std::collections::HashMap;
+
+  use crate::*;
+  use ser::Deserialize; 
+  use gcore::client::Client;
+  use gcore::error::{ Error, Result };
+  use actions::gspread::update_row;
 
   /// # ParsedJson
   ///
@@ -31,8 +24,8 @@ mod private
   #[ derive( Deserialize, Debug ) ]
   struct ParsedJson
   {
-    row_key : JsonValue,
-    row_key_val : HashMap< String, JsonValue >
+    row_key : serde_json::Value,
+    row_key_val : HashMap< String, serde_json::Value >
   }
   
   /// # `parse_json`
@@ -53,7 +46,7 @@ mod private
     select_row_by_key : &str,
   ) -> Result< ParsedJson > 
   {
-    let mut parsed_json: HashMap< String, JsonValue > = serde_json::from_str( json_str )
+    let mut parsed_json: HashMap< String, serde_json::Value > = serde_json::from_str( json_str )
     .map_err( | error | Error::InvalidJSON( format!( "Failed to parse JSON: {}", error ) ) )?;
 
     let row_key = if let Some( row_key ) = parsed_json.remove( select_row_by_key ) 

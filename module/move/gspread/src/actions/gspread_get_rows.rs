@@ -11,14 +11,13 @@ mod private
   use actions::gspread::get_rows;
   use gcore::error::Result;
   use gcore::client::Client;
-  use ser::JsonValue;
 
   pub async fn action
   (
     client : &Client,
     spreadsheet_id : &str,
     sheet_name : &str
-  ) -> Result< Vec< Vec < JsonValue > > >
+  ) -> Result< Vec< Vec < serde_json::Value > > >
   {
     match get_rows( client, spreadsheet_id, sheet_name ).await
     {

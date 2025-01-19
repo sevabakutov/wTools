@@ -1,9 +1,18 @@
-use gspread::actions::gspread::set_cell;
-use gspread::gcore::client::{Client, Dimension, UpdateValuesResponse, ValueRange};
-use gspread::actions::gspread::get_cell;
 use httpmock::prelude::*;
-use gspread::ser::JsonValue;
+
 use serde_json::json;
+use gspread::actions::gspread::
+{ 
+  get_cell, 
+  set_cell 
+};
+use gspread::gcore::client::
+{
+  Client, 
+  Dimension, 
+  ValueRange,
+  UpdateValuesResponse 
+};
 
 /// # What
 /// We check that reading a specific cell from a Google Spreadsheet returns the expected result.
@@ -44,7 +53,7 @@ async fn test_get_cell_with_mock_should_work() {
 
   mock.assert();
 
-  assert_eq!( result, JsonValue::String( "Steeve".to_string() ) );
+  assert_eq!( result, serde_json::Value::String( "Steeve".to_string() ) );
 }
 
 

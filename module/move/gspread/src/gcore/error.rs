@@ -24,17 +24,6 @@ mod private
   /// - `String`:  
   ///   The raw error returned by the API.
   ///
-  /// ### `HubError`
-  ///
-  /// Represents an error that occurs while initializing Google Sheets Hub.
-  ///
-  /// **Details:**  
-  /// This error indicates that the application failed to properly configure with the Google Sheets Hub.
-  ///
-  /// **Fields:**  
-  /// - `String`:  
-  ///   A detailed error message describing the issue.
-  ///
   /// ### `InvalidUrl`
   ///
   /// Represents an error caused by an invalid URL format.
@@ -92,11 +81,7 @@ mod private
     /// # Fields
     /// - `String`: The raw error returned by the API.
     #[ error( "Google Sheets returned error:\n{0}" ) ]
-    ApiError
-    (
-      String
-    ),
-
+    ApiError( String ),
 
     /// Represents an error returned by yup_oauth2.
     /// 
@@ -106,23 +91,7 @@ mod private
     /// # Fields
     /// - `String`: The raw error returned by token().
     #[ error( "Authentication error:\n{0}" ) ]
-    AuthError
-    (
-      String
-    ),
-
-    // /// Represents an error that occurs while initializing Google Sheets Hub.
-    // /// 
-    // /// # Details
-    // /// This error indicates that the application failed to properly configure with the Google Sheets Hub.
-    // /// 
-    // /// # Fields
-    // /// - `String`: A detailed error message describing the issue.
-    // #[ error( "Hub Error:\n{0}" ) ]
-    // HubError
-    // (
-    //   String
-    // ),
+    AuthError( String ),
 
     /// Represents an error caused by an invalid URL format.
     /// 
@@ -132,10 +101,7 @@ mod private
     /// # Fields
     /// - `String`: The invalid URL or a message describing the issue.
     #[ error( "Invalid URL format:\n{0}" ) ]
-    InvalidUrl
-    (
-      String
-    ),
+    InvalidUrl( String ),
 
     /// Represents an error related to a cell in the spreadsheet.
     /// 
@@ -145,10 +111,7 @@ mod private
     /// # Fields
     /// - `String`: A message describing the issue with the cell.
     #[ error( "Cell error:\n{0}" ) ]
-    CellError
-    (
-      String
-    ),
+    CellError( String ),
 
     /// Represents an error caused by invalid JSON input or parsing issues.
     /// 
@@ -159,10 +122,7 @@ mod private
     /// # Fields
     /// - `String`: A detailed error message describing the JSON issue.
     #[ error( "Invalid JSON format:\n{0}" ) ]
-    InvalidJSON
-    (
-      String
-    ),
+    InvalidJSON( String ),
 
     /// Represents a generic parsing error.
     /// 
@@ -173,10 +133,7 @@ mod private
     /// # Fields
     /// - `String`: A message describing the parse error.
     #[ error( "Parse error:\n{0}" ) ]
-    ParseError
-    (
-      String
-    )
+    ParseError( String )
   }
 
   /// Type alias for `std::result::Result< T, Error >`.

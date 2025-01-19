@@ -133,7 +133,7 @@ mod private
     {
       Self::load().unwrap_or_else( | err |
       {
-        let example = include_str!("../.secret/readme.md");
+        let example = include_str!("../../.secret/readme.md");
         let explanation = format!
         (
                   r#" = Lack of secrets

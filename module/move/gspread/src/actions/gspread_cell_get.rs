@@ -10,7 +10,6 @@ mod private
   use actions::gspread::get_cell;
   use gcore::error::Result;
   use gcore::client::Client;
-  use ser::JsonValue;
 
   pub async fn action
   (
@@ -18,7 +17,7 @@ mod private
     spreadsheet_id : &str,
     sheet_name : &str,
     cell_id : &str,
-  ) -> Result< JsonValue >
+  ) -> Result< serde_json::Value >
   {
     match get_cell( client, spreadsheet_id, sheet_name, cell_id ).await
     {

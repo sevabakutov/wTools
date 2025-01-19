@@ -6,14 +6,13 @@
 
 mod private
 {
+  use std::borrow::Cow;
   use format_tools::
   {
-    Fields,
-    TableWithFields,
+    Fields, 
+    IteratorTrait, 
+    TableWithFields
   };
-  use std::borrow::Cow;
-  use crate::*;
-  use ser::JsonValue;
 
   /// # RowWrapper
   ///
@@ -41,7 +40,7 @@ mod private
   #[ derive( Debug, Clone ) ]
   pub struct RowWrapper
   {
-    pub row: Vec< JsonValue >,
+    pub row: Vec< serde_json::Value >,
     pub max_len: usize
   }
 

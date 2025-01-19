@@ -1,7 +1,13 @@
-use gspread::{actions::gspread::get_rows, gcore::client::{Client, Dimension, ValueRange}};
 use httpmock::prelude::*;
-use gspread::ser::JsonValue;
+
 use serde_json::json;
+use gspread::actions::gspread::get_rows;
+use gspread::gcore::client::
+{
+  Client, 
+  Dimension, 
+  ValueRange
+};
 
 /// # What
 /// We check that requesting all rows from the second row onward (below the header)
@@ -51,10 +57,10 @@ async fn test_get_rows_with_mock() {
 
   assert_eq!( rows.len(), 2 );
   assert_eq!( rows[0].len(), 2 );
-  assert_eq!( rows[0][0], JsonValue::String( "Row2Col1".to_string() ) );
-  assert_eq!( rows[0][1], JsonValue::String( "Row2Col2".to_string() ) );
+  assert_eq!( rows[0][0], serde_json::Value::String( "Row2Col1".to_string() ) );
+  assert_eq!( rows[0][1], serde_json::Value::String( "Row2Col2".to_string() ) );
 
   assert_eq!( rows[1].len(), 2);
-  assert_eq!( rows[1][0], JsonValue::String( "Row3Col1".to_string() ) );
-  assert_eq!( rows[1][1], JsonValue::String( "Row3Col2".to_string() ) );
+  assert_eq!( rows[1][0], serde_json::Value::String( "Row3Col1".to_string() ) );
+  assert_eq!( rows[1][1], serde_json::Value::String( "Row3Col2".to_string() ) );
 }

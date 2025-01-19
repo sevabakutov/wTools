@@ -7,13 +7,21 @@
 mod private
 {
   use regex::Regex;
-  use crate::*;
-  use ser::JsonValue;
   use std::collections::HashMap;
-  use gcore::{client::
+
+  use crate::*;
+  use gcore::error::{ Error, Result };
+  use gcore::client::
   {
-    BatchUpdateValuesRequest, BatchUpdateValuesResponse, Client, Dimension, UpdateValuesResponse, ValueInputOption, ValueRange, ValueRenderOption 
-  }, error::{Error, Result}};
+    Client,
+    Dimension,
+    ValueRange,
+    ValueInputOption,
+    ValueRenderOption,
+    UpdateValuesResponse,
+    BatchUpdateValuesRequest,
+    BatchUpdateValuesResponse,
+  };
   
   /// # `get_spreadsheet_id_from_url`
   ///
@@ -83,8 +91,8 @@ mod private
     client : &Client,
     spreadsheet_id : &str,
     sheet_name : &str,
-    row_key : JsonValue,
-    row_key_val : HashMap< String, JsonValue >
+    row_key : serde_json::Value,
+    row_key_val : HashMap< String, serde_json::Value >
   ) -> Result< BatchUpdateValuesResponse >
   {
     let mut value_ranges = Vec::with_capacity( row_key_val.len() );
@@ -147,7 +155,7 @@ mod private
     client : &Client,
     spreadsheet_id : &str,
     sheet_name : &str, 
-  ) -> Result< Vec< Vec< JsonValue > > >
+  ) -> Result< Vec< Vec< serde_json::Value > > >
   {
     let range = format!( "{}!A1:Z1", sheet_name );
 
@@ -188,7 +196,7 @@ mod private
     // hub : &SheetsType,
     spreadsheet_id : &str,
     sheet_name : &str, 
-  ) -> Result< Vec< Vec< JsonValue > > >
+  ) -> Result< Vec< Vec< serde_json::Value > > >
   {
     let range = format!( "{}!A2:Z", sheet_name );
 
@@ -231,7 +239,7 @@ mod private
     spreadsheet_id : &str,
     sheet_name : &str,
     cell_id : &str
-  ) -> Result< JsonValue >
+  ) -> Result< serde_json::Value >
   {
     let range = format!( "{}!{}", sheet_name, cell_id );
 
@@ -284,7 +292,7 @@ mod private
     spreadsheet_id : &str,
     sheet_name : &str,
     cell_id : &str,
-    value : JsonValue
+    value : serde_json::Value
   ) -> Result< UpdateValuesResponse >
   {
     let range = format!( "{}!{}", sheet_name, cell_id );

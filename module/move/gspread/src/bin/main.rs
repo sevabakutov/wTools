@@ -3,7 +3,7 @@ use clap::Parser;
 use dotenv::dotenv;
 
 use gspread::*;
-use secret::Secret;
+use gcore::Secret;
 use gcore::client::Client;
 use commands::
 {
