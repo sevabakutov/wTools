@@ -52,7 +52,6 @@ mod private
     let row_key = if let Some( row_key ) = parsed_json.remove( select_row_by_key ) 
     {
       row_key
-      // Box::leak( row_key.into_boxed_str() )
     } 
     else 
     {

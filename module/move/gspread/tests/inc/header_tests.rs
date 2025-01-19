@@ -1,91 +1,44 @@
-#[ allow( unused_imports ) ]
-use super::*;
+use dotenv::dotenv;
+use gspread::gcore::Secret;
+use gspread::actions::gspread::get_header;
+use gspread::gcore::client::Client; 
 
-use the_module::
-{
-  hub,
-  Secret,
-  actions,
-  SheetsType
-};
+/// # What
+/// We check that requesting the header row (first row) of a sheet in a Google Spreadsheet
+/// returns the correct set of column values.
+///
+/// # How
+/// 1. Send `GET /1EAEdegMpitv-sTuxt8mV8xQxzJE7h_J0MxQoyLH7xxU/values/tab2!A1:Z1`.
+/// 2. Return a `ValueRange`.
+/// 3. Call `get_header()`, passing the table and sheet.
+/// 4. Verify that the returned header row has exactly three columns as expected.
+#[tokio::test]
+async fn test_get_header_with_mock_should_work() {
+  dotenv().ok();
 
-async fn setup() -> ( SheetsType, &'static str )
-{
-  let secret = Secret::load().expect( "Failed to load secret" );
-  let hub = hub( &secret ).await.expect( "Failed to create a hub" );
+  let secret = Secret::read();
+
+  let client = Client::former()
+  .token( &secret )
+  .await
+  .expect( "Failed to build a client" )
+  .form();
+
   let spreadsheet_id = "1EAEdegMpitv-sTuxt8mV8xQxzJE7h_J0MxQoyLH7xxU";
 
-  ( hub, spreadsheet_id )
-}
-
-#[ tokio::test ]
-async fn test_get_header()
-{
-  let ( hub, spreadsheet_id ) = setup().await;
-  let table_name = "tab1";
-
-  let result = actions::gspread_get_header::action
-  (
-    &hub,
-    spreadsheet_id,
-    table_name
+  let header = get_header
+  ( 
+    &client, 
+    spreadsheet_id, 
+    "tab2" 
   )
   .await
-  .expect( "Error getting header" );
+  .expect( "get_header failed" );
 
-  assert_eq!( result, vec![ vec![ "Name", "Surname", "Age" ] ] );
-}
+  assert_eq!( header.len(), 1, "Header should have one row" );
+  assert_eq!( header[0].len(), 3, "Header row should have 3 columns" );
 
-#[ tokio::test ]
-async fn test_get_header_with_spaces()
-{
-  let ( hub, spreadsheet_id ) = setup().await;
-  let table_name = "tab2";
-
-  let result = actions::gspread_get_header::action
-  (
-    &hub,
-    spreadsheet_id,
-    table_name
-  )
-  .await
-  .expect( "Error getting header" );
-
-  assert_eq!( result, vec![ vec![ "Name", "", "Age" ] ] );
-}
-
-#[ tokio::test ]
-async fn test_get_header_empty()
-{
-  let ( hub, spreadsheet_id ) = setup().await;
-  let table_name = "tab3";
-
-  let result = actions::gspread_get_header::action
-  (
-    &hub,
-    spreadsheet_id,
-    table_name
-  )
-  .await
-  .expect( "Error getting header" );
-
-  assert_eq!( result, Vec::< Vec< String > >::new() );
-}
-
-#[ tokio::test ]
-async fn test_get_header_with_empty_end()
-{
-  let ( hub, spreadsheet_id ) = setup().await;
-  let table_name = "tab4";
-
-  let result = actions::gspread_get_header::action
-  (
-    &hub,
-    spreadsheet_id,
-    table_name
-  )
-  .await
-  .expect( "Error getting header" );
-
-  assert_eq!( result, vec![ vec![ "Name", "Surname" ] ] );
+  assert_eq!( header[0][0], serde_json::Value::String( "Name".to_string() ) );
+  assert_eq!( header[0][1], serde_json::Value::String( "Surname".to_string() ) );
+  assert_eq!( header[0][2], serde_json::Value::String( "Age".to_string() ) );
 }

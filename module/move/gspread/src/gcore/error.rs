@@ -1,3 +1,8 @@
+//!
+//! Gspread errors.
+//! 
+
+
 mod private
 {
   use derive_tools::AsRefStr;

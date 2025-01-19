@@ -7,7 +7,7 @@ mod private
 {
 
   use clap::{ Subcommand, Parser };
-use gcore::client::Client;
+  use gcore::client::Client;
 
   use crate::*;
   use commands::

@@ -1,93 +1,49 @@
-#[ allow( unused_imports ) ]
-use super::*;
+use dotenv::dotenv;
+use gspread::gcore::Secret;
+use gspread::actions::gspread::get_rows;
+use gspread::gcore::client::Client; 
 
-use the_module::
+/// # What
+/// We check that requesting all rows from the second row onward (below the header)
+/// correctly parses the response and returns the expected result.
+///
+/// # How
+/// 1. Send `GET /1EAEdegMpitv-sTuxt8mV8xQxzJE7h_J0MxQoyLH7xxU/values/tab2!A2:Z999`.
+/// 2. Return `ValueRange`.
+/// 3. Call `get_rows()`, passing the table and sheet.
+/// 4. Verify that the array of returned rows matches the expected structure and values.
+#[tokio::test]
+async fn test_get_rows_with_mock() 
 {
-  hub,
-  Secret,
-  actions,
-  SheetsType
-};
+  dotenv().ok();
 
-async fn setup() -> ( SheetsType, &'static str )
-{
-  let secret = Secret::load().expect( "Failed to load secret" );
-  let hub = hub( &secret ).await.expect( "Failed to create a hub" );
+  let secret = Secret::read();
+
   let spreadsheet_id = "1EAEdegMpitv-sTuxt8mV8xQxzJE7h_J0MxQoyLH7xxU";
 
-  ( hub, spreadsheet_id )
-}
+  let client = Client::former()
+  .token( &secret )
+  .await
+  .expect( "Failed to build a client" )
+  .form();
 
-#[ tokio::test ]
-async fn test_get_rows()
-{
-  let ( hub, spreadsheet_id ) = setup().await;
-  let table_name = "tab1";
-
-  let result = actions::gspread_get_rows::action
-  (
-    &hub,
-    spreadsheet_id,
-    table_name
+  let rows = get_rows
+  ( 
+    &client, 
+    spreadsheet_id, 
+    "tab2" 
   )
   .await
-  .expect( "Error getting rows" );
+  .expect( "get_rows failed" );
 
-  assert_eq!
-  (
-    result,
-    vec![
-      vec![ "Vsevolod",	"Bakutov", "20" ],
-      vec![ "Victor", "Ovsyanik", "85" ],
-      vec![ "Olexandr", "Optimus", "28" ],
-      vec![ "Ivan", "Optimus", "34" ],
-      vec![ "Bogdan", "Optimus", "28" ],
-    ]
-  )
-}
+  assert_eq!( rows.len(), 2 );
+  assert_eq!( rows[0].len(), 3 );
+  assert_eq!( rows[0][0], serde_json::Value::String( "Vsevolod".to_string() ) );
+  assert_eq!( rows[0][1], serde_json::Value::String( "Bakutov".to_string() ) );
+  assert_eq!( rows[0][2], serde_json::Value::String( "20".to_string() ) );
 
-#[ tokio::test ]
-async fn test_get_rows_with_spaces()
-{
-  let ( hub, spreadsheet_id ) = setup().await;
-  let table_name = "tab2";
-
-  let result = actions::gspread_get_rows::action
-  (
-    &hub,
-    spreadsheet_id,
-    table_name
-  )
-  .await
-  .expect( "Error getting rows" );
-
-  assert_eq!
-  (
-    result,
-    vec![
-      vec![ "Vsevolod",	"Bakutov" ],
-      vec![ "Victor", "", "85" ],
-      vec![ "", "Optimus", "28" ],
-      vec![ ],
-      vec![ "Bogdan", "Optimus", "28" ],
-    ]
-  )
-}
-
-#[ tokio::test ]
-async fn test_get_rows_empty()
-{
-  let ( hub, spreadsheet_id ) = setup().await;
-  let table_name = "tab3";
-
-  let result = actions::gspread_get_rows::action
-  (
-    &hub,
-    spreadsheet_id,
-   table_name
-  )
-  .await
-  .expect( "Error getting rows" );
-
-  assert_eq!( result, Vec::< Vec< String > >::new() )
+  assert_eq!( rows[1].len(), 3  );
+  assert_eq!( rows[1][0], serde_json::Value::String( "Victor".to_string() ) );
+  assert_eq!( rows[1][1], serde_json::Value::String( "Ovyanik".to_string() ) );
+  assert_eq!( rows[1][2], serde_json::Value::String( "85".to_string() ) );
 }

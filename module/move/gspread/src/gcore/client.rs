@@ -1,3 +1,7 @@
+//!
+//! Client to interact with Google Sheets API.
+//! 
+
 mod private
 {
 
@@ -169,7 +173,6 @@ mod private
   ///
   /// This struct is usually obtained by calling the `spreadsheet()` method on a
   /// fully-initialized [`Client`] instance:
-
   pub struct SpreadSheetValuesMethod<'a>
   {
     client : &'a Client,
@@ -264,7 +267,6 @@ mod private
   ///   Sends the configured request to the Google Sheets API to retrieve the
   ///   specified range of values. Returns a [`ValueRange`] on success, or an
   ///   [`Error`] if the API request fails.
-  ///
   pub struct ValuesGetMethod<'a>
   {
     client : &'a Client,

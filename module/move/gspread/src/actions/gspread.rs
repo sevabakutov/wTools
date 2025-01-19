@@ -64,28 +64,25 @@ mod private
   /// Updates a specific row in a Google Sheet with the provided values.
   ///
   /// ## Parameters:
-  /// - `hub`:  
-  ///   A reference to the `SheetsType` client configured for the Google Sheets API.
+  /// - `client`:  
+  ///   A reference to the [`Client`] client configured for the Google Sheets API.
   /// - `spreadsheet_id`:  
   ///   A `&str` representing the unique identifier of the spreadsheet.
   /// - `sheet_name`:  
   ///   A `&str` specifying the name of the sheet.
   /// - `row_key`:  
-  ///   A `&str` representing the row's key (e.g., the row index).
+  ///   A `serde_json::Value` representing the row's key (e.g., the row index).
   /// - `row_key_val`:  
-  ///   A `HashMap<String, String>` where:  
+  ///   A `HashMap<String, serde_json::Value>` where:  
   ///   - Key: The column name (e.g., "A", "B").  
   ///   - Value: The new value to set in the corresponding cell.
   ///
   /// ## Returns:
-  /// - `Result<BatchUpdateValuesResponse>`
+  /// - Result<[`BatchUpdateValuesResponse`]>
   ///
   /// ## Errors:
   /// - `Error::ApiError`:  
   ///   Occurs if the Google Sheets API returns an error, e.g., due to invalid input or insufficient permissions.
-  ///
-  /// ## Notes:
-  /// - The `value_input_option` is set to `"USER_ENTERED"`, meaning the input values will be parsed as if entered by a user.
   pub async fn update_row
   (
     client : &Client,
@@ -121,7 +118,7 @@ mod private
 
     match client
     .spreadsheet()
-    .values_batch_update(spreadsheet_id, request)
+    .values_batch_update( spreadsheet_id, request )
     .doit()
     .await
     {
@@ -135,15 +132,15 @@ mod private
   /// Retrieves the header row of a specific sheet.
   ///
   /// ## Parameters:
-  /// - `hub`:  
-  ///   A reference to the `SheetsType` client configured for the Google Sheets API.
+  /// - `client`:  
+  ///   A reference to the [`Client`] client configured for the Google Sheets API.
   /// - `spreadsheet_id`:  
   ///   A `&str` representing the unique identifier of the spreadsheet.
   /// - `sheet_name`:  
   ///   A `&str` specifying the name of the sheet whose header is to be retrieved.
   ///
   /// ## Returns:
-  /// - `Result<Vec<Vec<JsonValue>>>`
+  /// - `Result<Vec<Vec<serde_json::Value>>>`
   ///
   /// ## Errors:
   /// - `Error::ApiError`:  
@@ -176,15 +173,15 @@ mod private
   /// Retrieves all rows (excluding the header) from a specific sheet.
   ///
   /// ## Parameters:
-  /// - `hub`:  
-  ///   A reference to the `SheetsType` client configured for the Google Sheets API.
+  /// - `client`:  
+  ///   A reference to the `Client` client configured for the Google Sheets API.
   /// - `spreadsheet_id`:  
   ///   A `&str` representing the unique identifier of the spreadsheet.
   /// - `sheet_name`:  
   ///   A `&str` specifying the name of the sheet whose rows are to be retrieved.
   ///
   /// ## Returns:
-  /// - `Result<Vec<Vec<JsonValue>>>`
+  /// - `Result<Vec<Vec<serde_json::Value>>>`
   ///
   /// ## Errors:
   /// - `Error::ApiError`:  
@@ -193,7 +190,6 @@ mod private
   pub async fn get_rows
   (
     client : &Client,
-    // hub : &SheetsType,
     spreadsheet_id : &str,
     sheet_name : &str, 
   ) -> Result< Vec< Vec< serde_json::Value > > >
@@ -217,8 +213,8 @@ mod private
   /// Retrieves the value of a specific cell from a Google Sheet.
   ///
   /// ## Parameters:
-  /// - `hub`:  
-  ///   A reference to the `SheetsType` client configured for the Google Sheets API.
+  /// - `client`:  
+  ///   A reference to the [`Client`] client configured for the Google Sheets API.
   /// - `spreadsheet_id`:  
   ///   A `&str` representing the unique identifier of the spreadsheet.
   /// - `sheet_name`:  
@@ -227,7 +223,7 @@ mod private
   ///   A `&str` representing the cell ID in the format `A1`, where `A` is the column and `1` is the row.
   ///
   /// ## Returns:
-  /// - `Result<JsonValue>`:
+  /// - `Result<serde_json::Value>`:
   ///
   /// ## Errors:
   /// - `Error::ApiError`:  
@@ -269,8 +265,8 @@ mod private
   /// Updates the value of a specific cell in a Google Sheet.
   ///
   /// ## Parameters:
-  /// - `hub`:  
-  ///   A reference to the `SheetsType` client configured for the Google Sheets API.
+  /// - `client`:  
+  ///   A reference to the `Client` client configured for the Google Sheets API.
   /// - `spreadsheet_id`:  
   ///   A `&str` representing the unique identifier of the spreadsheet.
   /// - `sheet_name`:  
@@ -278,11 +274,11 @@ mod private
   /// - `cell_id`:  
   ///   A `&str` representing the cell ID in the format `A1`, where `A` is the column and `1` is the row.
   /// - `value`:  
-  ///   A `&str` containing the new value to update in the cell.
+  ///   A `serde_json::Value` containing the new value to update in the cell.
   ///
   /// ## Returns:
-  /// - `Result<UpdateValuesResponse>`
-  ///
+  /// - Result<[`UpdateValuesResponse`]>
+  /// 
   /// ## Errors:
   /// - `Error::ApiError`:  
   ///   Occurs if the Google Sheets API returns an error, such as invalid input or insufficient permissions.
@@ -297,7 +293,6 @@ mod private
   {
     let range = format!( "{}!{}", sheet_name, cell_id );
 
-    // Creating JSON with value to update.
     let value_range = ValueRange
     {
       values : Some( vec![ vec![ value ] ] ),

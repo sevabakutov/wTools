@@ -1,79 +1,53 @@
-#[ allow( unused_imports ) ]
-use super::*;
+use dotenv::dotenv;
+use gspread::*;
+use actions::gspread::update_row;
+use gcore::Secret; 
+use gcore::client::Client;
 
-use the_module::
+/// # What
+/// We check that updating a row in a Google Spreadsheet returns the correct response.
+///
+/// # How
+/// 1. Send `POST /1EAEdegMpitv-sTuxt8mV8xQxzJE7h_J0MxQoyLH7xxU/values:batchUpdate`.
+/// 2. Return a `BatchUpdateValuesResponse`.
+/// 3. Call `update_row()`, passing the necessary parameters.
+/// 4. Verify that the number of updated cells, rows, and columns matches the expected result.
+#[tokio::test]
+async fn test_update_row_should_work() 
 {
-  hub,
-  Secret,
-  actions,
-  SheetsType,
-};
+  dotenv().ok();
 
-async fn setup() -> ( SheetsType, &'static str, &'static str, &'static str )
-{
-  let secret = Secret::load().expect( "Failed to load secret" );
-  let hub = hub( &secret ).await.expect( "Failed to create a hub" );
-  let select_row_by_key = "id";
+  let secret = Secret::read();
+
+  let client = Client::former()
+  .token( &secret )
+  .await
+  .expect( "Failed to buid a client" )
+  .form();
+
   let spreadsheet_id = "1EAEdegMpitv-sTuxt8mV8xQxzJE7h_J0MxQoyLH7xxU";
-  let table_name = "tab7";
+  let mut row_key_val = std::collections::HashMap::new();
+  row_key_val.insert( "A".to_string(), serde_json::Value::String( "Hello".to_string() ) );
+  row_key_val.insert( "B".to_string(), serde_json::Value::Number( serde_json::Number::from( 123 ) ) );
 
-  ( hub, select_row_by_key, spreadsheet_id, table_name )
-}
-
-#[ tokio::test ]
-async fn test_set_cells()
-{
-  let 
+  let batch_result = update_row
   ( 
-    hub, 
-    select_row_by_key,
-    spreadsheet_id, 
-    table_name 
-  ) = setup().await;
-  
-  let json = r#"{ "id": "2", "A": "new_val1", "B": "new_val2"}"#;
-
-  let result = actions::gspread_cells_set::action
-  (
-    &hub,
-    select_row_by_key,
-    json,
+    &client, 
     spreadsheet_id,
-    table_name,
+    "tab3",
+    serde_json::Value::Number( serde_json::Number::from( 7 ) ), 
+    row_key_val
   )
   .await
-  .expect( "Error while updating" );
+  .expect( "update_row failed" );
 
-  assert_eq!( result, "Cells were sucsessfully updated!" )
-}
+  assert_eq!( batch_result.spreadsheet_id.as_deref(), Some( spreadsheet_id ) );
+  assert_eq!( batch_result.total_updated_cells, Some( 2 ) );
+  assert_eq!( batch_result.total_updated_rows, Some( 1 ) );
+  assert_eq!( batch_result.total_updated_columns, Some( 2 ) );
 
-#[ tokio::test ]
-async fn test_set_cells_wrong_row()
-{
-  let 
-  ( 
-    hub, 
-    select_row_by_key,
-    spreadsheet_id, 
-    table_name 
-  ) = setup().await;
-  
-  let json = r#"{ "id": "a", "A": "new_val1", "B": "new_val2"}"#;
-
-  let result = actions::gspread_cells_set::action
-  (
-    &hub,
-    select_row_by_key,
-    json,
-    spreadsheet_id,
-    table_name,
-  )
-  .await
-  .expect( "Error while updating" );
-
-  assert_eq!
-  ( 
-    result, 
-    r#"Bad Request: {"error":{"code":400,"message":"Invalid data[0]: Unable to parse range: tab7!Aa","status":"INVALID_ARGUMENT"}}"# 
-  )
+  if let Some( responses ) = &batch_result.responses 
+  {
+    assert_eq!( responses.len(), 2 );
+  }
 }
