@@ -13,7 +13,7 @@ use gspread::gcore::client::Client;
 /// 3. Call `get_header()`, passing the table and sheet.
 /// 4. Verify that the returned header row has exactly three columns as expected.
 #[tokio::test]
-async fn test_get_header_with_mock_should_work() {
+async fn test_get_header_should_work() {
   dotenv().ok();
 
   let secret = Secret::read();

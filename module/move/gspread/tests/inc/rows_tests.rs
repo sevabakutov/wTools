@@ -13,7 +13,7 @@ use gspread::gcore::client::Client;
 /// 3. Call `get_rows()`, passing the table and sheet.
 /// 4. Verify that the array of returned rows matches the expected structure and values.
 #[tokio::test]
-async fn test_get_rows_with_mock() 
+async fn test_get_rows_should_work() 
 {
   dotenv().ok();
 
