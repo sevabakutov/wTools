@@ -154,7 +154,7 @@ mod private
     sheet_name : &str, 
   ) -> Result< Vec< Vec< serde_json::Value > > >
   {
-    let range = format!( "{}!A1:Z1", sheet_name );
+    let range = format!( "{}!A1:ZZZ1", sheet_name );
 
     match client
     .spreadsheet()

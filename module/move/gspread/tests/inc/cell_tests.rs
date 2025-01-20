@@ -46,7 +46,7 @@ async fn test_get_cell_should_work()
 ///
 /// # How
 /// 1. Send `PUT /1EAEdegMpitv-sTuxt8mV8xQxzJE7h_J0MxQoyLH7xxU/values/tab2!A1?valueInputOption=RAW`.
-/// 2. Return a predefined `UpdateValuesResponse`.
+/// 2. Return `UpdateValuesResponse`.
 /// 3. Call `set_cell()`, passing the table, sheet, cell, and the value to set.
 /// 4. Verify that the number of updated cells, rows, and columns matches the expected result.
 #[tokio::test]
