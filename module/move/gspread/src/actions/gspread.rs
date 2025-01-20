@@ -13,14 +13,7 @@ mod private
   use gcore::error::{ Error, Result };
   use gcore::client::
   {
-    Client,
-    Dimension,
-    ValueRange,
-    ValueInputOption,
-    ValueRenderOption,
-    UpdateValuesResponse,
-    BatchUpdateValuesRequest,
-    BatchUpdateValuesResponse,
+    BatchUpdateValuesRequest, BatchUpdateValuesResponse, Client, Dimension, InsertDataOption, UpdateValuesResponse, ValueInputOption, ValueRange, ValueRenderOption, ValuesAppendRequest, ValuesAppendResponse
   };
   
   /// # `get_spreadsheet_id_from_url`
@@ -253,6 +246,110 @@ mod private
 
   }
 
+
+
+  /// # `push_row`
+  ///
+  /// Append a new row at the end of the sheet.
+  ///
+  /// ## Parameters:
+  /// - `client`:  
+  ///   A reference to the [`Client`] client configured for the Google Sheets API.
+  /// - `spreadsheet_id`:  
+  ///   A `&str` representing the unique identifier of the spreadsheet.
+  /// - `sheet_name`:  
+  ///   A `&str` specifying the name of the sheet whose header is to be retrieved.
+  /// - `row_key_val`: 
+  ///   A `HashMap<String, serde_json::Value>` where:  
+  ///   - Key: The column name (e.g., "A", "B").  
+  ///   - Value: The new value to set in the corresponding cell.
+  /// 
+  /// ## Returns:
+  /// - `Result< ValuesAppendResponse >`
+  ///
+  /// ## Errors:
+  /// - `Error::ApiError`:  
+  ///   Occurs if the Google Sheets API returns an error, such as an invalid spreadsheet ID
+  ///   or insufficient permissions.
+  pub async fn append_row
+  (
+    client : &Client,
+    spreadsheet_id : &str,
+    sheet_name : &str,
+    row_key_val : HashMap< String, serde_json::Value >
+  ) -> Result< ValuesAppendResponse >
+  {
+    // Sort column indexes, from A -> ZZZ
+    let mut columns: Vec< &String > = row_key_val.keys().collect();
+    columns.sort_by_key( | col | _column_label_to_number( col ) );
+
+    let min_idx = _column_label_to_number( columns.first().unwrap() );
+    let max_idx = _column_label_to_number( columns.last().unwrap() );
+
+    // Creating a row, Vec< serde_json::Value >
+    let mut row = Vec::with_capacity( max_idx - min_idx + 1 );
+
+    for idx in min_idx..=max_idx
+    {
+      let col_label = _number_to_column_label( idx );
+      let val = row_key_val
+      .get( &col_label )
+      .cloned()
+      .unwrap_or_else( || serde_json::Value::String( "".to_string() ));
+      
+      row.push( val );
+    }
+
+    // Creating request.
+    let range = format!( "{}!{}:{}1", sheet_name, columns.first().unwrap(), columns.last().unwrap() );
+
+    let value_range = ValueRange
+    {
+      major_dimension : Some( Dimension::Row ),
+      values : Some( vec![ row ] ),
+      range : None
+    };
+
+    match client
+    .spreadsheet()
+    .append( spreadsheet_id, &range, value_range )
+    .doit()
+    .await
+    {
+      Ok( response ) => Ok( response ),
+      Err( error ) => Err( Error::ApiError( error.to_string() ) )
+    }
+
+  }
+
+  /// Converts number to column label.
+  fn _number_to_column_label( mut num : usize ) -> String
+  {
+    let mut chars = Vec::new();
+    while num > 0
+    {
+      let remainder = ( num - 1 ) % 26;
+      let c = ( b'A' + remainder as u8 ) as char;
+      chars.push( c );
+      num = ( num - 1 ) / 26;
+    }
+    chars.reverse();
+    chars.into_iter().collect()
+  }
+  /// Converts label to number.
+  fn _column_label_to_number( col : &str ) -> usize
+  {
+    let mut result = 0;
+    for c in col.chars()
+    {
+      let digit = c as usize - 'A' as usize + 1;
+      result = result * 26 + digit
+    }
+    result
+  }
+
+
+
   /// # `get_header`
   ///
   /// Retrieves the header row of a specific sheet.
@@ -447,6 +544,7 @@ crate::mod_interface!
     get_rows,
     update_row,
     get_header,
+    append_row,
     update_rows_by_custom_row_key,
     get_spreadsheet_id_from_url,
   };

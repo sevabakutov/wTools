@@ -1,6 +1,8 @@
+use std::collections::HashMap;
+
 use dotenv::dotenv;
 use gspread::gcore::Secret;
-use gspread::actions::gspread::get_rows;
+use gspread::actions::gspread::{get_rows, append_row};
 use gspread::gcore::client::Client; 
 
 /// # What
@@ -46,4 +48,39 @@ async fn test_get_rows_should_work()
   assert_eq!( rows[1][0], serde_json::Value::String( "Victor".to_string() ) );
   assert_eq!( rows[1][1], serde_json::Value::String( "Ovyanik".to_string() ) );
   assert_eq!( rows[1][2], serde_json::Value::String( "85".to_string() ) );
+}
+
+
+#[ tokio::test ]
+async fn append_row_should_work()
+{
+  dotenv().ok();
+
+  let secret = Secret::read();
+
+  let client = Client::former()
+  .token( &secret )
+  .await
+  .expect( "Failed to form a client." )
+  .form();
+
+  let spreadheet_id = "1EAEdegMpitv-sTuxt8mV8xQxzJE7h_J0MxQoyLH7xxU";
+  let mut row_key_val = HashMap::new();
+  row_key_val.insert( "A".to_string(), serde_json::Value::Bool( true ) );
+  row_key_val.insert( "C".to_string(), serde_json::Value::Bool( false ) );
+
+  println!( "{:?}", row_key_val );
+
+  let result = append_row
+  ( 
+    &client, 
+    spreadheet_id, 
+    "tab8", 
+    row_key_val 
+  )
+  .await
+  .expect( "append_row failed!" );
+
+  assert_eq!( result.spreadsheet_id.unwrap(), spreadheet_id );
+  assert_eq!( result.updates.unwrap().updated_cells, Some( 3 ) );
 }

@@ -6,7 +6,8 @@ mod private
 {
 
   use reqwest;
-  use yup_oauth2;
+  use serde_json::Value;
+use yup_oauth2;
   use former::Former;
  
   use crate::*;
@@ -231,6 +232,28 @@ mod private
         client : self.client,
         _spreadsheet_id : spreadsheet_id.to_string(),
         _request : req,
+      }
+    }
+
+    pub fn append<'a>
+    ( 
+      &'a self,
+      spreadsheet_id : &'a str,
+      range : &'a str,
+      value_range : ValueRange
+    ) -> ValuesAppendMethod
+    {
+      ValuesAppendMethod
+      {
+        client : self.client,
+        _value_range : value_range,
+        _spreadsheet_id : spreadsheet_id,
+        _range : range,
+        _value_input_option : ValueInputOption::default(),
+        _include_values_in_response : Default::default(),
+        _insert_data_option : Default::default(),
+        _response_date_time_render_option : Default::default(),
+        _response_value_render_option : Default::default()
       }
     }
   }
@@ -518,6 +541,67 @@ mod private
     }
   }
 
+  pub struct ValuesAppendMethod<'a>
+  {
+    client : &'a Client,
+    _value_range : ValueRange,
+    _spreadsheet_id : &'a str,
+    _range : &'a str,
+    _value_input_option : ValueInputOption,
+    _insert_data_option : Option< InsertDataOption >,
+    _include_values_in_response : bool,
+    _response_value_render_option : Option< ValueRenderOption >,
+    _response_date_time_render_option : Option< DateTimeRenderOption >
+  }
+
+  impl ValuesAppendMethod<'_>
+  {
+    pub async fn doit( &self ) -> Result< ValuesAppendResponse >
+    {
+      let endpoint = format!
+      (
+        "{}/{}/values/{}:append", 
+        self.client.endpoint, 
+        self._spreadsheet_id, 
+        self._range
+      );
+
+      let query = ValuesAppendRequest
+      {
+        value_input_option : self._value_input_option,
+        insert_data_option : self._insert_data_option,
+        include_values_in_response : self._include_values_in_response,
+        response_value_render_option : self._response_value_render_option,
+        response_date_time_render_option : self._response_date_time_render_option
+      };
+
+      let response = reqwest::Client::new()
+      .post( endpoint )
+      .query( &query )
+      .json( &self._value_range )
+      .bearer_auth( &self.client.token )
+      .send()
+      .await
+      .map_err( | err | Error::ApiError( err.to_string() ) )?;
+
+      if !response.status().is_success()
+      {
+        let response_text = response
+        .text()
+        .await
+        .map_err( | err | Error::ParseError( err.to_string() ) )?;
+
+        return Err( Error::ApiError( response_text ) );
+      }
+
+      let parsed_response = response.json::< ValuesAppendResponse >()
+      .await
+      .map_err( | err | Error::ParseError( err.to_string() ) )?;
+
+      Ok( parsed_response )
+    }
+  }
+
 
   #[ derive( Debug, Serialize ) ]
   pub struct GetValuesRequest
@@ -557,6 +641,21 @@ mod private
     pub response_date_time_render_option : Option< DateTimeRenderOption >,
   }
 
+  #[ derive( Debug, Serialize ) ]
+  pub struct ValuesAppendRequest
+  {
+    #[ serde( rename = "valueInputOption" ) ]
+    pub value_input_option : ValueInputOption,
+    #[ serde( rename = "insertDataOption" ) ]
+    pub insert_data_option : Option< InsertDataOption >,
+    #[ serde( rename = "includeValuesInResponse" ) ]
+    pub include_values_in_response : bool,
+    #[ serde( rename = "responseValueRenderOption" ) ]
+    pub response_value_render_option : Option< ValueRenderOption >,
+    #[ serde( rename = "responseDateTimeRenderOption" ) ]
+    pub response_date_time_render_option : Option< DateTimeRenderOption >
+  }
+
   #[ derive( Debug, Serialize, Deserialize ) ]
   pub struct UpdateValuesResponse
   {
@@ -589,7 +688,30 @@ mod private
     pub total_updated_sheets : Option< u32 >,
     pub responses : Option< Vec< ValueRange > >
   }
-   /// Determines how dates should be rendered in the output.
+
+  #[ derive( Debug, Serialize, Deserialize ) ]
+  pub struct ValuesAppendResponse
+  {
+    #[ serde( rename = "spreadsheetId" ) ]
+    pub spreadsheet_id : Option< String >,
+    #[ serde( rename = "tableRange" ) ]
+    pub table_range : Option< String >,
+    pub updates : Option< UpdateValuesResponse >
+  }
+
+  /// Determines how existing data is changed when new data is input.
+  #[ derive( Debug, Clone, Copy, Serialize, Deserialize ) ]
+  pub enum InsertDataOption
+  {
+    /// The new data overwrites existing data in the areas it is written. (Note: adding data to the end of the sheet will still insert new rows or columns so the data can be written.)
+    #[ serde( rename = "OVERWRITE" ) ]
+    Overwrite,
+    /// Rows are inserted for the new data.
+    #[ serde( rename = "INSERT_ROWS" ) ]
+    InsertRows
+  }
+
+  /// Determines how dates should be rendered in the output.
   #[ derive( Debug, Clone, Copy, Serialize ) ]
   pub enum DateTimeRenderOption
   {
@@ -665,58 +787,6 @@ mod private
     pub values : Option< Vec< Vec< serde_json::Value > > >
   }
 
-  // #[ derive( Debug, Serialize, Deserialize ) ]
-  // pub struct GridRange
-  // {
-  //   #[ serde( rename = "sheetId" ) ]
-  //   sheet_id : u32,
-  //   #[ serde( rename = "startRowIndex" ) ]
-  //   start_row_index : u32,
-  //   #[ serde( rename = "endRowIndex" ) ]
-  //   end_row_index : u32,
-  //   #[ serde( rename = "startColumnIndex" ) ]
-  //   start_column_index : u32,
-  //   #[ serde( rename = "endColumnIndex" ) ]
-  //   end_column_index : u32
-  // }
-
-  // #[ derive( Debug, Serialize, Deserialize ) ]
-  // pub enum Scope
-  // {
-  //   /// The range to find/replace over.
-  //   #[ serde( rename = "range" ) ]
-  //   Range( GridRange ),
-  //   /// The sheet to find/replace over.
-  //   #[ serde( rename = "sheetId" ) ]
-  //   SheetId( u32 ),
-  //   /// True to find/replace over all sheets.
-  //   #[ serde( rename = "allSheets" ) ]
-  //   AllSheets( bool )
-  // }
-
-  // #[ derive( Debug, Serialize, Deserialize ) ]
-  // pub struct FindReplaceRequest
-  // {
-  //   /// The value to search. 
-  //   find : serde_json::Value,
-  //   /// The value to use as the replacement. 
-  //   replacement : serde_json::Value,
-  //   /// True if the search is case sensitive. 
-  //   #[ serde( rename = "matchCase" ) ]
-  //   match_case : bool,
-  //   /// True if the find value should match the entire cell. 
-  //   #[ serde( rename = "matchEntireCell" ) ]
-  //   match_entire_cell : bool,
-  //   /// True if the find value is a regex. The regular expression and replacement should follow Java regex rules at https://docs.oracle.com/javase/8/docs/api/java/util/regex/Pattern.html. The replacement string is allowed to refer to capturing groups. For example, if one cell has the contents "Google Sheets" and another has "Google Docs", then searching for "o.* (.*)" with a replacement of "$1 Rocks" would change the contents of the cells to "GSheets Rocks" and "GDocs Rocks" respectively. 
-  //   #[ serde( rename = "searchByRegex" ) ]
-  //   search_by_regex : bool,
-  //   /// True if the search should include cells with formulas. False to skip cells with formulas. 
-  //   #[ serde( rename = "includeFormulas" ) ]
-  //   include_formulas : bool,
-  //   /// Scope.
-  //   scope : Scope
-  // }
-
 }
 
 
@@ -727,8 +797,11 @@ crate::mod_interface!
     Client,
     Dimension,
     ValueRange,
+    InsertDataOption,
     ValueInputOption,
     ValueRenderOption,
+    ValuesAppendRequest,
+    ValuesAppendResponse,    
     UpdateValuesResponse,
     BatchUpdateValuesRequest,
     BatchUpdateValuesResponse,
