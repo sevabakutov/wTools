@@ -279,6 +279,17 @@ mod private
 
   impl ValuesGetMethod<'_>
   {
+    pub fn major_dimension( mut self, new_val : Dimension ) -> Self
+    {
+      self._major_dimension = Some( new_val );
+      self
+    }
+
+    pub fn value_render_option( mut self, new_val : ValueRenderOption ) -> Self
+    {
+      self._value_render_option = Some( new_val );
+      self
+    }
     /// Executes the request configured by `ValuesGetMethod`.
     ///
     /// Performs an HTTP `GET` to retrieve values for the configured spreadsheet range.
@@ -563,7 +574,7 @@ mod private
     pub updated_data : Option< ValueRange >
   }
 
-  #[ derive( Debug, Serialize, Deserialize ) ]
+  #[ derive( Debug, Default, Serialize, Deserialize ) ]
   pub struct BatchUpdateValuesResponse
   {
     #[ serde( rename = "spreadsheetId" ) ]
@@ -653,6 +664,58 @@ mod private
     /// For input, supported value types are: bool, string, and double. Null values will be skipped. To set a cell to an empty value, set the string value to an empty string.
     pub values : Option< Vec< Vec< serde_json::Value > > >
   }
+
+  // #[ derive( Debug, Serialize, Deserialize ) ]
+  // pub struct GridRange
+  // {
+  //   #[ serde( rename = "sheetId" ) ]
+  //   sheet_id : u32,
+  //   #[ serde( rename = "startRowIndex" ) ]
+  //   start_row_index : u32,
+  //   #[ serde( rename = "endRowIndex" ) ]
+  //   end_row_index : u32,
+  //   #[ serde( rename = "startColumnIndex" ) ]
+  //   start_column_index : u32,
+  //   #[ serde( rename = "endColumnIndex" ) ]
+  //   end_column_index : u32
+  // }
+
+  // #[ derive( Debug, Serialize, Deserialize ) ]
+  // pub enum Scope
+  // {
+  //   /// The range to find/replace over.
+  //   #[ serde( rename = "range" ) ]
+  //   Range( GridRange ),
+  //   /// The sheet to find/replace over.
+  //   #[ serde( rename = "sheetId" ) ]
+  //   SheetId( u32 ),
+  //   /// True to find/replace over all sheets.
+  //   #[ serde( rename = "allSheets" ) ]
+  //   AllSheets( bool )
+  // }
+
+  // #[ derive( Debug, Serialize, Deserialize ) ]
+  // pub struct FindReplaceRequest
+  // {
+  //   /// The value to search. 
+  //   find : serde_json::Value,
+  //   /// The value to use as the replacement. 
+  //   replacement : serde_json::Value,
+  //   /// True if the search is case sensitive. 
+  //   #[ serde( rename = "matchCase" ) ]
+  //   match_case : bool,
+  //   /// True if the find value should match the entire cell. 
+  //   #[ serde( rename = "matchEntireCell" ) ]
+  //   match_entire_cell : bool,
+  //   /// True if the find value is a regex. The regular expression and replacement should follow Java regex rules at https://docs.oracle.com/javase/8/docs/api/java/util/regex/Pattern.html. The replacement string is allowed to refer to capturing groups. For example, if one cell has the contents "Google Sheets" and another has "Google Docs", then searching for "o.* (.*)" with a replacement of "$1 Rocks" would change the contents of the cells to "GSheets Rocks" and "GDocs Rocks" respectively. 
+  //   #[ serde( rename = "searchByRegex" ) ]
+  //   search_by_regex : bool,
+  //   /// True if the search should include cells with formulas. False to skip cells with formulas. 
+  //   #[ serde( rename = "includeFormulas" ) ]
+  //   include_formulas : bool,
+  //   /// Scope.
+  //   scope : Scope
+  // }
 
 }
 

@@ -127,6 +127,132 @@ mod private
     }
   }
 
+
+  /// # `update_row_by_custom_row_key`
+  ///
+  /// Updates a specific row or rows in a Google Sheet with the provided values.
+  ///
+  /// ## Parameters:
+  /// - `client`:  
+  ///   A reference to the [`Client`] client configured for the Google Sheets API.
+  /// - `spreadsheet_id`:  
+  ///   A `&str` representing the unique identifier of the spreadsheet.
+  /// - `sheet_name`:  
+  ///   A `&str` specifying the name of the sheet.
+  /// - `key_by`:  
+  ///   A `( &str, serde_json::Value )` a pair of column key and its value.
+  /// - `row_key_val`:  
+  ///   A `HashMap<String, serde_json::Value>` where:  
+  ///   - Key: The column name (e.g., "A", "B").  
+  ///   - Value: The new value to set in the corresponding cell.
+  /// - `update_range_at_all_match_cells`
+  ///   A `bool` If true, updates the rows with all match cells. Otherwise updates row with the first match cell.
+  /// - `raise_error_on_fail`
+  ///   Returns an error if there were not found any matches.
+  ///
+  /// ## Returns:
+  /// - Result< [`BatchUpdateValuesResponse`] >
+  ///
+  /// ## Errors:
+  /// - `Error::ApiError`:  
+  ///   Occurs if the Google Sheets API returns an error, e.g., due to invalid input or insufficient permissions.
+  pub async fn update_rows_by_custom_row_key
+  (
+    client : &Client,
+    spreadsheet_id : &str,
+    sheet_name : &str,
+    key_by : ( &str, serde_json::Value ), 
+    row_key_val : HashMap< String, serde_json::Value >,
+    update_range_at_all_match_cells : bool,
+    raise_error_on_fail : bool
+  ) -> Result< BatchUpdateValuesResponse >
+  {
+    // Getting provided column.
+    let range = format!( "{}!{}:{}", sheet_name, key_by.0, key_by.0 );
+
+    let value_range = client
+    .spreadsheet()
+    .values_get( spreadsheet_id, &range )
+    .major_dimension( Dimension::Column )
+    .value_render_option( ValueRenderOption::UnformattedValue )
+    .doit()
+    .await
+    .map_err( | err | Error::ApiError( err.to_string() ) )?;
+
+    let values = value_range
+    .values
+    .ok_or_else( || Error::ApiError( "No value found".to_owned() ) )?;
+
+    let column = values
+    .get( 0 )
+    .ok_or_else( || Error::ApiError( "No first row found".to_owned() ) )?;
+
+    // Counting mathces.
+    let row_keys: Vec<usize> = column
+    .iter()
+    .enumerate()
+    .filter( | &( _, val ) | { *val == key_by.1 } )
+    .map( | ( i, _ ) | i )
+    .collect();
+
+    if row_keys.is_empty()
+    {
+      if raise_error_on_fail
+      {
+        return Err( Error::ApiError( "Not such value in the column.".to_string() ) );
+      }
+
+      let response = BatchUpdateValuesResponse::default();
+      return Ok( response );
+    }
+
+    // Preparing value ranges.
+    let mut value_ranges = Vec::with_capacity( row_key_val.len() );
+
+    for row_key in row_keys
+    {
+      for ( col_name, value ) in &row_key_val 
+      {
+        println!("value range data: {} / {}", value.clone(), row_key);
+        value_ranges.push
+        (
+          ValueRange
+          { 
+            major_dimension: Some( Dimension::Row ),
+            values: Some( vec![ vec![ value.clone() ] ] ),
+            range: Some( format!( "{}!{}{}", sheet_name, col_name, row_key + 1 ) ),
+          }
+        );
+      }
+      // If we want update only first match, break the loop.
+      if !update_range_at_all_match_cells
+      {
+        break;
+      }
+    }
+
+    // Making HTTP request.
+    let request = BatchUpdateValuesRequest
+    {
+      data : value_ranges,
+      value_input_option : ValueInputOption::UserEntered,
+      include_values_in_response : Some( true ),
+      response_value_render_option : Some( ValueRenderOption::FormattedValue ),
+      response_date_time_render_option : Default::default()
+    };
+
+    match client
+    .spreadsheet()
+    .values_batch_update( spreadsheet_id, request )
+    .doit()
+    .await
+    {
+      Ok( response ) => Ok( response ),
+      Err( error ) => Err( error )
+    }
+
+  }
+
   /// # `get_header`
   ///
   /// Retrieves the header row of a specific sheet.
@@ -194,7 +320,7 @@ mod private
     sheet_name : &str, 
   ) -> Result< Vec< Vec< serde_json::Value > > >
   {
-    let range = format!( "{}!A2:Z", sheet_name );
+    let range = format!( "{}!A2:ZZZ", sheet_name );
 
     match client
     .spreadsheet()
@@ -321,6 +447,7 @@ crate::mod_interface!
     get_rows,
     update_row,
     get_header,
+    update_rows_by_custom_row_key,
     get_spreadsheet_id_from_url,
   };
 }

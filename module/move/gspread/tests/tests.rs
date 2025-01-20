@@ -6,5 +6,5 @@ use test_tools::exposed::*;
 #[ cfg( feature = "with_online" ) ]
 mod inc;
 
-#[ cfg( feature = "default" ) ]
+#[ cfg( feature = "mock" ) ]
 mod mock;
