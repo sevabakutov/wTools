@@ -122,11 +122,7 @@ mod private
       .await
       .map_err( | err | Error::AuthError( err.to_string() ) )?;
 
-      let scopes = vec!
-      [ 
-        "https://www.googleapis.com/auth/spreadsheets",
-        "https://www.googleapis.com/auth/spreadsheets.readonly" 
-      ];
+      let scopes = vec![ GOOGLE_SPREADSHEET_SCOPE ];
 
       let access_token = authenticator
       .token( &scopes )

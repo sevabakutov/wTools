@@ -6,7 +6,7 @@ mod private
 {
 
   use clap::Subcommand;
-use gcore::client::Client;
+  use gcore::client::Client;
 
   use crate::*;
   use actions;
