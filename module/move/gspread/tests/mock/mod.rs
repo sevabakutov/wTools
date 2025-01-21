@@ -5,5 +5,7 @@ mod common_tests;
 mod get_header;
 mod get_rows;
 mod append_row;
-// mod cell_tests;
+mod get_cell;
+mod set_cell;
+mod update_row;
 // mod cells_tests;
