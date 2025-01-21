@@ -13,5 +13,6 @@ crate::mod_interface!
   layer gspread_cell_set;
   layer gspread_cells_set;
   layer gspread_row_append;
+  layer gspread_row_update_custom;
 }
 

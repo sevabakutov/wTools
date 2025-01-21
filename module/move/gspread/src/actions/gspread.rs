@@ -23,6 +23,36 @@ mod private
     BatchUpdateValuesRequest, 
     BatchUpdateValuesResponse, 
   };
+
+  pub fn check_variant
+  ( 
+    variant: &str,
+    allowed : Vec< &str > 
+  ) -> Result< () >
+  {
+    if allowed.contains( &variant )
+    {
+      Ok( () )
+    }
+    else
+    {
+      Err
+      ( 
+        Error::ParseError( format!( "Not suchvariant: {}. Allowed: {:?}", variant, allowed ) )
+      )
+    }
+  }
+
+  pub fn parse_json
+  ( 
+    json_str : &str 
+  ) -> Result< HashMap< String, serde_json::Value > >
+  {
+    let parsed_json: HashMap< String, serde_json::Value > = serde_json::from_str( json_str )
+    .map_err( | error | Error::InvalidJSON( format!( "Failed to parse JSON: {}", error ) ) )?;
+
+    Ok( parsed_json )
+  }
   
   /// # `get_spreadsheet_id_from_url`
   ///
@@ -588,5 +618,7 @@ crate::mod_interface!
     append_row,
     update_rows_by_custom_row_key,
     get_spreadsheet_id_from_url,
+    parse_json,
+    check_variant
   };
 }

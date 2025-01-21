@@ -9,7 +9,7 @@ use crate::{actions::{self, gspread::get_spreadsheet_id_from_url}, gcore::client
   #[ derive( Debug, Subcommand ) ]
   pub enum Commands
   {
-    #[ command( name= "append" ) ]
+    #[ command( name = "append" ) ]
     Append
     {
       #[ arg( long ) ]
@@ -20,6 +20,28 @@ use crate::{actions::{self, gspread::get_spreadsheet_id_from_url}, gcore::client
 
       #[ arg( long ) ]
       json : String
+    },
+
+    #[ command( name = "update-custom" ) ]
+    UpdateCustom
+    {
+      #[ arg( long ) ]
+      url : String,
+
+      #[ arg( long ) ]
+      tab : String,
+
+      #[ arg( long ) ]
+      json : String,
+
+      #[ arg( long ) ]
+      key_by : String,
+
+      #[ arg( long ) ]
+      on_fail : String,
+
+      #[ arg( long ) ]
+      on_find : String
     }
   }
 
@@ -51,6 +73,34 @@ use crate::{actions::{self, gspread::get_spreadsheet_id_from_url}, gcore::client
             updated_cells
           ),
 
+          Err( error ) => eprintln!( "Error\n{}", error )
+        }
+      },
+
+      Commands::UpdateCustom { url, tab, json, key_by, on_fail, on_find } =>
+      {
+        let spreadsheet_id = match get_spreadsheet_id_from_url( &url ) 
+        {
+          Ok( id ) => id,
+          Err( error ) => 
+          {
+            eprintln!( "Error extracting spreadsheet ID: {}", error );
+            return;
+          }
+        };
+
+        match actions::gspread_row_update_custom::action
+        ( 
+          client, 
+          spreadsheet_id, 
+          &tab, 
+          &key_by, 
+          &json, 
+          &on_find, 
+          &on_fail 
+        ).await
+        {
+          Ok( updated_cells ) => println!( "Rows were successfully update. Updated cells: {}", updated_cells ),
           Err( error ) => eprintln!( "Error\n{}", error )
         }
       }

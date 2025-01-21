@@ -25,7 +25,7 @@ mod private
   struct ParsedJson
   {
     row_key : serde_json::Value,
-    row_key_val : HashMap< String, serde_json::Value >
+    row_key_val : HashMap< String, serde_json::Value >,
   }
   
   /// # `parse_json`
@@ -55,13 +55,7 @@ mod private
     } 
     else 
     {
-      return Err
-      (
-        Error::InvalidJSON
-        (
-          format!( "Key '{}' not found in JSON", select_row_by_key )
-        )
-      );
+      return Err( Error::InvalidJSON( format!( "Key '{}' not found in JSON", select_row_by_key ) ) );
     };
 
     for ( col_name, _ ) in &parsed_json 
@@ -83,7 +77,7 @@ mod private
       ParsedJson
       {
         row_key : row_key,
-        row_key_val : parsed_json
+        row_key_val : parsed_json,
       }
     )
   }
@@ -103,7 +97,7 @@ mod private
     key : &str
   ) -> Result< () > 
   {
-    let keys = vec![ "id" ];
+    let keys = vec![ "id", "custom" ];
     if keys.contains( &key )
     {
       Ok( () )
@@ -130,18 +124,20 @@ mod private
 
     match parse_json( json_str, select_row_by_key )
     {
-      Ok( parsed_json ) => 
-      match update_row( client, spreadsheet_id, table_name, parsed_json.row_key, parsed_json.row_key_val ).await
+      Ok( parsed_json ) =>
       {
-        Ok( response ) => 
+        match update_row( client, spreadsheet_id, table_name, parsed_json.row_key, parsed_json.row_key_val ).await
         {
-          match response.total_updated_cells
+          Ok( response ) => 
           {
-            Some( val ) => Ok( val ),
-            None => Ok( 0 ),
-          }
-        },
-        Err( error ) => Err( error )
+            match response.total_updated_cells
+            {
+              Some( val ) => Ok( val ),
+              None => Ok( 0 ),
+            }
+          },
+          Err( error ) => Err( error )
+        }
       }
       Err( error ) => Err( error ),
     }
