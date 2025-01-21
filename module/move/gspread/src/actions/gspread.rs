@@ -323,7 +323,6 @@ mod private
     }
 
     // Creating request.
-    // let range = format!( "{}!{}:{}", sheet_name, columns.first().unwrap(), columns.last().unwrap() );
     let range = format!( "{}!A1", sheet_name );
     let value_range = ValueRange
     {

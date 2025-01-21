@@ -13,9 +13,10 @@ mod private
   use commands::
   {
     gspread_header,
+    gspread_row,
     gspread_rows,
     gspread_cell,
-    gspread_cells
+    gspread_cells,
   };
 
   /// # CommonArgs
@@ -114,6 +115,12 @@ mod private
     Cells
     (
       gspread_cells::Commands
+    ),
+
+    #[ command( subcommand, name = "row" ) ]
+    Row
+    ( 
+      gspread_row::Commands 
     )
 
   }
@@ -157,6 +164,11 @@ mod private
       {
         gspread_cells::command( client, cells_command ).await;
       },
+
+      Command::Row( row_command ) =>
+      {
+        gspread_row::command( client, row_command ).await;
+      }
     }
   }
 
