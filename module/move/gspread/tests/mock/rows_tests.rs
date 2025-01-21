@@ -1,6 +1,5 @@
 //!
 //! Tests for `get_rows` function.
-//! It can return only one of the common error.
 //! 
 
 use httpmock::prelude::*;
