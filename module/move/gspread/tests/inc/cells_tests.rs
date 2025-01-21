@@ -77,8 +77,8 @@ async fn test_update_rows_by_custom_row_key_should_work()
 
   let spreadsheet_id = "1EAEdegMpitv-sTuxt8mV8xQxzJE7h_J0MxQoyLH7xxU";
   let mut row_key_val = std::collections::HashMap::new();
-  row_key_val.insert( "C".to_string(), json!( "Buy" ) );
-  row_key_val.insert( "D".to_string(), json!( 0987 ) );
+  row_key_val.insert( "AAAC".to_string(), json!( "Buy" ) );
+  row_key_val.insert( "AAAAD".to_string(), json!( 0987 ) );
 
   let batch_result = update_rows_by_custom_row_key
   ( 
