@@ -51,6 +51,7 @@ mod private
   /// - `Rows`: Retrieves all rows (excluding the header) from a specific sheet.
   /// - `Cell`: Retrieves or updates a single cell in a sheet.
   /// - `Cells`: Updates multiple cells in a specific row.
+  /// - `Row`: Updates or appends rows. 
   ///
   /// ## Examples:
   /// - Retrieve the header:
@@ -73,6 +74,16 @@ mod private
   /// ```bash
   /// gspread cells set
   /// --url 'https://docs.google.com/spreadsheets/d/1EAEdegMpitv-sTuxt8mV8xQxzJE7h_J0MxQoyLH7xxU/edit?gid=0#gid=0' --tab Sheet1 --select-row-by-key "id" --json '{"id": "2", "A": "1", "B": "2"}'
+  /// ```
+  /// - Update rows:
+  /// ```bash
+  /// gspread row update-custom 
+  /// --url 'https://docs.google.com/spreadsheets/d/1EAEdegMpitv-sTuxt8mV8xQxzJE7h_J0MxQoyLH7xxU/edit?gid=1067325142#gid=1067325142' --tab tab8 --json '{"A": "1", "B": "2"}' --key-by '["A", 800]' --on-fail append --on-find all
+  /// ```
+  /// - Append a new row:
+  /// ```bash
+  /// gspread row append 
+  /// --url 'https://docs.google.com/spreadsheets/d/1EAEdegMpitv-sTuxt8mV8xQxzJE7h_J0MxQoyLH7xxU/edit?gid=1852644635#gid=1852644635' --tab tab8 --json '{ "D": 800, "F": 400, "H": 200 }'
   /// ```
   #[ derive( Debug, Subcommand ) ]
   pub enum Command
@@ -117,6 +128,7 @@ mod private
       gspread_cells::Commands
     ),
 
+    /// 
     #[ command( subcommand, name = "row" ) ]
     Row
     ( 
@@ -130,11 +142,7 @@ mod private
   /// Executes the appropriate `gspread` command.
   ///
   /// ## Parameters:
-  /// - `client`:  
-  ///   A `GspreadClient` enum.
-  ///   - `Variants`: 
-  ///     `SheetsType` variant is used for interacting with the Google Sheets API. 
-  ///     `MockClient` variant is used for mock testing.
+  /// - `client`: Client.
   /// - `command`:  
   ///   The `Command` enum specifying which operation to execute.
   pub async fn command

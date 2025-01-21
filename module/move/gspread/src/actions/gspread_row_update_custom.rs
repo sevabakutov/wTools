@@ -103,7 +103,14 @@ mod private
           on_fail 
         ).await
         {
-          Ok( response ) => Ok( response.total_updated_cells.unwrap() ),
+          Ok( response ) => Ok
+          ( 
+            match response.total_updated_cells
+            {
+              Some( amount ) => amount,
+              None => 0,
+            } 
+          ),
           Err( error ) => Err( error )
         }
       },
