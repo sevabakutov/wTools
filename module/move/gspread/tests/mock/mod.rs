@@ -8,4 +8,4 @@ mod append_row;
 mod get_cell;
 mod set_cell;
 mod update_row;
-// mod cells_tests;
+mod update_rows_by_custom_row_key;

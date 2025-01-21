@@ -244,6 +244,7 @@ mod private
       }
     }
 
+    println!("value ranges : {:?}", value_ranges);
     // Making HTTP request.
     let request = BatchUpdateValuesRequest
     {

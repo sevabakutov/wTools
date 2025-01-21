@@ -1,7 +1,20 @@
+//!
+//! Tests for `update_row` function.
+//! 
+
 use httpmock::prelude::*;
 
 use serde_json::json;
-use gspread::{actions::gspread::update_row, gcore::client::{BatchUpdateValuesResponse, Client, Dimension, ValueRange}};
+use gspread::
+{
+  actions::gspread::update_row, 
+  gcore::client::
+  {BatchUpdateValuesResponse, 
+    Client, 
+    Dimension, 
+    ValueRange
+  }
+};
 
 /// # What
 /// We check that updating a row in a Google Spreadsheet returns the correct response.
