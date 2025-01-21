@@ -62,45 +62,45 @@ async fn test_update_row_should_work()
 // / 2. Return a `BatchUpdateValuesResponse`.
 // / 3. Call `update_rows_by_custom_row_key()`, passing the necessary parameters.
 // / 4. Verify that the number of updated cells, rows, and columns matches the expected result.
-// #[tokio::test]
-// async fn test_update_rows_by_custom_row_key_should_work() 
-// {
-//   dotenv().ok();
+#[tokio::test]
+async fn test_update_rows_by_custom_row_key_should_work() 
+{
+  dotenv().ok();
 
-//   let secret = Secret::read();
+  let secret = Secret::read();
 
-//   let client = Client::former()
-//   .token( &secret )
-//   .await
-//   .expect( "Failed to buid a client" )
-//   .form();
+  let client = Client::former()
+  .token( &secret )
+  .await
+  .expect( "Failed to buid a client" )
+  .form();
 
-//   let spreadsheet_id = "1EAEdegMpitv-sTuxt8mV8xQxzJE7h_J0MxQoyLH7xxU";
-//   let mut row_key_val = std::collections::HashMap::new();
-//   row_key_val.insert( "AAAC".to_string(), json!( "Buy" ) );
-//   row_key_val.insert( "AAAAD".to_string(), json!( 0987 ) );
+  let spreadsheet_id = "1EAEdegMpitv-sTuxt8mV8xQxzJE7h_J0MxQoyLH7xxU";
+  let mut row_key_val = std::collections::HashMap::new();
+  row_key_val.insert( "AAAC".to_string(), json!( "Buy" ) );
+  row_key_val.insert( "AAAAD".to_string(), json!( 0987 ) );
 
-//   let batch_result = update_rows_by_custom_row_key
-//   ( 
-//     &client, 
-//     spreadsheet_id,
-//     "tab1",
-//     ( "E", serde_json::Value::from( 333 ) ),
-//     row_key_val,
-//     OnFind::UpdateAllMatchedRow,
-//     OnFail::AppendRow
-//   )
-//   .await
-//   .expect( "update_row_by_custom_row_key failed" );
+  let batch_result = update_rows_by_custom_row_key
+  ( 
+    &client, 
+    spreadsheet_id,
+    "tab1",
+    ( "E", serde_json::Value::from( 333 ) ),
+    row_key_val,
+    OnFind::UpdateAllMatchedRow,
+    OnFail::AppendRow
+  )
+  .await
+  .expect( "update_row_by_custom_row_key failed" );
 
-//   println!("{:?}",batch_result );
-//   // assert_eq!( batch_result.spreadsheet_id.as_deref(), Some( spreadsheet_id ) );
-//   // assert_eq!( batch_result.total_updated_cells, Some( 8 ) );
-//   // assert_eq!( batch_result.total_updated_rows, Some( 4 ) );
-//   // assert_eq!( batch_result.total_updated_columns, Some( 2 ) );
+  println!("{:?}",batch_result );
+  assert_eq!( batch_result.spreadsheet_id.as_deref(), Some( spreadsheet_id ) );
+  assert_eq!( batch_result.total_updated_cells, Some( 8 ) );
+  assert_eq!( batch_result.total_updated_rows, Some( 4 ) );
+  assert_eq!( batch_result.total_updated_columns, Some( 2 ) );
 
-//   // if let Some( responses ) = &batch_result.responses 
-//   // {
-//   //   assert_eq!( responses.len(), 8 );
-//   // }
-// }
+  if let Some( responses ) = &batch_result.responses 
+  {
+    assert_eq!( responses.len(), 8 );
+  }
+}

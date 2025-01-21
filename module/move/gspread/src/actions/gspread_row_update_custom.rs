@@ -15,6 +15,13 @@ mod private
     OnFind
   };
 
+  /// # parse_key_by
+  /// 
+  /// Parse a provided string to ( &str, serde_json::Value )
+  /// 
+  /// ## Errors
+  /// 
+  /// Can occur if passed string is not valid.
   fn parse_key_by( s: &str ) -> Result< ( &str, serde_json::Value ) >
   {
     let result: ( &str, serde_json::Value ) = serde_json::from_str( s )
@@ -23,6 +30,13 @@ mod private
     Ok( result )
   }
 
+  /// # parse_on_find
+  /// 
+  /// Parse provided string to OnFind's variant.
+  /// 
+  /// ## Errors
+  /// 
+  /// Can occur if variant is not allowed.
   fn parse_on_find( on_find: &str ) -> Result< OnFind >
   {
     check_variant( on_find, vec![ "first", "last", "all" ] )?;
@@ -35,6 +49,13 @@ mod private
     }
   }
 
+  /// # parse_on_fail
+  /// 
+  /// Parse provided string to OnFail's variant.
+  /// 
+  /// ## Errors
+  /// 
+  /// Can occur if variant is not allowed.
   fn parse_on_fail( on_fail: &str ) -> Result< OnFail >
   {
     check_variant( on_fail, vec![ "none", "error", "append" ] )?;

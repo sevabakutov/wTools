@@ -24,6 +24,16 @@ mod private
     BatchUpdateValuesResponse, 
   };
 
+  /// # check_variant
+  /// 
+  /// Checks if passed variant is correct.
+  /// 
+  /// ## Returns:
+  ///  - `Result< () >`
+  /// 
+  /// ## Errors:
+  /// 
+  /// Can occur if passed varaint is not alllowed.
   pub fn check_variant
   ( 
     variant: &str,
@@ -43,6 +53,16 @@ mod private
     }
   }
 
+  /// # parse_json
+  /// 
+  /// Parse passed json to HashMap< String, serde_json::Value >
+  /// 
+  /// ## Returns
+  ///  - `Result< HashMap< String, serde_json::Value > >`
+  /// 
+  /// ## Errors
+  /// 
+  /// Can occur if the passed json is not valid.
   pub fn parse_json
   ( 
     json_str : &str 

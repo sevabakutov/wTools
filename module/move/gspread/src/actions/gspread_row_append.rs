@@ -8,6 +8,13 @@ mod private
   use gcore::client::Client;
   use gcore::error::{ Error, Result };
 
+  /// # parse_json
+  /// 
+  /// Parse privded string to HashMap< String, serde_json::Value >
+  /// 
+  /// ## Errors:
+  /// 
+  /// Can occur if provided string is not valid.
   fn parse_json
   ( 
     json_str : &str 
