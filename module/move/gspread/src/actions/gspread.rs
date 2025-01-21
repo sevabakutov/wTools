@@ -446,7 +446,7 @@ mod private
     client : &Client<'_>,
     spreadsheet_id : &str,
     sheet_name : &str, 
-  ) -> Result< Vec< Vec< serde_json::Value > > >
+  ) -> Result< Vec< serde_json::Value > >
   {
     let range = format!( "{}!A1:ZZZ1", sheet_name );
 
@@ -456,7 +456,14 @@ mod private
     .doit()
     .await
     {
-      Ok( response ) => Ok( response.values.unwrap() ),
+      Ok( response ) =>
+      {
+        match response.values
+        {
+          Some( values ) => Ok( values[0].clone() ),
+          None => Ok( Vec::new() )
+        }
+      } 
       Err( error ) => Err( error )
     }
     

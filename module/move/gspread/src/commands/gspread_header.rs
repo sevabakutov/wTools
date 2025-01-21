@@ -96,12 +96,12 @@ mod private
         {
           Ok( header ) =>
             {
-              let header_wrapped = header
-              .into_iter()
-              .map( | row | RowWrapper{ max_len: row.len(), row } )
-              .collect();
-              
-              println!( "Header:\n{}", Report{ header: header_wrapped } );
+              let header_wrapped = RowWrapper
+              { 
+                max_len : header.len(),
+                row : header
+              };
+              println!( "Header:\n{}", Report{ header: vec![ header_wrapped ] } );
             }
           Err( error ) => eprintln!( "Error:\n{}", error ),
         }

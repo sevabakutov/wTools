@@ -17,7 +17,7 @@ mod private
     client : &Client<'_>,
     spreadsheet_id : &str,
     sheet_name : &str
-  ) -> Result< Vec< Vec< serde_json::Value > > >
+  ) -> Result< Vec< serde_json::Value > >
   {
     match get_header( client, spreadsheet_id, sheet_name ).await
     {
