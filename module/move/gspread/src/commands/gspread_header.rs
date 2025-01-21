@@ -7,11 +7,11 @@ mod private
   use std::fmt;
   use crate::*;
   use gcore::client::Client;
-use commands::gspread::CommonArgs;
+  use commands::gspread::CommonArgs;
   use actions;
   use actions::gspread::get_spreadsheet_id_from_url;
   use format_tools::AsTable;
-  use util::display_table::display_header;
+  use utils::display_table::display_header;
 
   /// # Report
   ///
@@ -68,7 +68,7 @@ use commands::gspread::CommonArgs;
   /// - Prints an error message if the spreadsheet ID extraction or header retrieval fails.
   pub async fn command
   (
-    client : &Client,
+    client : &Client<'_>,
     args : CommonArgs,
   )
   {

@@ -14,7 +14,7 @@ mod private
 
   pub async fn action
   (
-    client : &Client,
+    client : &Client<'_>,
     spreadsheet_id : &str,
     sheet_name : &str
   ) -> Result< Vec< Vec< serde_json::Value > > >

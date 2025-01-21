@@ -119,7 +119,7 @@ mod private
 
   pub async fn action
   (
-    client : &Client,
+    client : &Client<'_>,
     select_row_by_key : &str,
     json_str : &str,
     spreadsheet_id : &str,

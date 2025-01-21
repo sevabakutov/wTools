@@ -86,7 +86,7 @@ mod private
   ///   Occurs if the Google Sheets API returns an error, e.g., due to invalid input or insufficient permissions.
   pub async fn update_row
   (
-    client : &Client,
+    client : &Client<'_>,
     spreadsheet_id : &str,
     sheet_name : &str,
     row_key : serde_json::Value,
@@ -159,7 +159,7 @@ mod private
   ///   Occurs if the Google Sheets API returns an error, e.g., due to invalid input or insufficient permissions.
   pub async fn update_rows_by_custom_row_key
   (
-    client : &Client,
+    client : &Client<'_>,
     spreadsheet_id : &str,
     sheet_name : &str,
     key_by : ( &str, serde_json::Value ), 
@@ -189,7 +189,7 @@ mod private
     .ok_or_else( || Error::ApiError( "No first row found".to_owned() ) )?;
 
     // Counting mathces.
-    let row_keys: Vec<usize> = column
+    let row_keys: Vec< usize > = column
     .iter()
     .enumerate()
     .filter( | &( _, val ) | { *val == key_by.1 } )
@@ -294,7 +294,7 @@ mod private
   ///   or insufficient permissions.
   pub async fn append_row
   (
-    client : &Client,
+    client : &Client<'_>,
     spreadsheet_id : &str,
     sheet_name : &str,
     row_key_val : &HashMap< String, serde_json::Value >
@@ -393,7 +393,7 @@ mod private
   pub async fn get_header
   (
 
-    client : &Client,
+    client : &Client<'_>,
     spreadsheet_id : &str,
     sheet_name : &str, 
   ) -> Result< Vec< Vec< serde_json::Value > > >
@@ -433,7 +433,7 @@ mod private
   ///   or insufficient permissions.
   pub async fn get_rows
   (
-    client : &Client,
+    client : &Client<'_>,
     spreadsheet_id : &str,
     sheet_name : &str, 
   ) -> Result< Vec< Vec< serde_json::Value > > >
@@ -475,7 +475,7 @@ mod private
   ///   or insufficient permissions.
   pub async fn get_cell
   (
-    client : &Client,
+    client : &Client<'_>,
     spreadsheet_id : &str,
     sheet_name : &str,
     cell_id : &str
@@ -528,7 +528,7 @@ mod private
   ///   Occurs if the Google Sheets API returns an error, such as invalid input or insufficient permissions.
   pub async fn set_cell
   (
-    client : &Client,
+    client : &Client<'_>,
     spreadsheet_id : &str,
     sheet_name : &str,
     cell_id : &str,

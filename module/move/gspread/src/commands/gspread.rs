@@ -132,7 +132,7 @@ mod private
   ///   The `Command` enum specifying which operation to execute.
   pub async fn command
   (
-    client : &Client,
+    client : &Client<'_>,
     command : Command,
   )
   {

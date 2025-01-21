@@ -75,16 +75,16 @@ mod private
   /// to access various Google Sheets API operations, such as reading or updating
   /// spreadsheet cells.
   #[ derive( Former ) ]
-  pub struct Client
+  pub struct Client<'a>
   {
     #[ former( default = "" ) ]
     #[ scalar( setter = false ) ]
     token : String,
-    #[ former( default = "https://sheets.googleapis.com/v4/spreadsheets".to_string() ) ]
-    endpoint : String,
+    #[ former( default = GOOGLE_API_URL ) ]
+    endpoint : &'a str,
   }
 
-  impl Client
+  impl Client<'_>
   {
     pub fn spreadsheet( &self ) -> SpreadSheetValuesMethod
     {
@@ -97,9 +97,9 @@ mod private
 
 
   // Custom initialization for auth field.
-  impl< Definition > ClientFormer< Definition >
+  impl< 'a, Definition > ClientFormer< 'a, Definition >
   where
-    Definition : former::FormerDefinition< Storage = ClientFormerStorage >,
+    Definition : former::FormerDefinition< Storage = ClientFormerStorage<'a> >,
   {
     pub async fn token( mut self, secret : &Secret ) -> Result< Self >
     {
@@ -175,7 +175,7 @@ mod private
   /// fully-initialized [`Client`] instance:
   pub struct SpreadSheetValuesMethod<'a>
   {
-    client : &'a Client,
+    client : &'a Client<'a>,
   }
 
   impl SpreadSheetValuesMethod<'_>
@@ -291,7 +291,7 @@ mod private
   ///   [`Error`] if the API request fails.
   pub struct ValuesGetMethod<'a>
   {
-    client : &'a Client,
+    client : &'a Client<'a>,
     _spreadsheet_id : String,
     _range : String,
     _major_dimension : Option< Dimension >,
@@ -401,7 +401,7 @@ mod private
   ///   [`Error`] if the API request fails.
   pub struct ValuesUpdateMethod<'a>
   {
-    client : &'a Client,
+    client : &'a Client<'a>,
     _value_range : ValueRange,
     _spreadsheet_id : &'a str,
     _range : &'a str,
@@ -492,7 +492,7 @@ mod private
   ///   on success, or an [`Error`] if the API request fails.
   pub struct ValuesBatchUpdateMethod<'a>
   {
-    pub client : &'a Client,
+    pub client : &'a Client<'a>,
     pub _spreadsheet_id : String,
     pub _request : BatchUpdateValuesRequest
   }
@@ -542,7 +542,7 @@ mod private
 
   pub struct ValuesAppendMethod<'a>
   {
-    client : &'a Client,
+    client : &'a Client<'a>,
     _value_range : ValueRange,
     _spreadsheet_id : &'a str,
     _range : &'a str,

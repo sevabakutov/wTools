@@ -19,7 +19,7 @@ crate::mod_interface!
   layer debug;
   layer commands;
   layer actions;
-  layer util;
+  layer utils;
 
   exposed use ::reflect_tools::
   {

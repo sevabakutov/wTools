@@ -13,7 +13,7 @@ mod private
 
   pub async fn action
   (
-    client : &Client,
+    client : &Client<'_>,
     spreadsheet_id : &str,
     sheet_name : &str,
     cell_id : &str,

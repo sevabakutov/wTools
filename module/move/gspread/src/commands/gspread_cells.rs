@@ -107,7 +107,7 @@ use gcore::client::Client;
   /// - Prints an error message if the spreadsheet ID extraction or row update fails.
   pub async fn command
   (
-    client : &Client,
+    client : &Client<'_>,
     commands : Commands
   )
   {
