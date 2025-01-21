@@ -1,8 +1,23 @@
-use gspread::{actions::gspread::append_row, gcore::client::{Client, Dimension, UpdateValuesResponse, ValueRange, ValuesAppendResponse}};
+//!
+//! Tests for `append_row` function.
+//! 
+
 use httpmock::prelude::*;
 use serde_json::json;
-
 use std::collections::HashMap;
+use gspread::
+{
+  actions::gspread::append_row, 
+  gcore::client::
+  {
+    Client, 
+    Dimension, 
+    UpdateValuesResponse, 
+    ValueRange, 
+    ValuesAppendResponse
+  }
+};
+
 
 /// # What 
 /// We test appending a row at the and of a sheet.
