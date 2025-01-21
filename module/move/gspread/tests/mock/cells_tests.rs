@@ -1,5 +1,5 @@
 use gspread::*;
-use actions::gspread::{update_row, update_rows_by_custom_row_key}; 
+use actions::gspread::{update_row, update_rows_by_custom_row_key, OnFail, OnFind}; 
 use gcore::client::
 {
   BatchUpdateValuesResponse, Client, Dimension, ValueRange 
@@ -172,8 +172,8 @@ async fn test_update_rows_by_custom_row_key_with_mock() {
     "tab1",
     ( "E", json!( 12 ) ),
     row_key_val,
-    true,
-    true
+    OnFind::UpdateAllMatchedRow,
+    OnFail::AppendRow
   )
   .await
   .expect("update_rows_by_custom_row_key failed");

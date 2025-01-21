@@ -13,7 +13,15 @@ mod private
   use gcore::error::{ Error, Result };
   use gcore::client::
   {
-    BatchUpdateValuesRequest, BatchUpdateValuesResponse, Client, Dimension, InsertDataOption, UpdateValuesResponse, ValueInputOption, ValueRange, ValueRenderOption, ValuesAppendRequest, ValuesAppendResponse
+    Client, 
+    Dimension, 
+    ValueRange, 
+    ValueInputOption, 
+    ValueRenderOption, 
+    UpdateValuesResponse, 
+    ValuesAppendResponse,
+    BatchUpdateValuesRequest, 
+    BatchUpdateValuesResponse, 
   };
   
   /// # `get_spreadsheet_id_from_url`
@@ -156,8 +164,8 @@ mod private
     sheet_name : &str,
     key_by : ( &str, serde_json::Value ), 
     row_key_val : HashMap< String, serde_json::Value >,
-    update_range_at_all_match_cells : bool,
-    raise_error_on_fail : bool
+    on_find : OnFind,
+    on_fail : OnFail
   ) -> Result< BatchUpdateValuesResponse >
   {
     // Getting provided column.
@@ -190,23 +198,40 @@ mod private
 
     if row_keys.is_empty()
     {
-      if raise_error_on_fail
+      match on_fail
       {
-        return Err( Error::ApiError( "Not such value in the column.".to_string() ) );
-      }
+        OnFail::Nothing => return Ok( BatchUpdateValuesResponse::default() ),
+        OnFail::AppendRow =>
+        {
+          let _ = append_row( client, spreadsheet_id, sheet_name, &row_key_val ).await?;
+          let response = BatchUpdateValuesResponse
+          {
+            spreadsheet_id : Some( spreadsheet_id.to_string() ),
+            total_updated_rows : Some( 1 ),
+            total_updated_sheets : Some( 1 ),
+            ..Default::default()
+          };
 
-      let response = BatchUpdateValuesResponse::default();
-      return Ok( response );
+          return Ok( response );
+        }
+        OnFail::Error => return Err( Error::ApiError( "Not such value in the sheet.".to_string() ) )
+      }
     }
 
     // Preparing value ranges.
     let mut value_ranges = Vec::with_capacity( row_key_val.len() );
+    let mut range;
+    match on_find
+    {
+      OnFind::UpdateAllMatchedRow => range = row_keys,
+      OnFind::UpdateFirstMatchedRow => range = vec![ *row_keys.first().unwrap() ],
+      OnFind::UpdateLastMatchedRow => range = vec![ *row_keys.last().unwrap() ]
+    }
 
-    for row_key in row_keys
+    for row_key in range
     {
       for ( col_name, value ) in &row_key_val 
       {
-        println!("value range data: {} / {}", value.clone(), row_key);
         value_ranges.push
         (
           ValueRange
@@ -216,11 +241,6 @@ mod private
             range: Some( format!( "{}!{}{}", sheet_name, col_name, row_key + 1 ) ),
           }
         );
-      }
-      // If we want update only first match, break the loop.
-      if !update_range_at_all_match_cells
-      {
-        break;
       }
     }
 
@@ -248,9 +268,10 @@ mod private
 
 
 
-  /// # `push_row`
+  /// # `append_row`
   ///
   /// Append a new row at the end of the sheet.
+  /// If there is place to put all values to exestits row ( cells are empty ), it will put there instead of append a new row.
   ///
   /// ## Parameters:
   /// - `client`:  
@@ -276,7 +297,7 @@ mod private
     client : &Client,
     spreadsheet_id : &str,
     sheet_name : &str,
-    row_key_val : HashMap< String, serde_json::Value >
+    row_key_val : &HashMap< String, serde_json::Value >
   ) -> Result< ValuesAppendResponse >
   {
     // Sort column indexes, from A -> ZZZ
@@ -301,7 +322,7 @@ mod private
     }
 
     // Creating request.
-    let range = format!( "{}!{}:{}1", sheet_name, columns.first().unwrap(), columns.last().unwrap() );
+    let range = format!( "{}!{}:{}", sheet_name, columns.first().unwrap(), columns.last().unwrap() );
 
     let value_range = ValueRange
     {
@@ -532,6 +553,24 @@ mod private
       Err( error ) => Err( error )
     }
   }
+
+  pub enum OnFind
+  {
+    UpdateFirstMatchedRow,
+    UpdateLastMatchedRow,
+    UpdateAllMatchedRow,
+  }
+
+  pub enum OnFail
+  {
+    /// Returns error.
+    Error,
+    /// Does nothing.
+    Nothing,
+    /// Append provided row at the and of sheet.
+    AppendRow,
+  }
+  
     
 }
 
@@ -539,6 +578,8 @@ crate::mod_interface!
 {
   own use
   {
+    OnFind,
+    OnFail,
     set_cell,
     get_cell,
     get_rows,
