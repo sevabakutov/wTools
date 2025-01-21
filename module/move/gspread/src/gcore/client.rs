@@ -6,11 +6,9 @@ mod private
 {
 
   use reqwest;
-  use yup_oauth2;
   use former::Former;
  
   use crate::*;
-  use gcore::Secret;
   use gcore::error::{ Error, Result };
   use ser::
   { 
@@ -101,41 +99,11 @@ mod private
   where
     Definition : former::FormerDefinition< Storage = ClientFormerStorage >,
   {
-    pub async fn token( mut self, secret : &Secret ) -> Result< Self >
+    pub async fn token< S >( mut self, secret : &S ) -> Result< Self > where S : gcore::Secret
     {
       debug_assert!( self.storage.token.is_none() );
 
-      let secret: yup_oauth2::ApplicationSecret = yup_oauth2::ApplicationSecret
-      {
-        client_id : secret.CLIENT_ID.clone(),
-        auth_uri : secret.AUTH_URI.clone(),
-        token_uri : secret.TOKEN_URI.clone(),
-        client_secret : secret.CLIENT_SECRET.clone(),
-        .. Default::default()
-      };
-
-      let authenticator  = yup_oauth2::InstalledFlowAuthenticator::builder(
-        secret,
-        yup_oauth2::InstalledFlowReturnMethod::HTTPRedirect,
-      )
-      .build()
-      .await
-      .map_err( | err | Error::AuthError( err.to_string() ) )?;
-
-      let scopes = vec!
-      [ 
-        "https://www.googleapis.com/auth/spreadsheets",
-        "https://www.googleapis.com/auth/spreadsheets.readonly" 
-      ];
-
-      let access_token = authenticator
-      .token( &scopes )
-      .await
-      .map_err( | err | Error::AuthError( err.to_string() ) )?;
-
-      let token = access_token.token().unwrap();
-      
-      self.storage.token = Some( token.to_string() );
+      self.storage.token = Some( secret.get_token().await? );
 
       Ok( self )
     }
