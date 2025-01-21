@@ -19,7 +19,7 @@ use gspread::
 /// 3. Send a HTTP request.
 #[ tokio::test ]
 #[ should_panic ]
-async fn test_wrong_spreadsheet_id_should_panic() 
+async fn test_mock_wrong_spreadsheet_id_should_panic() 
 {
   // 1. Start server.
   let server = MockServer::start();
@@ -53,7 +53,7 @@ async fn test_wrong_spreadsheet_id_should_panic()
 /// 3. Send a HTTP request.
 #[ tokio::test ]
 #[ should_panic ]
-async fn test_wrong_sheet_name_should_panic() 
+async fn test_mock_wrong_sheet_name_should_panic() 
 {
   // 1. Start server.
   let server = MockServer::start();
