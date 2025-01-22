@@ -1,7 +1,7 @@
 use dotenv::dotenv;
 use gspread::*;
 use actions::gspread::{update_row, update_rows_by_custom_row_key, OnFail, OnFind};
-use gcore::Secret; 
+use gcore::ApplicationSecret; 
 use gcore::client::Client;
 use serde_json::json;
 
@@ -18,7 +18,7 @@ async fn test_update_row_should_work()
 {
   dotenv().ok();
 
-  let secret = Secret::read();
+  let secret = ApplicationSecret::read();
 
   let client = Client::former()
   .token( &secret )
@@ -67,7 +67,7 @@ async fn test_update_rows_by_custom_row_key_should_work()
 {
   dotenv().ok();
 
-  let secret = Secret::read();
+  let secret = ApplicationSecret::read();
 
   let client = Client::former()
   .token( &secret )

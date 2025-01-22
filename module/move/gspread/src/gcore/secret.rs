@@ -61,7 +61,13 @@ mod private
   /// A type alias for `std::result::Result` with the error type `Error`.
   pub type Result< R > = std::result::Result< R, Error >;
 
-  /// # Secret
+  pub trait Secret 
+  {
+    #[ allow( async_fn_in_trait ) ]
+    async fn get_token( &self ) -> gcore::error::Result< String >;
+  }
+
+  /// # ApplicationSecret
   ///
   /// A struct that represents configuration secrets loaded from a `.env` file.
   ///
@@ -95,7 +101,7 @@ mod private
   /// ```
   #[ derive( Debug ) ]
   #[ allow( non_snake_case ) ]
-  pub struct Secret
+  pub struct ApplicationSecret
   {
     pub CLIENT_SECRET : String,
     pub CLIENT_ID: String,
@@ -103,7 +109,7 @@ mod private
     pub TOKEN_URI : String,
   }
 
-  impl Secret
+  impl ApplicationSecret
   {
     #[ allow( non_snake_case ) ]
     pub fn load() -> Result< Self >
@@ -129,7 +135,7 @@ mod private
       Ok( config )
     }
 
-    pub fn read() -> Secret
+    pub fn read() -> ApplicationSecret
     {
       Self::load().unwrap_or_else( | err |
       {
@@ -154,12 +160,165 @@ Add missing secret to .env file in .secret directory. Example: MISSING_SECRET=YO
        })
     }
 
-    pub fn get() -> &'static Secret
+    pub fn get() -> &'static ApplicationSecret
     {
-      static INSTANCE : OnceLock< Secret > = OnceLock::new();
+      static INSTANCE : OnceLock< ApplicationSecret > = OnceLock::new();
       INSTANCE.get_or_init( || Self::read() )
     }
 
+  }
+
+  impl Secret for ApplicationSecret 
+  {
+    async fn get_token( &self ) -> gcore::error::Result< String > 
+    {
+      let secret: yup_oauth2::ApplicationSecret = yup_oauth2::ApplicationSecret
+      {
+        client_id : self.CLIENT_ID.clone(),
+        auth_uri : self.AUTH_URI.clone(),
+        token_uri : self.TOKEN_URI.clone(),
+        client_secret : self.CLIENT_SECRET.clone(),
+        .. Default::default()
+      };
+
+      let authenticator  = yup_oauth2::InstalledFlowAuthenticator::builder(
+        secret,
+        yup_oauth2::InstalledFlowReturnMethod::HTTPRedirect,
+      )
+      .build()
+      .await
+      .map_err( | err | gcore::error::Error::AuthError( err.to_string() ) )?;
+
+      let scopes = vec!
+      [ 
+        "https://www.googleapis.com/auth/spreadsheets",
+        "https://www.googleapis.com/auth/spreadsheets.readonly" 
+      ];
+
+      let access_token = authenticator
+      .token( &scopes )
+      .await
+      .map_err( | err | gcore::error::Error::AuthError( err.to_string() ) )?;
+
+      let token = access_token.token().unwrap();
+      Ok( token.to_string() )
+    }
+  }
+
+
+  /// # ServiceAccountSecret
+  #[ derive( Debug ) ]
+  #[ allow( non_snake_case ) ]
+  pub struct ServiceAccountSecret
+  {
+    pub KEY_TYPE : String,
+    pub PROJECT_ID: String,
+    pub PRIVATE_KEY_ID : String,
+    pub PRIVATE_KEY : String,
+    pub CLIENT_EMAIL : String,
+    pub CLIENT_ID : String,
+    pub AUTH_URI : String,
+    pub TOKEN_URI : String,
+    pub AUTH_PROVIDER_X509_CERT_URL : String,
+    pub CLIENT_X509_CERT_URL : String,
+  }
+
+  impl ServiceAccountSecret
+  {
+    #[ allow( non_snake_case ) ]
+    pub fn load() -> Result< Self >
+    {
+      let path = "./.secret/.env";
+
+      let r = dotenv::from_path( path );
+      if let Err( ref err ) = r
+      {
+        if !matches!( err, dotenv::Error::Io(_) )
+        {
+          return Err( r.expect_err( &format!( "Failed to load {path}" ) ).into() );
+        }
+      }
+
+      let config = Self
+      {
+        KEY_TYPE : var( "GOOGLE_KEY_TYPE", None )?,
+        PROJECT_ID : var( "GOOGLE_PROJECT_ID", None )?,
+        PRIVATE_KEY_ID : var ( "GOOGLE_PRIVATE_KEY_ID", None )?,
+        PRIVATE_KEY : var ( "GOOGLE_PRIVATE_KEY", None )?,
+        CLIENT_EMAIL : var( "GOOGLE_CLIENT_EMAIL", None )?,
+        CLIENT_ID : var( "GOOGLE_CLIENT_ID", None )?,
+        AUTH_URI : var( "GOOGLE_AUTH_URI", None )?,
+        TOKEN_URI : var( "GOOGLE_TOKEN_URI", None )?,
+        AUTH_PROVIDER_X509_CERT_URL : var( "GOOGLE_AUTH_PROVIDER_X509_CERT_URL", None )?,
+        CLIENT_X509_CERT_URL : var( "GOOGLE_CLIENT_X509_CERT_URL", None )?,
+      };
+      Ok( config )
+    }
+
+    pub fn read() -> ServiceAccountSecret
+    {
+      Self::load().unwrap_or_else( | err |
+      {
+        let example = include_str!("../../.secret/readme.md");
+        let explanation = format!
+        (
+                  r#" = Lack of secrets
+
+Failed to load secret or some its parameters.
+{err}
+
+ = Fix
+
+Add missing secret to .env file in .secret directory. Example: MISSING_SECRET=YOUR_MISSING_SECRET
+
+ = More information
+
+{example}
+"#
+        );
+        panic!( "{}", explanation );
+       })
+    }
+
+    pub fn get() -> &'static ServiceAccountSecret
+    {
+      static INSTANCE : OnceLock< ServiceAccountSecret > = OnceLock::new();
+      INSTANCE.get_or_init( || Self::read() )
+    }
+
+  }
+
+  impl Secret for ServiceAccountSecret
+  {
+    async fn get_token( &self ) -> gcore::error::Result< String > 
+    {
+      let key = yup_oauth2::ServiceAccountKey
+      { 
+        key_type : Some( self.KEY_TYPE.clone() ), 
+        project_id : Some( self.PROJECT_ID.clone() ), 
+        private_key_id : Some( self.PRIVATE_KEY_ID.clone() ), 
+        private_key : self.PRIVATE_KEY.clone(), 
+        client_email : self.CLIENT_EMAIL.clone(), 
+        client_id : Some( self.CLIENT_ID.clone() ), 
+        auth_uri : Some( self.AUTH_URI.clone() ), 
+        token_uri : self.TOKEN_URI.clone(), 
+        auth_provider_x509_cert_url : Some( self.AUTH_PROVIDER_X509_CERT_URL.clone() ), 
+        client_x509_cert_url : Some( self.CLIENT_X509_CERT_URL.clone() ), 
+      };
+
+      let auth = yup_oauth2::ServiceAccountAuthenticator::builder( key )
+      .build()
+      .await
+      .map_err( | err | gcore::error::Error::AuthError( err.to_string() ) )?;
+
+      let scopes = &[ "https://www.googleapis.com/auth/spreadsheets" ];
+
+      let token = auth.token( scopes ).await.map_err( | err | gcore::error::Error::AuthError( err.to_string() ) )?;
+
+      let token = token.token().unwrap();
+
+      Ok( token.to_string() )
+    }
   }
 
   /// # `var`
@@ -235,5 +394,7 @@ crate::mod_interface!
   orphan use
   {
     Secret,
+    ApplicationSecret,
+    ServiceAccountSecret,
   };
 }

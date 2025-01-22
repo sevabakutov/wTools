@@ -3,7 +3,7 @@ use clap::Parser;
 use dotenv::dotenv;
 
 use gspread::*;
-use gcore::Secret;
+use gcore::ApplicationSecret;
 use gcore::client::Client;
 use commands::
 {
@@ -18,7 +18,7 @@ async fn main() -> Result< (), Box< dyn Error > >
 {
   dotenv().ok();
 
-  let secret = Secret::read();
+  let secret = ApplicationSecret::read();
 
   let client = Client::former()
   .token( &secret )

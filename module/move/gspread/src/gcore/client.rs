@@ -6,11 +6,9 @@ mod private
 {
 
   use reqwest;
-  use yup_oauth2;
   use former::Former;
  
   use crate::*;
-  use gcore::Secret;
   use gcore::error::{ Error, Result };
   use ser::
   { 
@@ -101,38 +99,12 @@ mod private
   where
     Definition : former::FormerDefinition< Storage = ClientFormerStorage<'a> >,
   {
-    pub async fn token( mut self, secret : &Secret ) -> Result< Self >
+    pub async fn token< S >( mut self, secret : &S ) -> Result< Self > where S : gcore::Secret
     {
       debug_assert!( self.storage.token.is_none() );
 
-      let secret: yup_oauth2::ApplicationSecret = yup_oauth2::ApplicationSecret
-      {
-        client_id : secret.CLIENT_ID.clone(),
-        auth_uri : secret.AUTH_URI.clone(),
-        token_uri : secret.TOKEN_URI.clone(),
-        client_secret : secret.CLIENT_SECRET.clone(),
-        .. Default::default()
-      };
-
-      let authenticator  = yup_oauth2::InstalledFlowAuthenticator::builder(
-        secret,
-        yup_oauth2::InstalledFlowReturnMethod::HTTPRedirect,
-      )
-      .build()
-      .await
-      .map_err( | err | Error::AuthError( err.to_string() ) )?;
-
-      let scopes = vec![ GOOGLE_SPREADSHEET_SCOPE ];
-
-      let access_token = authenticator
-      .token( &scopes )
-      .await
-      .map_err( | err | Error::AuthError( err.to_string() ) )?;
-
-      let token = access_token.token().unwrap();
+      self.storage.token = Some( secret.get_token().await? );
       
-      self.storage.token = Some( token.to_string() );
-
       Ok( self )
     }
   }
@@ -152,7 +124,9 @@ mod private
   ///
   /// ## Methods
   ///
-  /// - **`values_get(spreadsheet_id, range)` → [`ValuesGetMethod`]**  
+  /// - **`values_get(
+  spreadsheet_id, range
+)` → [`ValuesGetMethod`]**  
   ///   Creates a new request object that retrieves the values within the specified `range`
   ///   of the spreadsheet identified by `spreadsheet_id`. 
   ///
