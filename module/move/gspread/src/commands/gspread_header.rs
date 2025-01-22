@@ -7,11 +7,11 @@ mod private
   use std::fmt;
   use crate::*;
   use gcore::client::Client;
-use commands::gspread::CommonArgs;
+  use commands::gspread::CommonArgs;
   use actions;
   use actions::gspread::get_spreadsheet_id_from_url;
   use format_tools::AsTable;
-  use util::display_table::display_header;
+  use utils::display_table::display_header;
 
   /// # Report
   ///
@@ -68,7 +68,7 @@ use commands::gspread::CommonArgs;
   /// - Prints an error message if the spreadsheet ID extraction or header retrieval fails.
   pub async fn command
   (
-    client : &Client,
+    client : &Client<'_>,
     args : CommonArgs,
   )
   {
@@ -96,12 +96,12 @@ use commands::gspread::CommonArgs;
         {
           Ok( header ) =>
             {
-              let header_wrapped = header
-              .into_iter()
-              .map( | row | RowWrapper{ max_len: row.len(), row } )
-              .collect();
-              
-              println!( "Header:\n{}", Report{ header: header_wrapped } );
+              let header_wrapped = RowWrapper
+              { 
+                max_len : header.len(),
+                row : header
+              };
+              println!( "Header:\n{}", Report{ header: vec![ header_wrapped ] } );
             }
           Err( error ) => eprintln!( "Error:\n{}", error ),
         }

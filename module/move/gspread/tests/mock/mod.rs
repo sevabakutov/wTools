@@ -1,7 +1,11 @@
 #[ allow( unused_imports ) ]
 use super::*;
 
-mod header_tests;
-mod cell_tests;
-mod cells_tests;
-mod rows_tests;
+mod common_tests;
+mod get_header;
+mod get_rows;
+mod append_row;
+mod get_cell;
+mod set_cell;
+mod update_row;
+mod update_rows_by_custom_row_key;

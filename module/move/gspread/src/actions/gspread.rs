@@ -7,6 +7,7 @@
 mod private
 {
   use regex::Regex;
+use serde_json::json;
   use std::collections::HashMap;
 
   use crate::*;
@@ -23,6 +24,56 @@ mod private
     BatchUpdateValuesRequest, 
     BatchUpdateValuesResponse, 
   };
+
+  /// # check_variant
+  /// 
+  /// Checks if passed variant is correct.
+  /// 
+  /// ## Returns:
+  ///  - `Result< () >`
+  /// 
+  /// ## Errors:
+  /// 
+  /// Can occur if passed varaint is not alllowed.
+  pub fn check_variant
+  ( 
+    variant: &str,
+    allowed : Vec< &str > 
+  ) -> Result< () >
+  {
+    if allowed.contains( &variant )
+    {
+      Ok( () )
+    }
+    else
+    {
+      Err
+      ( 
+        Error::ParseError( format!( "Not suchvariant: {}. Allowed: {:?}", variant, allowed ) )
+      )
+    }
+  }
+
+  /// # parse_json
+  /// 
+  /// Parse passed json to HashMap< String, serde_json::Value >
+  /// 
+  /// ## Returns
+  ///  - `Result< HashMap< String, serde_json::Value > >`
+  /// 
+  /// ## Errors
+  /// 
+  /// Can occur if the passed json is not valid.
+  pub fn parse_json
+  ( 
+    json_str : &str 
+  ) -> Result< HashMap< String, serde_json::Value > >
+  {
+    let parsed_json: HashMap< String, serde_json::Value > = serde_json::from_str( json_str )
+    .map_err( | error | Error::InvalidJSON( format!( "Failed to parse JSON: {}", error ) ) )?;
+
+    Ok( parsed_json )
+  }
   
   /// # `get_spreadsheet_id_from_url`
   ///
@@ -86,7 +137,7 @@ mod private
   ///   Occurs if the Google Sheets API returns an error, e.g., due to invalid input or insufficient permissions.
   pub async fn update_row
   (
-    client : &Client,
+    client : &Client<'_>,
     spreadsheet_id : &str,
     sheet_name : &str,
     row_key : serde_json::Value,
@@ -129,7 +180,7 @@ mod private
   }
 
 
-  /// # `update_row_by_custom_row_key`
+  /// # `update_rows_by_custom_row_key`
   ///
   /// Updates a specific row or rows in a Google Sheet with the provided values.
   ///
@@ -159,7 +210,7 @@ mod private
   ///   Occurs if the Google Sheets API returns an error, e.g., due to invalid input or insufficient permissions.
   pub async fn update_rows_by_custom_row_key
   (
-    client : &Client,
+    client : &Client<'_>,
     spreadsheet_id : &str,
     sheet_name : &str,
     key_by : ( &str, serde_json::Value ), 
@@ -180,16 +231,34 @@ mod private
     .await
     .map_err( | err | Error::ApiError( err.to_string() ) )?;
 
-    let values = value_range
-    .values
-    .ok_or_else( || Error::ApiError( "No value found".to_owned() ) )?;
+    let values = match value_range.values
+    {
+      Some( values ) => values,
+      None =>
+      {
+        match on_fail
+        {
+          OnFail::Nothing => return Ok( BatchUpdateValuesResponse::default() ),
+          OnFail::AppendRow =>
+          {
+            let _ = append_row( client, spreadsheet_id, sheet_name, &row_key_val ).await?;
+            let response = BatchUpdateValuesResponse
+            {
+              spreadsheet_id : Some( spreadsheet_id.to_string() ),
+              total_updated_rows : Some( 1 ),
+              total_updated_sheets : Some( 1 ),
+              ..Default::default()
+            };
 
-    let column = values
-    .get( 0 )
-    .ok_or_else( || Error::ApiError( "No first row found".to_owned() ) )?;
+            return Ok( response );
+          }
+          OnFail::Error => return Err( Error::ApiError( "Not such value in the sheet.".to_string() ) )
+        }
+      }
+    };
 
     // Counting mathces.
-    let row_keys: Vec<usize> = column
+    let row_keys: Vec< usize > = values[0]
     .iter()
     .enumerate()
     .filter( | &( _, val ) | { *val == key_by.1 } )
@@ -244,6 +313,7 @@ mod private
       }
     }
 
+    println!("value ranges : {:?}", value_ranges);
     // Making HTTP request.
     let request = BatchUpdateValuesRequest
     {
@@ -271,7 +341,8 @@ mod private
   /// # `append_row`
   ///
   /// Append a new row at the end of the sheet.
-  /// If there is place to put all values to exestits row ( cells are empty ), it will put there instead of append a new row.
+  /// If there is an empty space in provided range, it will put values begining from A index.
+  /// More information you can find here [append docs](https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets.values/append)
   ///
   /// ## Parameters:
   /// - `client`:  
@@ -294,7 +365,7 @@ mod private
   ///   or insufficient permissions.
   pub async fn append_row
   (
-    client : &Client,
+    client : &Client<'_>,
     spreadsheet_id : &str,
     sheet_name : &str,
     row_key_val : &HashMap< String, serde_json::Value >
@@ -322,8 +393,7 @@ mod private
     }
 
     // Creating request.
-    let range = format!( "{}!{}:{}", sheet_name, columns.first().unwrap(), columns.last().unwrap() );
-
+    let range = format!( "{}!A1", sheet_name );
     let value_range = ValueRange
     {
       major_dimension : Some( Dimension::Row ),
@@ -393,10 +463,10 @@ mod private
   pub async fn get_header
   (
 
-    client : &Client,
+    client : &Client<'_>,
     spreadsheet_id : &str,
     sheet_name : &str, 
-  ) -> Result< Vec< Vec< serde_json::Value > > >
+  ) -> Result< Vec< serde_json::Value > >
   {
     let range = format!( "{}!A1:ZZZ1", sheet_name );
 
@@ -406,7 +476,14 @@ mod private
     .doit()
     .await
     {
-      Ok( response ) => Ok( response.values.unwrap() ),
+      Ok( response ) =>
+      {
+        match response.values
+        {
+          Some( values ) => Ok( values[0].clone() ),
+          None => Ok( Vec::new() )
+        }
+      } 
       Err( error ) => Err( error )
     }
     
@@ -433,7 +510,7 @@ mod private
   ///   or insufficient permissions.
   pub async fn get_rows
   (
-    client : &Client,
+    client : &Client<'_>,
     spreadsheet_id : &str,
     sheet_name : &str, 
   ) -> Result< Vec< Vec< serde_json::Value > > >
@@ -443,10 +520,18 @@ mod private
     match client
     .spreadsheet()
     .values_get( spreadsheet_id, &range )
+    .value_render_option( ValueRenderOption::UnformattedValue )
     .doit()
     .await
     {
-      Ok( response ) => Ok( response.values.unwrap() ),
+      Ok( response ) => 
+      {
+        match response.values
+        {
+          Some( values ) => Ok( values ),
+          None => Ok( Vec::new() )
+        }
+      }
       Err( error ) => Err( error )
     }
     
@@ -475,7 +560,7 @@ mod private
   ///   or insufficient permissions.
   pub async fn get_cell
   (
-    client : &Client,
+    client : &Client<'_>,
     spreadsheet_id : &str,
     sheet_name : &str,
     cell_id : &str
@@ -489,17 +574,14 @@ mod private
     .doit()
     .await
     {
-      Ok( response ) => Ok
-      ( 
-        response
-        .values
-        .unwrap()
-        .get( 0 )
-        .unwrap()
-        .get( 0 )
-        .unwrap()
-        .clone() 
-      ),
+      Ok( response ) =>
+      {
+        match response.values
+        {
+          Some( values ) => Ok( values[0][0].clone() ),
+          None => Ok( json!( "" ) )
+        }
+      }
       Err( error ) => Err( error )
     }
   }
@@ -528,7 +610,7 @@ mod private
   ///   Occurs if the Google Sheets API returns an error, such as invalid input or insufficient permissions.
   pub async fn set_cell
   (
-    client : &Client,
+    client : &Client<'_>,
     spreadsheet_id : &str,
     sheet_name : &str,
     cell_id : &str,
@@ -588,5 +670,7 @@ crate::mod_interface!
     append_row,
     update_rows_by_custom_row_key,
     get_spreadsheet_id_from_url,
+    parse_json,
+    check_variant
   };
 }

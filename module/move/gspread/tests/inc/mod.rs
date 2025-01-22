@@ -8,7 +8,9 @@
 #[ allow( unused_imports ) ]
 use super::*;
 
-// mod header_tests;
-// mod rows_tests;
-// mod cell_tests;
-mod cells_tests;
+mod get_header;
+mod get_rows;
+mod get_cell;
+mod set_cell;
+mod append_row;
+mod update_row_custom;

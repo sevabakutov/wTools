@@ -1,11 +1,11 @@
+//!
+//! Tests for `set_cell` function.
+//! 
+
 use httpmock::prelude::*;
 
 use serde_json::json;
-use gspread::actions::gspread::
-{ 
-  get_cell, 
-  set_cell 
-};
+use gspread::actions::gspread::set_cell; 
 use gspread::gcore::client::
 {
   Client, 
@@ -15,58 +15,17 @@ use gspread::gcore::client::
 };
 
 /// # What
-/// We check that reading a specific cell from a Google Spreadsheet returns the expected result.
-///
-/// # How
-/// 1. Start a `MockServer` to send `GET /12345/values/tab2!A2`.
-/// 2. Return a predefined `ValueRange` containing the desired cell value.
-/// 3. Call `get_cell()`, passing the necessary parameters.
-/// 4. Verify that the result matches the expected `"Steeve"`.
-#[tokio::test]
-async fn test_get_cell_with_mock_should_work() {
-  let spreadsheet_id = "12345";
-  let body = ValueRange
-  {
-    major_dimension : Some( Dimension::Row ),
-    range : Some( "tab2!A2".to_string() ),
-    values : Some( vec![ vec![ json!( "Steeve" ) ] ] )
-  };
-
-  let server = MockServer::start();
-
-  let mock = server.mock( | when, then | {
-    when.method( GET )
-      .path( "/12345/values/tab2!A2" );
-    then
-      .status( 200 )
-      .header( "Content-Type", "application/json" )
-      .json_body_obj( &body );
-  } );
-
-  let client = Client::former()
-  .endpoint( server.url("") )
-  .form();
-
-  let result = get_cell( &client, spreadsheet_id, "tab2", "A2" )
-  .await
-  .expect( "get_cell failed" );
-
-  mock.assert();
-
-  assert_eq!( result, serde_json::Value::String( "Steeve".to_string() ) );
-}
-
-
-/// # What
 /// We check that setting a value in a specific cell of a Google Spreadsheet works correctly.
 ///
 /// # How
-/// 1. Start a `MockServer` to send `PUT /12345/values/tab2!A1?valueInputOption=RAW`.
-/// 2. Return a predefined `UpdateValuesResponse`.
-/// 3. Call `set_cell()`, passing the table, sheet, cell, and the value to set.
-/// 4. Verify that the number of updated cells, rows, and columns matches the expected result.
+/// 1. Start a mock server.
+/// 2. Create a client.
+/// 3. Send a PUT request to /{spreadsheet_id}/values/{range}?valueInputOption=RAW.
+/// 4. Check results.
 #[tokio::test]
-async fn test_set_cell_with_mock_should_work() {
+async fn test_mock_set_cell_should_work() 
+{
+  // 1. Start a mock server.
   let spreadsheet_id = "12345";
   let range = "tab2!A1";
   let value_range = ValueRange
@@ -98,10 +57,14 @@ async fn test_set_cell_with_mock_should_work() {
       .json_body_obj( &response_body );
   });
 
+  // 2. Create a client.
+  let endpoint = server.url( "" );
+
   let client = Client::former()
-  .endpoint( server.url( "" ) )
+  .endpoint( &*endpoint )
   .form();
 
+  // 3. Send a PUT request.
   let result = set_cell
   ( 
     &client, 
@@ -113,6 +76,7 @@ async fn test_set_cell_with_mock_should_work() {
   .await
   .expect( "set_cell failed with mock" );
 
+  // 4. Check results.
   mock.assert();
 
   assert_eq!( result.spreadsheet_id.as_deref(), Some( spreadsheet_id ) );
@@ -126,4 +90,38 @@ async fn test_set_cell_with_mock_should_work() {
     let values = updated_data.values.as_ref().unwrap();
     assert_eq!( values, &vec![ vec![ json!( "Val" ) ] ] );
   }
+}
+
+/// # What
+/// We test that `set_cell` function will return error with bad cell_id.
+///
+/// # How
+/// 1. Start a mock server.
+/// 2. Send a PUT request to /{spreadsheet_id}/values/{range}?valueInputOption=RAW.
+#[ tokio::test ]
+#[ should_panic ]
+async fn test_mock_set_cell_bad_cell_id_should_panic() 
+{
+  // 1. Start a mock server.
+  let server = MockServer::start();
+  let _mock = server.mock( | when, then | {
+    when.method( PUT )
+      .path( "/12345/values/tab2!AAAA1" )
+      .query_param( "valueInputOption", "RAW" );
+    then
+      .status( 400 )
+      .header( "Content-Type", "application/json" )
+      .body( r#"{ error: invalid range. }"# );
+  });
+
+  // 2. Create a client.
+  let endpoint = server.url( "" );
+  let client = Client::former()
+  .endpoint( &*endpoint )
+  .form();
+
+  // 3. Send a PUT request.
+  let _result = set_cell( &client, "12345", "tab2", "A1", json!( "Val" ) )
+  .await
+  .expect( "set_cell failed with mock. Ok." );
 }

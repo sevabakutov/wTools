@@ -129,8 +129,8 @@ mod private
       {
         CLIENT_SECRET : var( "CLIENT_SECRET", None )?,
         CLIENT_ID : var( "CLIENT_ID", None )?,
-        AUTH_URI : var ( "AUTH_URI", Some( "https://accounts.google.com/o/oauth2/auth" ) )?,
-        TOKEN_URI : var ( "TOKEN_URI", Some( "https://oauth2.googleapis.com/token" ) )?
+        AUTH_URI : var ( "AUTH_URI", Some( DEFAULT_AUTH_URI ) )?,
+        TOKEN_URI : var ( "TOKEN_URI", Some( DEFAULT_TOKEN_URI ) )?
       };
       Ok( config )
     }
