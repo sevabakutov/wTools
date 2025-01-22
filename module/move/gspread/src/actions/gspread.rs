@@ -341,7 +341,8 @@ use serde_json::json;
   /// # `append_row`
   ///
   /// Append a new row at the end of the sheet.
-  /// If there is place to put all values to exestits row ( cells are empty ), it will put there instead of append a new row.
+  /// If there is an empty space in provided range, it will put values begining from A index.
+  /// More information you can find here [append docs](https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets.values/append)
   ///
   /// ## Parameters:
   /// - `client`:  
