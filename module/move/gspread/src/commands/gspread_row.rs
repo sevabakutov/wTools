@@ -298,7 +298,14 @@ mod private
           &on_fail 
         ).await
         {
-          Ok( updated_cells ) => println!( "Rows were successfully update. Updated cells: {}", updated_cells ),
+          Ok( val ) => 
+          {
+            match val
+            {
+              0 => println!( "Row key was not found, provided action has worked." ),
+              _ => println!( "Row key was found, provided action has worked. {} cells were sucsessfully updated!", val )
+            }
+          },
           Err( error ) => eprintln!( "Error\n{}", error )
         }
       },
