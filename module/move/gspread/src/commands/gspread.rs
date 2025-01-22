@@ -16,7 +16,6 @@ mod private
     gspread_row,
     gspread_rows,
     gspread_cell,
-    gspread_cells,
   };
 
   /// # CommonArgs
@@ -121,14 +120,7 @@ mod private
       gspread_cell::Commands
     ),
 
-    /// Updates multiple values in a single row of a specific sheet.
-    #[ command ( subcommand, name = "cells" ) ]
-    Cells
-    (
-      gspread_cells::Commands
-    ),
-
-    /// 
+    /// Update or append a row.
     #[ command( subcommand, name = "row" ) ]
     Row
     ( 
@@ -166,11 +158,6 @@ mod private
       Command::Cell( cell_command ) =>
       {
         gspread_cell::command( client, cell_command ).await;
-      },
-
-      Command::Cells( cells_command) =>
-      {
-        gspread_cells::command( client, cells_command ).await;
       },
 
       Command::Row( row_command ) =>

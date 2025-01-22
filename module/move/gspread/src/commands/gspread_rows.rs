@@ -85,7 +85,7 @@ mod private
           }
         };
 
-        match actions::gspread_get_rows::action
+        match actions::gspread_rows_get::action
         (
           client,
           spreadsheet_id,

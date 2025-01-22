@@ -339,7 +339,7 @@ use serde_json::json;
   /// # `append_row`
   ///
   /// Append a new row at the end of the sheet.
-  /// If there is an empty space in provided range, it will put values begining from A index.
+  /// If provided range is empty, it will put values begining from A index.
   /// More information you can find here [append docs](https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets.values/append)
   ///
   /// ## Parameters:
@@ -634,13 +634,18 @@ use serde_json::json;
     }
   }
 
+  /// Action to do if one or more rows were found.
   pub enum OnFind
   {
+    /// Update first matched row.
     UpdateFirstMatchedRow,
+    /// Update last matched row.
     UpdateLastMatchedRow,
+    /// Update all matched rows.
     UpdateAllMatchedRow,
   }
 
+  /// Action to do if row was not find.
   pub enum OnFail
   {
     /// Returns error.

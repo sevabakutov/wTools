@@ -42,10 +42,44 @@ mod private
   ///
   /// **Example:**
   /// ```bash
-  /// gspread cells append \
+  /// gspread row append \
   ///   --url 'https://docs.google.com/spreadsheets/d/1EAEdegMpitv-sTuxt8mV8xQxzJE7h_J0MxQoyLH7xxU/edit?gid=0#gid=0' \
-  ///   --tab 'Sheet1' \
+  ///   --tab 'tab1' \
   ///   --json '{"A": "Hello", "B": "World"}'
+  /// ```
+  /// 
+  /// ### `Update`
+  /// Updates a specific row.
+  /// 
+  /// **Arguments**
+  /// - `url`:  
+  ///   The full URL of the Google Sheet.  
+  ///   Example:  
+  ///   `--url 'https://docs.google.com/spreadsheets/d/your_spreadsheet_id/edit?gid=0#gid=0'`
+  /// 
+  /// - `tab`:  
+  ///   The name of the specific sheet (tab) in the Google Spreadsheet.  
+  ///   Example:  
+  ///   `--tab 'Sheet1'`
+  /// 
+  /// - `json`:  
+  ///   A JSON string of column-value pairs that you want to update.  
+  ///   The keys should be valid column names (uppercase letters only),  
+  ///   and values are JSON-compatible.  
+  ///   Example:  
+  ///   `--json '{"id": 2, "A": 10, "B": "Some text"}'`
+  /// 
+  /// - `select_row_by_key`:  
+  ///   A string specifying the identifier of the row to update.  
+  ///   Example: `"id"`.
+  /// 
+  /// **Example:**
+  /// ```bash
+  /// gspread row update \
+  /// --url 'https://docs.google.com/spreadsheets/d/1EAEdegMpitv-sTuxt8mV8xQxzJE7h_J0MxQoyLH7xxU/edit?gid=0#gid=0' \
+  /// --tab tab1 \
+  /// --select-row-by-key "id" \
+  /// --json '{"id": 2, "A": 1, "B": 2}'
   /// ```
   ///
   /// ### `UpdateCustom`
@@ -86,7 +120,7 @@ mod private
   ///
   /// **Example:**
   /// ```bash
-  /// gspread cells update-custom \
+  /// gspread row update-custom \
   ///   --url 'https://docs.google.com/spreadsheets/d/1EAEdegMpitv-sTuxt8mV8xQxzJE7h_J0MxQoyLH7xxU/edit?gid=0#gid=0' \
   ///   --tab tab1 \
   ///   --json '{"A": "newVal", "B": "updatedVal"}' \
@@ -100,12 +134,11 @@ mod private
     /// Appends a new row to at the end of Google Sheet.
     ///
     /// **Example:**
-    /// ```bash
-    /// gspread cells append \
-    ///   --url 'https://docs.google.com/spreadsheets/d/1EAEdegMpitv-sTuxt8mV8xQxzJE7h_J0MxQoyLH7xxU/edit?gid=0#gid=0' \
-    ///   --tab 'tab1' \
+    /// 
+    /// gspread row append
+    ///   --url 'https://docs.google.com/spreadsheets/d/1EAEdegMpitv-sTuxt8mV8xQxzJE7h_J0MxQoyLH7xxU/edit?gid=0#gid=0'
+    ///   --tab 'tab1'
     ///   --json '{"A": "Hello", "B": "World"}'
-    /// ```
     #[ command( name = "append" ) ]
     Append
     {
@@ -121,24 +154,57 @@ mod private
       The key is a column name (not a header name, but a column name, which can only contain Latin letters).
       Depending on the shell, different handling might be required.\n\
       Examples:\n\
-      1. --json '{\"A\": \"1\", \"B\": \"2\"}'\n\
-      2. --json '{\\\"A\\\": \\\"1\\\", \\\"B\\\": \\\"2\\\"}'\n" ) ]
+      1. --json '{\"A\": 1, \"B\": \"Hello\"}'\n\
+      2. --json '{\\\"A\\\": 1, \\\"B\\\": \\\"Hello\\\"}'\n" ) ]
       json : String
+    },
+
+    /// Updates a specific row in a Google Sheet with a given set of values.
+    /// 
+    /// **Example**:
+    /// 
+    /// gspread row update
+    /// --url 'https://docs.google.com/spreadsheets/d/1EAEdegMpitv-sTuxt8mV8xQxzJE7h_J0MxQoyLH7xxU/edit?gid=0#gid=0'
+    /// --tab tab1
+    /// --select-row-by-key "id"
+    /// --json '{"id": 2, "A": 1, "B": 2}'
+    #[ command( name = "update" ) ]
+    Update
+    {
+      #[ arg( long, help = "Identifier of a row. Available identifiers: id (row's unique identifier).\n\
+      Example: --select_row_by_key \"id\"" ) ]
+      select_row_by_key : String,
+      
+      #[ arg( long, help = "Value range. It must contain select_row_by_key.
+      The key is a column name (not a header name, but a column name, which can only contain Latin letters).
+      Every key and value must be a string.
+      Depending on the shell, different handling might be required.\n\
+      Examples:\n\
+      1. --json '{\"id\": 3, \"A\": 1, \"B\": 2}'\n\
+      3. --json '{\\\"id\\\": 3, \\\"A\\\": \\\"Hello\\\", \\\"B\\\": true}'\n" ) ]
+      json : String,
+
+      #[ arg( long, help = "Full URL of Google Sheet.\n\
+      It has to be inside of '' to avoid parse errors.\n\
+      Example: 'https://docs.google.com/spreadsheets/d/your_spreadsheet_id/edit?gid=0#gid=0'" ) ]
+      url : String,
+
+      #[ arg( long, help = "Sheet name.\nExample: Sheet1" ) ]
+      tab : String
     },
 
     /// Updates one or more rows in a Google Sheet based on a custom key,
     /// with control over how to handle matches or missing rows.
     ///
     /// **Example:**
-    /// ```bash
-    /// gspread cells update-custom \
-    ///   --url 'https://docs.google.com/spreadsheets/d/1EAEdegMpitv-sTuxt8mV8xQxzJE7h_J0MxQoyLH7xxU/edit?gid=0#gid=0' \
-    ///   --tab 'tab1' \
-    ///   --json '{"A": "newVal", "B": "updatedVal"}' \
-    ///   --key-by '["C", 12]' \
-    ///   --on_fail error \
-    ///   --on_find first
-    /// ```
+    /// 
+    /// gspread row update-custom
+    ///   --url 'https://docs.google.com/spreadsheets/d/1EAEdegMpitv-sTuxt8mV8xQxzJE7h_J0MxQoyLH7xxU/edit?gid=0#gid=0'
+    ///   --tab 'tab1'
+    ///   --json '{"A": "newVal", "B": "updatedVal"}'
+    ///   --key-by '["C", 12]'
+    ///   --on-fail error
+    ///   --on-find first
     #[ command( name = "update-custom" ) ]
     UpdateCustom
     {
@@ -154,8 +220,8 @@ mod private
       The key is a column name (not a header name, but a column name, which can only contain Latin letters).
       Depending on the shell, different handling might be required.\n\
       Examples:\n\
-      1. --json '{\"A\": \"1\", \"B\": \"2\"}'\n\
-      2. --json '{\\\"A\\\": \\\"1\\\", \\\"B\\\": \\\"2\\\"}'\n" ) ]
+      1. --json '{\"A\": 1, \"B\": 2}'\n\
+      2. --json '{\\\"A\\\": \\\"Hello\\\", \\\"B\\\": \\\"World\\\"}'\n" ) ]
       json : String,
 
       #[ arg( long, help = "A string with key pair view, like [\"A\", \"new_val\"], where is a column index." ) ]
@@ -234,6 +300,33 @@ mod private
         {
           Ok( updated_cells ) => println!( "Rows were successfully update. Updated cells: {}", updated_cells ),
           Err( error ) => eprintln!( "Error\n{}", error )
+        }
+      },
+
+      Commands::Update { select_row_by_key, json, url, tab } =>
+      {
+        let spreadsheet_id = match get_spreadsheet_id_from_url( &url ) 
+        {
+          Ok( id ) => id,
+          Err( error ) => 
+          {
+            eprintln!( "Error extracting spreadsheet ID: {}", error );
+            return;
+          }
+        };
+
+        match actions::gspread_row_update::action
+        (
+          client,
+          &select_row_by_key,
+          &json,
+          spreadsheet_id,
+          &tab
+        )
+        .await
+        {
+          Ok( val ) => println!( "{} cells were sucsessfully updated!", val ),
+          Err( error ) => println!( "Error:\n{}", error )
         }
       }
     }
