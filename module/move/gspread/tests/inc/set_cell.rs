@@ -4,7 +4,15 @@
 
 use dotenv::dotenv;
 use serde_json::json;
-use gspread::{actions::gspread::set_cell, gcore::{client::Client, Secret}}; 
+use gspread::
+{
+  actions::gspread::set_cell, 
+  gcore::
+  {
+    client::Client, 
+    ApplicationSecret
+  }
+}; 
 
 const SPREADSHEET_ID: &'static str  = "1EAEdegMpitv-sTuxt8mV8xQxzJE7h_J0MxQoyLH7xxU";
 
@@ -19,7 +27,7 @@ const SPREADSHEET_ID: &'static str  = "1EAEdegMpitv-sTuxt8mV8xQxzJE7h_J0MxQoyLH7
 async fn test_mock_set_cell_should_work() 
 {
   dotenv().ok();
-  let secret = Secret::read();
+  let secret = ApplicationSecret::read();
 
   let client = Client::former()
   .token( &secret )
@@ -55,7 +63,7 @@ async fn test_mock_set_cell_should_work()
 async fn test_mock_set_cell_bad_cell_id_should_panic() 
 {
   dotenv().ok();
-  let secret = Secret::read();
+  let secret = ApplicationSecret::read();
 
   let client = Client::former()
   .token( &secret )

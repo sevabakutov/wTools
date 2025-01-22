@@ -189,14 +189,10 @@ Add missing secret to .env file in .secret directory. Example: MISSING_SECRET=YO
       .await
       .map_err( | err | gcore::error::Error::AuthError( err.to_string() ) )?;
 
-      let scopes = vec!
-      [ 
-        "https://www.googleapis.com/auth/spreadsheets",
-        "https://www.googleapis.com/auth/spreadsheets.readonly" 
-      ];
+      let scopes = &[ GOOGLE_SPREADSHEET_SCOPE ];
 
       let access_token = authenticator
-      .token( &scopes )
+      .token( scopes )
       .await
       .map_err( | err | gcore::error::Error::AuthError( err.to_string() ) )?;
 
@@ -311,7 +307,7 @@ Add missing secret to .env file in .secret directory. Example: MISSING_SECRET=YO
       .await
       .map_err( | err | gcore::error::Error::AuthError( err.to_string() ) )?;
 
-      let scopes = &[ "https://www.googleapis.com/auth/spreadsheets" ];
+      let scopes = &[ GOOGLE_SPREADSHEET_SCOPE ];
 
       let token = auth.token( scopes ).await.map_err( | err | gcore::error::Error::AuthError( err.to_string() ) )?;
 

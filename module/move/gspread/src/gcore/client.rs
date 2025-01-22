@@ -125,8 +125,8 @@ mod private
   /// ## Methods
   ///
   /// - **`values_get(
-  spreadsheet_id, range
-)` → [`ValuesGetMethod`]**  
+  /// spreadsheet_id, range
+  /// )` → [`ValuesGetMethod`]**  
   ///   Creates a new request object that retrieves the values within the specified `range`
   ///   of the spreadsheet identified by `spreadsheet_id`. 
   ///

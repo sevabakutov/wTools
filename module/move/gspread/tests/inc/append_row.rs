@@ -8,7 +8,11 @@ use std::collections::HashMap;
 use gspread::
 {
   actions::gspread::append_row, 
-  gcore::{ client::Client, Secret}
+  gcore::
+  { 
+    client::Client, 
+    ApplicationSecret 
+  }
 };
 
 const SPREADSHEET_ID: &'static str  = "1EAEdegMpitv-sTuxt8mV8xQxzJE7h_J0MxQoyLH7xxU";
@@ -24,7 +28,7 @@ const SPREADSHEET_ID: &'static str  = "1EAEdegMpitv-sTuxt8mV8xQxzJE7h_J0MxQoyLH7
 async fn test_append_row_should_work()
 {  
   dotenv().ok();
-  let secret = Secret::read();
+  let secret = ApplicationSecret::read();
 
   let client = Client::former()
   .token( &secret )
@@ -54,7 +58,7 @@ async fn test_append_row_should_work()
 async fn test_append_row_with_bad_values_should_panic()
 {  
   dotenv().ok();
-  let secret = Secret::read();
+  let secret = ApplicationSecret::read();
 
   let client = Client::former()
   .token( &secret )
@@ -77,7 +81,7 @@ async fn test_append_row_with_bad_values_should_panic()
 async fn test_append_row_with_bad_values2_should_panic()
 {  
   dotenv().ok();
-  let secret = Secret::read();
+  let secret = ApplicationSecret::read();
 
   let client = Client::former()
   .token( &secret )

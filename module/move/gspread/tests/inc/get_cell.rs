@@ -7,7 +7,11 @@ use serde_json::json;
 use gspread::
 {
   actions::gspread::get_cell, 
-  gcore::{client::Client, Secret}
+  gcore::
+  {
+    client::Client, 
+    ApplicationSecret 
+  }
 };
 
 const SPREADSHEET_ID: &'static str  = "1EAEdegMpitv-sTuxt8mV8xQxzJE7h_J0MxQoyLH7xxU";
@@ -23,7 +27,7 @@ const SPREADSHEET_ID: &'static str  = "1EAEdegMpitv-sTuxt8mV8xQxzJE7h_J0MxQoyLH7
 async fn test_get_cell_should_work() 
 {
   dotenv().ok();
-  let secret = Secret::read();
+  let secret = ApplicationSecret::read();
 
   let client = Client::former()
   .token( &secret )
@@ -42,7 +46,7 @@ async fn test_get_cell_should_work()
 async fn test_get_empty_cell_should_work() 
 {
   dotenv().ok();
-  let secret = Secret::read();
+  let secret = ApplicationSecret::read();
 
   let client = Client::former()
   .token( &secret )
@@ -68,7 +72,7 @@ async fn test_get_empty_cell_should_work()
 async fn test_get_cell_with_bad_range_should_panic() 
 {
   dotenv().ok();
-  let secret = Secret::read();
+  let secret = ApplicationSecret::read();
 
   let client = Client::former()
   .token( &secret )

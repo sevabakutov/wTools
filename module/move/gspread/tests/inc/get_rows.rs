@@ -3,7 +3,7 @@
 //! 
 
 use dotenv::dotenv;
-use gspread::gcore::Secret;
+use gspread::gcore::ApplicationSecret;
 
 use serde_json::json;
 use gspread::actions::gspread::get_rows;
@@ -29,7 +29,7 @@ const SPREADSHEET_ID: &'static str  = "1EAEdegMpitv-sTuxt8mV8xQxzJE7h_J0MxQoyLH7
 async fn test_get_rows_should_work() 
 {
   dotenv().ok();
-  let secret = Secret::read();
+  let secret = ApplicationSecret::read();
 
   let client = Client::former()
   .token( &secret )
@@ -57,7 +57,7 @@ async fn test_get_rows_should_work()
 async fn test_mock_get_rows_with_empty_columns() 
 {
   dotenv().ok();
-  let secret = Secret::read();
+  let secret = ApplicationSecret::read();
 
   let client = Client::former()
   .token( &secret )
@@ -85,7 +85,7 @@ async fn test_mock_get_rows_with_empty_columns()
 async fn test_get_rows_with_empty_row_in_the_middle() 
 {
   dotenv().ok();
-  let secret = Secret::read();
+  let secret = ApplicationSecret::read();
 
   let client = Client::former()
   .token( &secret )
@@ -116,7 +116,7 @@ async fn test_get_rows_with_empty_row_in_the_middle()
 async fn test_mock_get_rows_empty_should_work() 
 {
   dotenv().ok();
-  let secret = Secret::read();
+  let secret = ApplicationSecret::read();
 
   let client = Client::former()
   .token( &secret )

@@ -10,7 +10,7 @@ use gspread::
     update_rows_by_custom_row_key, 
     OnFail, 
     OnFind
-  }, gcore::{client::Client, Secret}
+  }, gcore::{client::Client, ApplicationSecret}
 };
 use serde_json::json;
 
@@ -27,7 +27,7 @@ const SPREADSHEET_ID: &'static str  = "1EAEdegMpitv-sTuxt8mV8xQxzJE7h_J0MxQoyLH7
 async fn test_update_rows_by_custom_row_key_on_fail_nothing_should_work() 
 {
   dotenv().ok();
-  let secret = Secret::read();
+  let secret = ApplicationSecret::read();
 
   let client = Client::former()
   .token( &secret )
@@ -66,7 +66,7 @@ async fn test_update_rows_by_custom_row_key_on_fail_nothing_should_work()
 async fn test_update_rows_by_custom_row_key_on_fail_error_should_panic() 
 {
   dotenv().ok();
-  let secret = Secret::read();
+  let secret = ApplicationSecret::read();
 
   let client = Client::former()
   .token( &secret )
@@ -103,7 +103,7 @@ async fn test_update_rows_by_custom_row_key_on_fail_error_should_panic()
 async fn test_update_rows_by_custom_row_key_on_find_append_row_should_work() 
 {
   dotenv().ok();
-  let secret = Secret::read();
+  let secret = ApplicationSecret::read();
 
   let client = Client::former()
   .token( &secret )
@@ -144,7 +144,7 @@ async fn test_update_rows_by_custom_row_key_on_find_append_row_should_work()
 async fn test_update_rows_by_custom_row_key_on_find_update_first_row_should_work() 
 {
   dotenv().ok();
-  let secret = Secret::read();
+  let secret = ApplicationSecret::read();
 
   let client = Client::former()
   .token( &secret )
@@ -181,7 +181,7 @@ async fn test_update_rows_by_custom_row_key_on_find_update_first_row_should_work
 async fn test_update_rows_by_custom_row_key_on_find_update_all_rows_should_work() 
 {
   dotenv().ok();
-  let secret = Secret::read();
+  let secret = ApplicationSecret::read();
 
   let client = Client::former()
   .token( &secret )
@@ -222,7 +222,7 @@ async fn test_update_rows_by_custom_row_key_on_find_update_all_rows_should_work(
 async fn test_mock_update_rows_by_custom_row_key_on_find_update_last_row_should_work() 
 {
   dotenv().ok();
-  let secret = Secret::read();
+  let secret = ApplicationSecret::read();
 
   let client = Client::former()
   .token( &secret )

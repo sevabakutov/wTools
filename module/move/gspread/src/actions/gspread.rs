@@ -289,13 +289,12 @@ use serde_json::json;
 
     // Preparing value ranges.
     let mut value_ranges = Vec::with_capacity( row_key_val.len() );
-    let mut range;
-    match on_find
+    let range = match on_find
     {
-      OnFind::UpdateAllMatchedRow => range = row_keys,
-      OnFind::UpdateFirstMatchedRow => range = vec![ *row_keys.first().unwrap() ],
-      OnFind::UpdateLastMatchedRow => range = vec![ *row_keys.last().unwrap() ]
-    }
+      OnFind::UpdateAllMatchedRow => row_keys,
+      OnFind::UpdateFirstMatchedRow => vec![ *row_keys.first().unwrap() ],
+      OnFind::UpdateLastMatchedRow => vec![ *row_keys.last().unwrap() ]
+    };
 
     for row_key in range
     {
@@ -313,7 +312,6 @@ use serde_json::json;
       }
     }
 
-    println!("value ranges : {:?}", value_ranges);
     // Making HTTP request.
     let request = BatchUpdateValuesRequest
     {

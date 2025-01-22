@@ -4,7 +4,7 @@
 //! 
 
 use dotenv::dotenv;
-use gspread::gcore::Secret;
+use gspread::gcore::ApplicationSecret;
 use gspread::actions::gspread::get_header;
 use gspread::gcore::client::Client;
 
@@ -28,7 +28,7 @@ const SPREADSHEET_ID: &'static str  = "1EAEdegMpitv-sTuxt8mV8xQxzJE7h_J0MxQoyLH7
 async fn test_get_header_should_work() 
 {
   dotenv().ok();
-  let secret = Secret::read();
+  let secret = ApplicationSecret::read();
 
   let client = Client::former()
   .token( &secret )
@@ -50,7 +50,7 @@ async fn test_get_header_should_work()
 async fn test_get_header_with_empty_column_betwee_columns_should_work() 
 {
   dotenv().ok();
-  let secret = Secret::read();
+  let secret = ApplicationSecret::read();
 
   let client = Client::former()
   .token( &secret )
@@ -72,7 +72,7 @@ async fn test_get_header_with_empty_column_betwee_columns_should_work()
 async fn test_get_header_with_empty_first_column_should_work() 
 {
   dotenv().ok();
-  let secret = Secret::read();
+  let secret = ApplicationSecret::read();
 
   let client = Client::former()
   .token( &secret )
@@ -94,7 +94,7 @@ async fn test_get_header_with_empty_first_column_should_work()
 async fn test_get_header_with_empty_columns_should_work() 
 {
   dotenv().ok();
-  let secret = Secret::read();
+  let secret = ApplicationSecret::read();
 
   let client = Client::former()
   .token( &secret )
