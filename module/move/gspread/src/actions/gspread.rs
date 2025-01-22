@@ -7,6 +7,7 @@
 mod private
 {
   use regex::Regex;
+use serde_json::json;
   use std::collections::HashMap;
 
   use crate::*;
@@ -179,7 +180,7 @@ mod private
   }
 
 
-  /// # `update_row_by_custom_row_key`
+  /// # `update_rows_by_custom_row_key`
   ///
   /// Updates a specific row or rows in a Google Sheet with the provided values.
   ///
@@ -230,16 +231,34 @@ mod private
     .await
     .map_err( | err | Error::ApiError( err.to_string() ) )?;
 
-    let values = value_range
-    .values
-    .ok_or_else( || Error::ApiError( "No value found".to_owned() ) )?;
+    let values = match value_range.values
+    {
+      Some( values ) => values,
+      None =>
+      {
+        match on_fail
+        {
+          OnFail::Nothing => return Ok( BatchUpdateValuesResponse::default() ),
+          OnFail::AppendRow =>
+          {
+            let _ = append_row( client, spreadsheet_id, sheet_name, &row_key_val ).await?;
+            let response = BatchUpdateValuesResponse
+            {
+              spreadsheet_id : Some( spreadsheet_id.to_string() ),
+              total_updated_rows : Some( 1 ),
+              total_updated_sheets : Some( 1 ),
+              ..Default::default()
+            };
 
-    let column = values
-    .get( 0 )
-    .ok_or_else( || Error::ApiError( "No first row found".to_owned() ) )?;
+            return Ok( response );
+          }
+          OnFail::Error => return Err( Error::ApiError( "Not such value in the sheet.".to_string() ) )
+        }
+      }
+    };
 
     // Counting mathces.
-    let row_keys: Vec< usize > = column
+    let row_keys: Vec< usize > = values[0]
     .iter()
     .enumerate()
     .filter( | &( _, val ) | { *val == key_by.1 } )
@@ -500,10 +519,18 @@ mod private
     match client
     .spreadsheet()
     .values_get( spreadsheet_id, &range )
+    .value_render_option( ValueRenderOption::UnformattedValue )
     .doit()
     .await
     {
-      Ok( response ) => Ok( response.values.unwrap() ),
+      Ok( response ) => 
+      {
+        match response.values
+        {
+          Some( values ) => Ok( values ),
+          None => Ok( Vec::new() )
+        }
+      }
       Err( error ) => Err( error )
     }
     
@@ -546,17 +573,14 @@ mod private
     .doit()
     .await
     {
-      Ok( response ) => Ok
-      ( 
-        response
-        .values
-        .unwrap()
-        .get( 0 )
-        .unwrap()
-        .get( 0 )
-        .unwrap()
-        .clone() 
-      ),
+      Ok( response ) =>
+      {
+        match response.values
+        {
+          Some( values ) => Ok( values[0][0].clone() ),
+          None => Ok( json!( "" ) )
+        }
+      }
       Err( error ) => Err( error )
     }
   }

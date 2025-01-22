@@ -192,3 +192,37 @@ async fn test_mock_get_rows_with_empty_row_in_the_middle()
   assert_eq!( rows[2][1], serde_json::Value::String( "Row3Col2".to_string() ) );
   assert_eq!( rows[2][2], serde_json::Value::String( "Row3Col3".to_string() ) );
 }
+
+#[ tokio::test ]
+async fn test_mock_get_rows_empty_should_work() 
+{
+  let spreadsheet_id = "12345";
+  let body = ValueRange
+  {
+    major_dimension : Some( Dimension::Row ),
+    range : Some( "tab2!A2:ZZZ".to_string() ),
+    values : Some( vec![] )
+  };
+
+  // 1. Start a mock server.
+  let server = MockServer::start();
+  let _mock = server.mock( | when, then | {
+    when.method( GET )
+      .path( "/12345/values/tab2!A2:ZZZ" );
+    then.status( 200 )
+      .header( "Content-Type", "application/json" )
+      .json_body_obj( &body );
+  } );
+
+  // 2. Create a client.
+  let endpoint = server.url("" );
+  let client = Client::former()
+  .endpoint( &*endpoint )
+  .form();
+
+  let rows = get_rows( &client, spreadsheet_id, "tab2" )
+  .await
+  .expect( "get_rows failed" );
+
+  assert_eq!( rows.len(), 0 );
+}

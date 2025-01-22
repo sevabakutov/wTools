@@ -4,9 +4,12 @@ mod private
 {
   use clap::Subcommand;
   use crate::*;
-  use actions::*;
-  use gspread::get_spreadsheet_id_from_url;
   use gcore::client::Client;
+  use actions::
+  {
+    self,
+    gspread::get_spreadsheet_id_from_url
+  };
 
   /// # Commands
   ///
