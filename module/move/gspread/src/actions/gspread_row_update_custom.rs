@@ -105,9 +105,13 @@ mod private
         {
           Ok( response ) => Ok
           ( 
-            match response.total_updated_cells
+            match response.responses
             {
-              Some( amount ) => amount,
+              Some( _ ) => match response.total_updated_cells
+              {
+                Some( amount ) => amount,
+                None => 0
+              },
               None => 0,
             } 
           ),

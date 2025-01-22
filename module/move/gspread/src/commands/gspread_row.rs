@@ -303,7 +303,7 @@ mod private
             match val
             {
               0 => println!( "Row key was not found, provided action has worked." ),
-              _ => println!( "Row key was found, provided action has worked. {} cells were sucsessfully updated!", val )
+              _ => println!( "{} cells were sucsessfully updated!", val )
             }
           },
           Err( error ) => eprintln!( "Error\n{}", error )

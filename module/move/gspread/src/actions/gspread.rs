@@ -241,27 +241,14 @@ use serde_json::json;
           OnFail::Nothing => return Ok( BatchUpdateValuesResponse::default() ),
           OnFail::AppendRow =>
           {
-            let append_response = append_row( client, spreadsheet_id, sheet_name, &row_key_val ).await?;
-            let updated_cells = match append_response.updates
-            {
-              Some( values_response ) =>
-              {
-                match values_response.updated_cells 
-                {
-                  Some( amount ) => amount,
-                  None => 0,
-                }
-              },
-              None => 0
-            };
-
+            let _ = append_row( client, spreadsheet_id, sheet_name, &row_key_val ).await?;
             let response = BatchUpdateValuesResponse
             {
               spreadsheet_id : Some( spreadsheet_id.to_string() ),
               total_updated_rows : Some( 1 ),
               total_updated_sheets : Some( 1 ),
-              total_updated_cells : Some( updated_cells ),
-              total_updated_columns : Some( updated_cells ),
+              total_updated_cells : Some( row_key_val.len() as u32 ),
+              total_updated_columns : Some( row_key_val.len() as u32 ),
               responses : None
             };
 
@@ -293,7 +280,9 @@ use serde_json::json;
             spreadsheet_id : Some( spreadsheet_id.to_string() ),
             total_updated_rows : Some( 1 ),
             total_updated_sheets : Some( 1 ),
-            ..Default::default()
+            total_updated_cells : Some( row_key_val.len() as u32 ),
+            total_updated_columns : Some( row_key_val.len() as u32 ),
+            responses : None
           };
 
           return Ok( response );
