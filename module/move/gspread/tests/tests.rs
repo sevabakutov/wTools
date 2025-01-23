@@ -3,8 +3,9 @@ use gspread as the_module;
 #[ allow( unused_imports ) ]
 use test_tools::exposed::*;
 
-#[ cfg( feature = "with_online" ) ]
-mod inc;
+// Uncomment it in case you want to test that feature.
+// #[ cfg( feature = "with_online" ) ]
+// mod inc;
 
 #[ cfg( feature = "default" ) ]
 mod mock;
