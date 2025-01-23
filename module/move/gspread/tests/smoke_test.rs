@@ -1,4 +1,3 @@
-
 #[ test ]
 fn local_smoke_test()
 {

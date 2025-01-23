@@ -7,18 +7,28 @@ mod private
 {
 
   use clap::{ Subcommand, Parser };
+  use gcore::client::Client;
 
   use crate::*;
-  use client::SheetsType;
-
   use commands::
   {
     gspread_header,
+    gspread_row,
     gspread_rows,
     gspread_cell,
-    gspread_cells
   };
 
+  /// # CommonArgs
+  ///
+  /// Structure containing common command-line arguments for `gspread` commands.
+  ///
+  /// ## Fields:
+  /// - `url`:  
+  ///   The full URL of the Google Sheet.  
+  ///   Example: `'https://docs.google.com/spreadsheets/d/your_spreadsheet_id/edit?gid=0#gid=0'`
+  /// - `tab`:  
+  ///   The name of the specific sheet to target.  
+  ///   Example: `Sheet1`
   #[ derive( Debug, Parser ) ]
   pub struct CommonArgs
   {
@@ -31,69 +41,129 @@ mod private
     pub tab : String
   }
 
+  /// # Command
+  ///
+  /// Enum representing all available `gspread` commands.
+  ///
+  /// ## Variants:
+  /// - `Header`: Retrieves the header (first row) of a specific sheet.
+  /// - `Rows`: Retrieves all rows (excluding the header) from a specific sheet.
+  /// - `Cell`: Retrieves or updates a single cell in a sheet.
+  /// - `Cells`: Updates multiple cells in a specific row.
+  /// - `Row`: Updates or appends rows. 
+  ///
+  /// ## Examples:
+  /// - Retrieve the header:
+  /// ```bash
+  /// gspread header --url 'https://docs.google.com/spreadsheets/d/.../edit?gid=0#gid=0' --tab Sheet1
+  /// ```
+  /// - Retrieve all rows:
+  /// ```bash
+  /// gspread rows --url 'https://docs.google.com/spreadsheets/d/.../edit?gid=0#gid=0' --tab Sheet1
+  /// ```
+  /// - Retrieve a single cell:
+  /// ```bash
+  /// gspread cell get --url 'https://docs.google.com/spreadsheets/d/.../edit?gid=0#gid=0' --tab Sheet1 --cell A1
+  /// ```
+  /// - Update a single cell:
+  /// ```bash
+  /// gspread cell set --url 'https://docs.google.com/spreadsheets/d/.../edit?gid=0#gid=0' --tab Sheet1 --cell A1 --val NewVal
+  /// ```
+  /// - Update multiple cells in a single row:
+  /// ```bash
+  /// gspread cells set
+  /// --url 'https://docs.google.com/spreadsheets/d/1EAEdegMpitv-sTuxt8mV8xQxzJE7h_J0MxQoyLH7xxU/edit?gid=0#gid=0' --tab Sheet1 --select-row-by-key "id" --json '{"id": "2", "A": "1", "B": "2"}'
+  /// ```
+  /// - Update rows:
+  /// ```bash
+  /// gspread row update-custom 
+  /// --url 'https://docs.google.com/spreadsheets/d/1EAEdegMpitv-sTuxt8mV8xQxzJE7h_J0MxQoyLH7xxU/edit?gid=1067325142#gid=1067325142' --tab tab8 --json '{"A": "1", "B": "2"}' --key-by '["A", 800]' --on-fail append --on-find all
+  /// ```
+  /// - Append a new row:
+  /// ```bash
+  /// gspread row append 
+  /// --url 'https://docs.google.com/spreadsheets/d/1EAEdegMpitv-sTuxt8mV8xQxzJE7h_J0MxQoyLH7xxU/edit?gid=1852644635#gid=1852644635' --tab tab8 --json '{ "D": 800, "F": 400, "H": 200 }'
+  /// ```
   #[ derive( Debug, Subcommand ) ]
   pub enum Command
   {
-    
-    /// Command to get header of a sheet. Header is a first raw.
+    /// Retrieves the header (first row) of a specific sheet.
+    ///
+    /// **Example:**
+    /// 
+    /// gspread header
+    /// --url 'https://docs.google.com/spreadsheets/d/1EAEdegMpitv-sTuxt8mV8xQxzJE7h_J0MxQoyLH7xxU/edit?gid=0#gid=0'
+    /// --tab tab1
     #[ command ( name = "header" ) ]
     Header
     (
       CommonArgs
     ),
 
-    /// Command to get all raws of a sheet but not header.
+    /// Retrieves all raws of a specific sheet but not header.
+    /// 
+    /// **Example**:
+    /// 
+    /// gspread rows
+    /// --url 'https://docs.google.com/spreadsheets/d/1EAEdegMpitv-sTuxt8mV8xQxzJE7h_J0MxQoyLH7xxU/edit?gid=0#gid=0'
+    /// --tab tab1
     #[ command( name = "rows" ) ]
     Rows
     (
       CommonArgs
     ),
 
-    /// Command to get or update a cell from a sheet.
+    /// Retrieves or updates a single cell in specific sheet.
     #[ command ( subcommand, name = "cell" ) ]
     Cell
     (
       gspread_cell::Commands
     ),
 
-    /// Commands to set a new value to a cell or get a value from a cell.
-    #[ command ( subcommand, name = "cells" ) ]
-    Cells
-    (
-      gspread_cells::Commands
+    /// Update or append a row.
+    #[ command( subcommand, name = "row" ) ]
+    Row
+    ( 
+      gspread_row::Commands 
     )
 
   }
 
+  /// # `command`
+  ///
+  /// Executes the appropriate `gspread` command.
+  ///
+  /// ## Parameters:
+  /// - `client`: Client.
+  /// - `command`:  
+  ///   The `Command` enum specifying which operation to execute.
   pub async fn command
   (
-    hub : &SheetsType,
+    client : &Client<'_>,
     command : Command,
   )
   {
     match command
     {
-
       Command::Header( header_command ) =>
       {
-        gspread_header::command( hub, header_command ).await;
+        gspread_header::command( client, header_command ).await;
       },
 
       Command::Rows( rows_command ) =>
       {
-        gspread_rows::command( hub, rows_command ).await;
+        gspread_rows::command( client, rows_command ).await;
       },
 
       Command::Cell( cell_command ) =>
       {
-        gspread_cell::command( hub, cell_command ).await;
+        gspread_cell::command( client, cell_command ).await;
       },
 
-      Command::Cells( cells_command) =>
+      Command::Row( row_command ) =>
       {
-        gspread_cells::command( hub, cells_command ).await;
-      },
-
+        gspread_row::command( client, row_command ).await;
+      }
     }
   }
 

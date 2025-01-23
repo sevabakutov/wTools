@@ -18,6 +18,7 @@ name = "main"
 path = "src/bin/main.rs"
 
 [features]
+with_online = []
 default = [ "enabled" ]
 full = [ "enabled" ]
 enabled = [
@@ -33,9 +34,6 @@ format_tools = { workspace = true, features = ["full"] }
 reflect_tools = { workspace = true, features = [ "full" ] }
 clap = { version = "4.5.20", features = ["derive"] }
 tokio = { version = "1", features = ["full"] }
-google-sheets4 = "6.0.0"
-hyper-util = "0.1.10"
-yup-oauth2 = "11.0.0"
 pth = "0.21.0"
 dotenv = "0.15"
 serde = { version = "1.0.213", features = ["derive"] }
@@ -45,6 +43,12 @@ derive_tools = { version = "0.32.0", features = ["full"] }
 serde_json = "1.0.132"
 regex = "1.11.1"
 unicode-width = "0.2.0"
+httpmock = "0.7.0-rc.1"
+reqwest = { version = "0.11", features = ["json"] }
+google-apis-common = "7.0.0"
+yup-oauth2 = "11.0.0"
+hyper-util = "0.1.10"
+hyper-rustls = "0.27.5"
 
 [dev-dependencies]
 test_tools = { workspace = true }

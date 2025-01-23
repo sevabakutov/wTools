@@ -6,16 +6,83 @@ mod private
 {
 
   use clap::Subcommand;
+  use gcore::client::Client;
 
   use crate::*;
   use actions;
   use actions::gspread::get_spreadsheet_id_from_url;
-  use client::SheetsType;
 
+  /// # Commands
+  ///
+  /// Subcommands for the `CELL` command, used to interact with individual cells in a Google Sheet.
+  ///
+  /// ## Variants:
+  ///
+  /// ### `Get`
+  ///
+  /// Retrieves the value of a specific cell.
+  ///
+  /// **Arguments:**
+  /// - `url`:  
+  ///   The full URL of the Google Sheet.  
+  ///   Example: `'https://docs.google.com/spreadsheets/d/your_spreadsheet_id/edit?gid=0#gid=0'`.
+  ///
+  /// - `tab`:  
+  ///   The name of the specific sheet to target.  
+  ///   Example: `Sheet1`.
+  ///
+  /// - `cell`:  
+  ///   The ID of the cell in the format `A1`, where `A` is the column and `1` is the row.  
+  ///   Example: `A4`.
+  ///
+  /// **Example:**
+  /// ```bash
+  /// gspread cell get \
+  /// --url 'https://docs.google.com/spreadsheets/d/1EAEdegMpitv-sTuxt8mV8xQxzJE7h_J0MxQoyLH7xxU/edit?gid=0#gid=0' \
+  /// --tab tab1 \
+  /// --cell A1
+  /// ```
+  ///
+  /// ### `Set`
+  ///
+  /// Updates the value of a specific cell.
+  ///
+  /// **Arguments:**
+  /// - `url`:  
+  ///   The full URL of the Google Sheet.  
+  ///   Example: `'https://docs.google.com/spreadsheets/d/your_spreadsheet_id/edit?gid=0#gid=0'`.
+  ///
+  /// - `tab`:  
+  ///   The name of the specific sheet to target.  
+  ///   Example: `Sheet1`.
+  ///
+  /// - `cell`:  
+  ///   The ID of the cell in the format `A1`, where `A` is the column and `1` is the row.  
+  ///   Example: `A4`.
+  ///
+  /// - `val`:  
+  ///   The value to set in the specified cell.  
+  ///   Example: `hello`.
+  ///
+  /// **Example:**
+  /// ```bash
+  /// gspread cell set \
+  /// --url 'https://docs.google.com/spreadsheets/d/1EAEdegMpitv-sTuxt8mV8xQxzJE7h_J0MxQoyLH7xxU/edit?gid=0#gid=0' \
+  /// --tab tab1 \
+  /// --cell A1 \
+  /// --val 13
+  /// ```
   #[ derive( Debug, Subcommand ) ]
   pub enum Commands
   {
-    /// Command to get a value from a sheet's cell
+    /// Retrieves a single cell of a specific sheet.
+    /// 
+    /// **Example**:
+    /// 
+    /// gspread cell get
+    /// --url 'https://docs.google.com/spreadsheets/d/1EAEdegMpitv-sTuxt8mV8xQxzJE7h_J0MxQoyLH7xxU/edit?gid=0#gid=0'
+    /// --tab tab1
+    /// --cell A1
     #[ command( name = "get" ) ]
     Get
     {
@@ -33,7 +100,15 @@ mod private
       cell : String,
     },
 
-    /// Command to set a new value to a sheet's cell.
+    /// Updates a single cell of a specific sheet.
+    /// 
+    /// **Example**:
+    /// 
+    /// gspread cell set
+    /// --url 'https://docs.google.com/spreadsheets/d/1EAEdegMpitv-sTuxt8mV8xQxzJE7h_J0MxQoyLH7xxU/edit?gid=0#gid=0'
+    /// --tab tab1
+    /// --cell A1
+    /// --val 13
     #[ command( name = "set" ) ]
     Set
     {
@@ -55,9 +130,24 @@ mod private
     }
   }
 
+  /// # `command`
+  ///
+  /// Executes the specified subcommand for the `CELL` command.
+  ///
+  /// ## Parameters:
+  /// - `client`:  
+  ///   A `GspreadClient` enum.
+  ///   - `Variants`: 
+  ///     `SheetsType` variant is used for interacting with the Google Sheets API. 
+  ///     `MockClient` variant is used for mock testing.
+  /// - `commands`:  
+  ///   A variant of the `Commands` enum specifying the operation to execute.
+  ///
+  /// ## Errors:
+  /// - Prints an error message if the spreadsheet ID extraction, retrieval, or update fails.
   pub async fn command
   (
-    hub : &SheetsType,
+    client : &Client<'_>,
     commands : Commands
   )
   {
@@ -77,7 +167,7 @@ mod private
 
         match actions::gspread_cell_get::action
         (
-          hub,
+          client,
           spreadsheet_id,
           tab.as_str(),
           cell.as_str()
@@ -103,7 +193,7 @@ mod private
 
         match actions::gspread_cell_set::action
         (
-          hub,
+          client,
           spreadsheet_id,
           tab.as_str(),
           cell.as_str(),

@@ -6,13 +6,23 @@ mod private
 {
   use std::fmt;
   use crate::*;
-  use commands::gspread::CommonArgs;
-  use client::SheetsType;
   use actions;
-  use actions::gspread::get_spreadsheet_id_from_url;
+  use gcore::client::Client;
   use format_tools::AsTable;
-  use util::display_table::display_rows;
+  use commands::gspread::CommonArgs;
+  use utils::display_table::display_rows;
+  use actions::gspread::get_spreadsheet_id_from_url;
 
+  /// # Report
+  ///
+  /// A structure to display retrieved rows in the console using `format_tools`.
+  ///
+  /// ## Fields:
+  /// - `rows`:  
+  ///   A `Vec<RowWrapper>` containing the rows to be displayed.
+  ///
+  /// ## Usage:
+  /// This structure is used in conjunction with the `fmt::Display` trait to render rows in a formatted table view.
   pub struct Report
   {
     pub rows : Vec< RowWrapper >
@@ -20,6 +30,15 @@ mod private
 
   impl fmt::Display for Report
   {
+    /// Formats the rows for display by calling the `display_rows` function,
+    /// which uses appropriate functions from `format_tools`.
+    ///
+    /// ## Parameters:
+    /// - `f`:  
+    ///   A mutable reference to the `fmt::Formatter` used to write the formatted output.
+    ///
+    /// ## Returns:
+    /// - `fmt::Result`:  
     fn fmt
     (
       &self,
@@ -30,9 +49,25 @@ mod private
     }
   }
 
+  /// # `command`
+  ///
+  /// Processes the `rows` command by retrieving rows from a specified Google Sheet
+  /// and displaying them in a table format in the console.
+  ///
+  /// ## Parameters:
+  /// - `client`:  
+  ///   A `GspreadClient` enum.
+  ///   - `Variants`: 
+  ///     `SheetsType` variant is used for interacting with the Google Sheets API. 
+  ///     `MockClient` variant is used for mock testing.
+  /// - `args`:  
+  ///   A `CommonArgs` instance containing the sheet's URL and tab name.
+  ///
+  /// ## Errors:
+  /// - Prints an error message if the spreadsheet ID extraction or row retrieval fails.
   pub async fn command
   (
-    hub : &SheetsType,
+    client : &Client<'_>,
     args : CommonArgs
   )
   {
@@ -50,9 +85,9 @@ mod private
           }
         };
 
-        match actions::gspread_get_rows::action
+        match actions::gspread_rows_get::action
         (
-          hub,
+          client,
           spreadsheet_id,
           tab.as_str()
         )
