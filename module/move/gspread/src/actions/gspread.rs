@@ -7,7 +7,7 @@
 mod private
 {
   use regex::Regex;
-use serde_json::json;
+  use serde_json::json;
   use std::collections::HashMap;
 
   use crate::*;
@@ -660,7 +660,6 @@ use serde_json::json;
     AppendRow,
   }
   
-    
 }
 
 crate::mod_interface!
