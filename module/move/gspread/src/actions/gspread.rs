@@ -179,6 +179,58 @@ mod private
     }
   }
 
+  fn get_key_matches
+  ( 
+    column : &Vec< serde_json::Value >,
+    key : &serde_json::Value 
+  ) ->Vec< usize >
+  {
+    column
+    .iter()
+    .enumerate()
+    .filter( | &( _, val ) | { *val == *key } )
+    .map( | ( i, _ ) | i )
+    .collect()
+  }
+
+  pub async fn get_column
+  (
+    client : &Client<'_>,
+    spreadsheet_id : &str,
+    sheet_name : &str,
+    column_id : &str
+  ) -> Result< Vec< serde_json::Value > >
+  {
+    let range = format!( "{}!{}:{}", sheet_name, column_id, column_id );
+
+    match client
+    .spreadsheet()
+    .values_get( spreadsheet_id, &range )
+    .major_dimension( Dimension::Column )
+    .value_render_option( ValueRenderOption::UnformattedValue )
+    .doit()
+    .await
+    {
+      Ok( response ) => 
+      {
+        match response.values
+        {
+          Some( values ) => 
+          {
+            let column = values
+            .into_iter()
+            .next()
+            .unwrap_or_default();
+
+            Ok( column )
+          }
+          None => Ok( Vec::new() )
+        }
+      },
+      Err( error ) => Err( Error::ApiError( error.to_string() ) )
+    }
+  }
+
 
   /// # `update_rows_by_custom_row_key`
   ///
@@ -222,6 +274,7 @@ mod private
     // Getting provided column.
     let range = format!( "{}!{}:{}", sheet_name, key_by.0, key_by.0 );
 
+    // Get column
     let value_range = client
     .spreadsheet()
     .values_get( spreadsheet_id, &range )
@@ -439,6 +492,48 @@ mod private
       result = result * 26 + digit
     }
     result
+  }
+
+  pub async fn get_row_by_custom_key_id
+  (
+    client : &Client<'_>,
+    spreadsheet_id : &str,
+    sheet_name : &str,
+    key_by : ( &str, serde_json::Value ),
+    on_find : OnFind,
+  ) -> Result< Vec< Vec< serde_json::Value > > >
+  {
+    match get_column
+    (
+      client, 
+      spreadsheet_id, 
+      sheet_name, 
+      key_by.0
+    )
+    .await
+    {
+      Ok( column ) => 
+      {
+        if column.is_empty()
+        {
+          return Ok( Vec::new() );
+        }
+        else 
+        {
+          let row_keys = get_key_matches( &column, &key_by.1 );
+          let range = match on_find
+          {
+            OnFind::UpdateAllMatchedRow => row_keys,
+            OnFind::UpdateFirstMatchedRow => vec![ *row_keys.first().unwrap() ],
+            OnFind::UpdateLastMatchedRow => vec![ *row_keys.last().unwrap() ]
+          };
+
+          return Ok(  )
+        }
+      }
+    }
+    // match client
+    // .spreadsheet()
   }
 
 

@@ -224,7 +224,7 @@ mod private
       2. --json '{\\\"A\\\": \\\"Hello\\\", \\\"B\\\": \\\"World\\\"}'\n" ) ]
       json : String,
 
-      #[ arg( long, help = "A string with key pair view, like [\"A\", \"new_val\"], where is a column index." ) ]
+      #[ arg( long, help = "A string with key pair view, like [\"A\", \"new_val\"], where A is a column index." ) ]
       key_by : String,
 
       #[ arg( long, help = "Action to take if no rows are found.
@@ -240,6 +240,21 @@ mod private
         - first - Update first matched row with provided values.
         - last - Update last matched row with provided data." ) ]
       on_find : String
+    },
+
+    #[ command( name = "get" ) ]
+    Get
+    {
+      #[ arg( long, help = "Full URL of Google Sheet.\n\
+      It has to be inside of '' to avoid parse errors.\n\
+      Example: 'https://docs.google.com/spreadsheets/d/your_spreadsheet_id/edit?gid=0#gid=0'" ) ]
+      url : String,
+
+      #[ arg( long, help = "Sheet name.\nExample: Sheet1" ) ]
+      tab : String,
+
+      #[ arg( long, help = "A string with key pair view, like [\"A\", \"val\"], where A is a column index." ) ]
+      key_by : String
     }
   }
 
@@ -335,6 +350,19 @@ mod private
           Ok( val ) => println!( "{} cells were sucsessfully updated!", val ),
           Err( error ) => println!( "Error:\n{}", error )
         }
+      },
+
+      Commands::Get { url, tab, key_by } =>
+      {
+        let spreadsheet_id = match get_spreadsheet_id_from_url( &url ) 
+        {
+          Ok( id ) => id,
+          Err( error ) => 
+          {
+            eprintln!( "Error extracting spreadsheet ID: {}", error );
+            return;
+          }
+        };
       }
     }
   }

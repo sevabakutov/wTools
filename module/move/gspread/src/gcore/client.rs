@@ -168,6 +168,24 @@ mod private
       }
     }
 
+    pub fn values_get_batch<'a>
+    (
+      &'a self,
+      spreadsheet_id : &'a str,
+      ranges : Vec< String >
+    ) -> ValuesBatchGetMethod<'a>
+    {
+      ValuesBatchGetMethod
+      {
+        client : self.client,
+        _spreadsheet_id : spreadsheet_id,
+        _ranges : ranges,
+        _major_dimension : Default::default(),
+        _value_render_option : Default::default(),
+        _date_time_render_option : Default::default(),
+      }
+    }
+
     pub fn values_update<'a>
     ( 
       &'a self,
@@ -210,7 +228,7 @@ mod private
       spreadsheet_id : &'a str,
       range : &'a str,
       value_range : ValueRange
-    ) -> ValuesAppendMethod
+    ) -> ValuesAppendMethod<'a>
     {
       ValuesAppendMethod
       {
@@ -330,6 +348,60 @@ mod private
     }
   }
 
+
+  pub struct ValuesBatchGetMethod<'a>
+  {
+    client : &'a Client<'a>,
+    _spreadsheet_id : &'a str,
+    _ranges : Vec< String >,
+    _major_dimension : Option< Dimension >,
+    _value_render_option : Option< ValueRenderOption >,
+    _date_time_render_option : Option< DateTimeRenderOption >
+  }
+
+  impl ValuesBatchGetMethod<'_>
+  {
+    pub async fn doit( &self ) -> Result< BatchGetValuesResponse >
+    {
+      let endpoint = format!
+      (
+        "{}/values:batchGet",
+        self.client.endpoint
+      );
+
+      let query = BatchGetValuesRequest
+      {
+        ranges : self._ranges.clone(),
+        major_dimension : self._major_dimension,
+        value_render_option : self._value_render_option,
+        date_time_render_option : self._date_time_render_option
+      };
+
+      let response = reqwest::Client::new()
+      .get( endpoint )
+      .query( &query )
+      .bearer_auth( &self.client.token )
+      .send()
+      .await
+      .map_err( | err | Error::ApiError( err.to_string() ) )?;
+
+      if !response.status().is_success()
+      {
+        let response_text = response
+        .text()
+        .await
+        .map_err( | err | Error::ParseError( err.to_string() ) )?;
+
+        return Err( Error::ApiError( format!( "{}", response_text ) ) )
+      }
+
+      let parsed_response = response.json::<BatchGetValuesResponse>()
+      .await
+      .map_err( | err | Error::ApiError( err.to_string() ) )?;
+
+      Ok( parsed_response )
+    }
+  }
 
   /// # ValuesUpdateMethod
   ///
@@ -584,6 +656,18 @@ mod private
   }
 
   #[ derive( Debug, Serialize ) ]
+  pub struct BatchGetValuesRequest
+  {
+    ranges : Vec< String >,
+    #[ serde( rename = "majorDimension" ) ]
+    major_dimension : Option< Dimension >,
+    #[ serde( rename = "valueRenderOption" ) ]
+    value_render_option : Option< ValueRenderOption >,
+    #[ serde( rename = "dateTimeRenderOption" ) ]
+    date_time_render_option : Option< DateTimeRenderOption >
+  }
+
+  #[ derive( Debug, Serialize ) ]
   pub struct UpdateValuesRequest
   {
     #[ serde( rename = "valueInputOption" )]
@@ -623,6 +707,15 @@ mod private
     pub response_value_render_option : Option< ValueRenderOption >,
     #[ serde( rename = "responseDateTimeRenderOption" ) ]
     pub response_date_time_render_option : Option< DateTimeRenderOption >
+  }
+
+  #[ derive( Debug, Serialize, Deserialize ) ]
+  pub struct BatchGetValuesResponse
+  {
+    #[ serde( rename = "spreadsheetId" ) ]
+    pub spreadsheet_id : Option< String >,
+    #[ serde( rename = "valueRanges" ) ]
+    pub value_ranges : Option< Vec< ValueRange > >
   }
 
   #[ derive( Debug, Serialize, Deserialize ) ]
