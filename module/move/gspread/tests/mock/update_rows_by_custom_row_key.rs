@@ -52,7 +52,7 @@ async fn test_mock_update_rows_by_custom_row_key_on_fail_nothing_should_work()
     "tab1",
     ( "E", json!( 122 ) ),
     row_key_val,
-    OnFind::UpdateFirstMatchedRow,
+    OnFind::FirstMatchedRow,
     OnFail::Nothing
   )
   .await
@@ -115,7 +115,7 @@ async fn test_mock_update_rows_by_custom_row_key_on_fail_error_should_panic()
     "tab1",
     ( "E", json!( 122 ) ),
     row_key_val,
-    OnFind::UpdateFirstMatchedRow,
+    OnFind::FirstMatchedRow,
     OnFail::Error
   )
   .await
@@ -185,7 +185,7 @@ async fn test_mock_update_rows_by_custom_row_key_on_find_append_row_should_work(
     "tab1",
     ( "E", json!( 122 ) ),
     row_key_val,
-    OnFind::UpdateFirstMatchedRow,
+    OnFind::FirstMatchedRow,
     OnFail::AppendRow
   )
   .await
@@ -281,7 +281,7 @@ async fn test_mock_update_rows_by_custom_row_key_on_find_update_first_row_should
     "tab1",
     ( "E", json!( "12" ) ),
     row_key_val,
-    OnFind::UpdateFirstMatchedRow,
+    OnFind::FirstMatchedRow,
     OnFail::Error
   )
   .await
@@ -390,7 +390,7 @@ async fn test_mock_update_rows_by_custom_row_key_on_find_update_all_rows_should_
     "tab1",
     ( "E", json!( "12" ) ),
     row_key_val,
-    OnFind::UpdateAllMatchedRow,
+    OnFind::AllMatchedRow,
     OnFail::Error
   )
   .await
@@ -494,7 +494,7 @@ async fn test_mock_update_rows_by_custom_row_key_on_find_update_last_row_should_
     "tab1",
     ( "E", json!( "12" ) ),
     row_key_val,
-    OnFind::UpdateLastMatchedRow,
+    OnFind::LastMatchedRow,
     OnFail::Error
   )
   .await

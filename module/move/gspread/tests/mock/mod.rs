@@ -4,6 +4,7 @@ use super::*;
 mod common_tests;
 mod get_header;
 mod get_rows;
+mod get_row_custom;
 mod append_row;
 mod get_cell;
 mod set_cell;

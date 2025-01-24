@@ -6,7 +6,6 @@
 
 mod private
 {
-  use regex::Regex;
   use serde_json::json;
   use std::collections::HashMap;
 
@@ -25,90 +24,68 @@ mod private
     BatchUpdateValuesResponse, 
   };
 
-  /// # check_variant
+  /// # get_key_matches
   /// 
-  /// Checks if passed variant is correct.
+  /// Collect value matches in a column.
   /// 
-  /// ## Returns:
-  ///  - `Result< () >`
+  /// ## Params:
+  ///  - `column`: A reference to Vec<serde_json::Value>, column.
+  ///  - `key`: A reference to a serde_json::Value, value to find.
   /// 
-  /// ## Errors:
-  /// 
-  /// Can occur if passed varaint is not alllowed.
-  pub fn check_variant
+  /// Return `Vec<usize>`
+  fn get_key_matches
   ( 
-    variant: &str,
-    allowed : Vec< &str > 
-  ) -> Result< () >
+    column : &Vec< serde_json::Value >,
+    key : &serde_json::Value 
+  ) -> Vec< usize >
   {
-    if allowed.contains( &variant )
-    {
-      Ok( () )
-    }
-    else
-    {
-      Err
-      ( 
-        Error::ParseError( format!( "Not suchvariant: {}. Allowed: {:?}", variant, allowed ) )
-      )
-    }
+    column
+    .iter()
+    .enumerate()
+    .filter( | &( _, val ) | { *val == *key } )
+    .map( | ( i, _ ) | i )
+    .collect()
   }
 
-  /// # parse_json
-  /// 
-  /// Parse passed json to HashMap< String, serde_json::Value >
-  /// 
-  /// ## Returns
-  ///  - `Result< HashMap< String, serde_json::Value > >`
-  /// 
-  /// ## Errors
-  /// 
-  /// Can occur if the passed json is not valid.
-  pub fn parse_json
-  ( 
-    json_str : &str 
-  ) -> Result< HashMap< String, serde_json::Value > >
-  {
-    let parsed_json: HashMap< String, serde_json::Value > = serde_json::from_str( json_str )
-    .map_err( | error | Error::InvalidJSON( format!( "Failed to parse JSON: {}", error ) ) )?;
-
-    Ok( parsed_json )
-  }
-  
-  /// # `get_spreadsheet_id_from_url`
-  ///
-  /// Retrieves the spreadsheet ID from the provided Google Sheets URL.
-  ///
-  /// ## Parameters:
-  /// - `url`:  
-  ///   A `&str` containing the full URL of the Google spreadsheet.  
-  ///
-  /// ## Returns:
-  /// - `Result<&str>`
-  ///
-  /// ## Errors:
-  /// - `Error::InvalidUrl`:  
-  ///   Occurs when the URL does not match the expected format.  
-  ///   Suggests copying the entire URL directly from the browser.
-  pub fn get_spreadsheet_id_from_url
+  /// Return row key depending on selected action.
+  fn get_row_keys
   (
-    url : &str
-  ) -> Result< &str >
+    key_matches : Vec< usize >,
+    action : OnFind
+  ) -> Vec< usize >
   {
-
-    let re = Regex::new( r"d/([^/]+)/edit" ).unwrap();
-    if let Some( captures ) = re.captures( url )
+    match action
     {
-      if let Some( id ) = captures.get( 1 )
-      {
-        return Ok( id.as_str() );
-      }
+      OnFind::AllMatchedRow => key_matches,
+      OnFind::FirstMatchedRow => vec![ *key_matches.first().unwrap() ],
+      OnFind::LastMatchedRow => vec![ *key_matches.last().unwrap() ]
     }
+  }
 
-    Err
-    ( 
-      Error::InvalidUrl( "Wrong url format.\nFix: copy sheet's the whole url from your browser. Usage: --url '<your copied url>'".to_string() ) 
-    )
+  /// Converts number to column label.
+  fn _number_to_column_label( mut num : usize ) -> String
+  {
+    let mut chars = Vec::new();
+    while num > 0
+    {
+      let remainder = ( num - 1 ) % 26;
+      let c = ( b'A' + remainder as u8 ) as char;
+      chars.push( c );
+      num = ( num - 1 ) / 26;
+    }
+    chars.reverse();
+    chars.into_iter().collect()
+  }
+  /// Converts label to number.
+  fn _column_label_to_number( col : &str ) -> usize
+  {
+    let mut result = 0;
+    for c in col.chars()
+    {
+      let digit = c as usize - 'A' as usize + 1;
+      result = result * 26 + digit
+    }
+    result
   }
 
   /// # `update_row`
@@ -179,20 +156,26 @@ mod private
     }
   }
 
-  fn get_key_matches
-  ( 
-    column : &Vec< serde_json::Value >,
-    key : &serde_json::Value 
-  ) ->Vec< usize >
-  {
-    column
-    .iter()
-    .enumerate()
-    .filter( | &( _, val ) | { *val == *key } )
-    .map( | ( i, _ ) | i )
-    .collect()
-  }
-
+  /// # get_column
+  /// 
+  /// Retrive a specific column from a Google Sheet.
+  ///
+  /// ## Parameters:
+  /// - `client`:  
+  ///   A reference to the [`Client`] client configured for the Google Sheets API.
+  /// - `spreadsheet_id`:  
+  ///   A `&str` representing the unique identifier of the spreadsheet.
+  /// - `sheet_name`:  
+  ///   A `&str` specifying the name of the sheet.
+  /// - `column_id`:
+  ///   `&str` specifying the sheet's column id (e. g. A, B, C, ..., ZZZ)
+  ///
+  /// ## Returns:
+  /// - Result<Vec< serde_json::Value >>
+  ///
+  /// ## Errors:
+  /// - `Error::ApiError`:  
+  ///   Occurs if the Google Sheets API returns an error, e.g., due to invalid input or insufficient permissions.
   pub async fn get_column
   (
     client : &Client<'_>,
@@ -230,7 +213,6 @@ mod private
       Err( error ) => Err( Error::ApiError( error.to_string() ) )
     }
   }
-
 
   /// # `update_rows_by_custom_row_key`
   ///
@@ -348,9 +330,9 @@ mod private
     let mut value_ranges = Vec::with_capacity( row_key_val.len() );
     let range = match on_find
     {
-      OnFind::UpdateAllMatchedRow => row_keys,
-      OnFind::UpdateFirstMatchedRow => vec![ *row_keys.first().unwrap() ],
-      OnFind::UpdateLastMatchedRow => vec![ *row_keys.last().unwrap() ]
+      OnFind::AllMatchedRow => row_keys,
+      OnFind::FirstMatchedRow => vec![ *row_keys.first().unwrap() ],
+      OnFind::LastMatchedRow => vec![ *row_keys.last().unwrap() ]
     };
 
     for row_key in range
@@ -390,8 +372,6 @@ mod private
     }
 
   }
-
-
 
   /// # `append_row`
   ///
@@ -468,33 +448,37 @@ mod private
 
   }
 
-  /// Converts number to column label.
-  fn _number_to_column_label( mut num : usize ) -> String
-  {
-    let mut chars = Vec::new();
-    while num > 0
-    {
-      let remainder = ( num - 1 ) % 26;
-      let c = ( b'A' + remainder as u8 ) as char;
-      chars.push( c );
-      num = ( num - 1 ) / 26;
-    }
-    chars.reverse();
-    chars.into_iter().collect()
-  }
-  /// Converts label to number.
-  fn _column_label_to_number( col : &str ) -> usize
-  {
-    let mut result = 0;
-    for c in col.chars()
-    {
-      let digit = c as usize - 'A' as usize + 1;
-      result = result * 26 + digit
-    }
-    result
-  }
 
-  pub async fn get_row_by_custom_key_id
+  /// # `get_row_by_custom_row_key`
+  /// 
+  /// Retrieves rows from the specified sheet that match a given "custom row key" value.
+  /// [batchGet docs](https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets.values/batchGet).
+  ///
+  /// ## Parameters:
+  /// - `client`:  
+  ///   A reference to the [`Client`] configured for the Google Sheets API.
+  /// - `spreadsheet_id`:  
+  ///   A `&str` representing the unique identifier of the spreadsheet.
+  /// - `sheet_name`:  
+  ///   A `&str` specifying the name of the sheet from which rows are to be retrieved.
+  /// - `key_by`:  
+  ///   A tuple `(column_id, value)` where:
+  ///   - `column_letter`: The column identifier (e.g., `"A"`, `"B"`).
+  ///   - `value`: A `serde_json::Value` to match in the given column.
+  /// - `on_find`:  
+  ///   An enum [`OnFind`] defining how to handle multiple matches 
+  ///   (e.g., return the first match, last match, or all matches).
+  ///
+  /// ## Returns:
+  /// - `Result< Vec< Vec< serde_json::Value > > >`  
+  ///   On success, returns a list of rows, where each row is a `Vec<serde_json::Value>`.
+  ///
+  /// ## Errors:
+  /// - `Error::ApiError`:  
+  ///   Occurs if the Google Sheets API returns an error, 
+  ///   such as an invalid spreadsheet ID, insufficient permissions, 
+  ///   or any issues during the request/response cycle.
+  pub async fn get_row_by_custom_row_key
   (
     client : &Client<'_>,
     spreadsheet_id : &str,
@@ -520,20 +504,42 @@ mod private
         }
         else 
         {
-          let row_keys = get_key_matches( &column, &key_by.1 );
-          let range = match on_find
-          {
-            OnFind::UpdateAllMatchedRow => row_keys,
-            OnFind::UpdateFirstMatchedRow => vec![ *row_keys.first().unwrap() ],
-            OnFind::UpdateLastMatchedRow => vec![ *row_keys.last().unwrap() ]
-          };
+          let key_matches = get_key_matches( &column, &key_by.1 );
+          let row_keys = get_row_keys( key_matches, on_find );
 
-          return Ok(  )
+          let mut ranges = Vec::with_capacity( row_keys.len() );
+          for row_key in row_keys
+          {
+            let range = format!( "{}!A{}:ZZZ{}", sheet_name, row_key + 1, row_key + 1 );
+            ranges.push( range );
+          }
+
+          match client
+          .spreadsheet()
+          .values_get_batch( spreadsheet_id )
+          .ranges( ranges )
+          .doit()
+          .await
+          {
+            Ok( response ) =>
+            {
+              let values: Vec< Vec< serde_json::Value > > = response
+              .value_ranges
+              .unwrap_or_default()
+              .into_iter()
+              .flat_map( | range | range.values.unwrap_or_default() )
+              .collect();
+              
+              Ok( values )
+            }
+            Err( error ) => Err( Error::ApiError( error.to_string() ) )
+          }
         }
-      }
+      },
+
+      Err( error ) => Err( Error::ApiError( error.to_string() ) )
     }
-    // match client
-    // .spreadsheet()
+
   }
 
 
@@ -737,11 +743,11 @@ mod private
   pub enum OnFind
   {
     /// Update first matched row.
-    UpdateFirstMatchedRow,
+    FirstMatchedRow,
     /// Update last matched row.
-    UpdateLastMatchedRow,
+    LastMatchedRow,
     /// Update all matched rows.
-    UpdateAllMatchedRow,
+    AllMatchedRow,
   }
 
   /// Action to do if row was not find.
@@ -770,8 +776,6 @@ crate::mod_interface!
     get_header,
     append_row,
     update_rows_by_custom_row_key,
-    get_spreadsheet_id_from_url,
-    parse_json,
-    check_variant
+    get_row_by_custom_row_key,
   };
 }

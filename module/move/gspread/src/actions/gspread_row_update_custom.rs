@@ -4,69 +4,17 @@
 mod private
 {
   use crate::*;
+  use gcore::error::Result;
   use gcore::client::Client;
-  use gcore::error::{ Error, Result };
-  use actions::gspread::
+  use actions::gspread::update_rows_by_custom_row_key;
+  use actions::utils::
   {
-    check_variant, 
     parse_json, 
-    update_rows_by_custom_row_key, 
-    OnFail, 
-    OnFind
+    parse_key_by, 
+    parse_on_fail, 
+    parse_on_find
   };
 
-  /// # parse_key_by
-  /// 
-  /// Parse a provided string to ( &str, serde_json::Value )
-  /// 
-  /// ## Errors
-  /// 
-  /// Can occur if passed string is not valid.
-  fn parse_key_by( s: &str ) -> Result< ( &str, serde_json::Value ) >
-  {
-    let result: ( &str, serde_json::Value ) = serde_json::from_str( s )
-    .map_err( | err | Error::ParseError( format!( "Failed to parse key_by. {}", err ) ) )?;
-    
-    Ok( result )
-  }
-
-  /// # parse_on_find
-  /// 
-  /// Parse provided string to OnFind's variant.
-  /// 
-  /// ## Errors
-  /// 
-  /// Can occur if variant is not allowed.
-  fn parse_on_find( on_find: &str ) -> Result< OnFind >
-  {
-    check_variant( on_find, vec![ "first", "last", "all" ] )?;
-    match on_find
-    {
-      "first" => Ok( OnFind::UpdateFirstMatchedRow ),
-      "last" => Ok( OnFind::UpdateLastMatchedRow ),
-      "all" => Ok( OnFind::UpdateAllMatchedRow ),
-      &_ => Err( Error::ParseError( format!( "OnFind prase error." ) ) )
-    }
-  }
-
-  /// # parse_on_fail
-  /// 
-  /// Parse provided string to OnFail's variant.
-  /// 
-  /// ## Errors
-  /// 
-  /// Can occur if variant is not allowed.
-  fn parse_on_fail( on_fail: &str ) -> Result< OnFail >
-  {
-    check_variant( on_fail, vec![ "none", "error", "append" ] )?;
-    match on_fail
-    {
-      "none" => Ok( OnFail::Nothing ),
-      "error" => Ok( OnFail::Error ),
-      "append" => Ok( OnFail::AppendRow ),
-      &_ => Err( Error::ParseError( format!( "OnFail parse error." ) ) )
-    }
-  }
 
   pub async fn action
   (

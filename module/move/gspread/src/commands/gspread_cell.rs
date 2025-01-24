@@ -10,7 +10,7 @@ mod private
 
   use crate::*;
   use actions;
-  use actions::gspread::get_spreadsheet_id_from_url;
+  use actions::utils::get_spreadsheet_id_from_url;
 
   /// # Commands
   ///

@@ -3,12 +3,13 @@
 mod private
 {
   use clap::Subcommand;
+  use debug::{Report, RowWrapper};
   use crate::*;
   use gcore::client::Client;
   use actions::
   {
     self,
-    gspread::get_spreadsheet_id_from_url
+    utils::get_spreadsheet_id_from_url
   };
 
   /// # Commands
@@ -128,6 +129,44 @@ mod private
   ///   --on_fail append \
   ///   --on_find all
   /// ```
+  /// 
+  /// ### `GetCustom`
+  /// Retrieves one or more rows from a Google Sheet based on a custom key condition,
+  /// specifying how to handle multiple matches.
+  ///
+  /// **Arguments:**
+  /// - `url`:  
+  ///   The full URL of the Google Sheet.  
+  ///   Example:  
+  ///   `--url 'https://docs.google.com/spreadsheets/d/your_spreadsheet_id/edit?gid=0#gid=0'`
+  ///
+  /// - `tab`:  
+  ///   The name of the specific sheet (tab) in the Google Spreadsheet.  
+  ///   Example:  
+  ///   `--tab 'Sheet1'`
+  ///
+  /// - `key_by`:  
+  ///   A JSON array of the form `[<column>, <value>]`, defining which rows to match.  
+  ///   For instance, if you pass `["A", "Hello"]`, the function will look in column `A`  
+  ///   for cells whose value equals `"Hello"`.  
+  ///   Example:  
+  ///   `--key-by '["C", 12]'`
+  ///
+  /// - `on_find`:  
+  ///   Defines how to handle situations where multiple rows match the key.  
+  ///   Possible values (depending on your logic):  
+  ///   - `all`: Return **all** matched rows,  
+  ///   - `first`: Return **only the first** matched row,  
+  ///   - `last`: Return **only the last** matched row.
+  ///
+  /// **Example:**
+  /// ```bash
+  /// gspread row get-custom \
+  ///   --url 'https://docs.google.com/spreadsheets/d/1EAEdegMpitv-sTuxt8mV8xQxzJE7h_J0MxQoyLH7xxU/edit?gid=0#gid=0' \
+  ///   --tab 'Sheet1' \
+  ///   --key-by '["C", 12]' \
+  ///   --on-find all
+  /// ```
   #[ derive( Debug, Subcommand ) ]
   pub enum Commands
   {
@@ -242,8 +281,19 @@ mod private
       on_find : String
     },
 
-    #[ command( name = "get" ) ]
-    Get
+
+    /// Retrieves one or more rows from a Google Sheet based on a custom key condition,
+    /// specifying how to handle multiple matches.
+    /// 
+    /// **Example:**
+    /// 
+    /// gspread row get-custom
+    ///   --url 'https://docs.google.com/spreadsheets/d/1EAEdegMpitv-sTuxt8mV8xQxzJE7h_J0MxQoyLH7xxU/edit?gid=0#gid=0' \
+    ///   --tab 'tab1'
+    ///   --key-by '["C", 12]'
+    ///   --on-find all
+    #[ command( name = "get-custom" ) ]
+    GetCustom
     {
       #[ arg( long, help = "Full URL of Google Sheet.\n\
       It has to be inside of '' to avoid parse errors.\n\
@@ -254,7 +304,14 @@ mod private
       tab : String,
 
       #[ arg( long, help = "A string with key pair view, like [\"A\", \"val\"], where A is a column index." ) ]
-      key_by : String
+      key_by : String,
+
+      #[ arg( long, help = "Action to take if one or more rows are found.
+      Available: 
+        - all - Update all matched rows, with provided values.
+        - first - Update first matched row with provided values.
+        - last - Update last matched row with provided data." ) ]
+      on_find : String
     }
   }
 
@@ -352,7 +409,7 @@ mod private
         }
       },
 
-      Commands::Get { url, tab, key_by } =>
+      Commands::GetCustom { url, tab, key_by, on_find } =>
       {
         let spreadsheet_id = match get_spreadsheet_id_from_url( &url ) 
         {
@@ -363,6 +420,34 @@ mod private
             return;
           }
         };
+
+        match actions::gspread_row_get_custom::action
+        (
+          client, 
+          spreadsheet_id, 
+          &tab, 
+          &key_by, 
+          &on_find
+        )
+        .await
+        {
+          Ok( rows ) =>
+          {
+            let max_len = rows
+            .iter()
+            .map( | row | row.len() )
+            .max()
+            .unwrap_or( 0 );
+
+            let rows_wrapped: Vec< RowWrapper > = rows
+            .into_iter()
+            .map( | row | RowWrapper { row, max_len } )
+            .collect();
+
+            println!( "Rows:\n{}", Report{ rows: rows_wrapped } );
+          }
+          Err( error ) => eprintln!( "Error:\n{}", error ),
+        }
       }
     }
   }

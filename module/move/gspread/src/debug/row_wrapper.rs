@@ -83,7 +83,7 @@ mod private
 
 crate::mod_interface!
 {
-  own use
+  orphan use
   {
     RowWrapper
   };

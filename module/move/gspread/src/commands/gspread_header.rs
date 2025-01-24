@@ -6,10 +6,11 @@ mod private
 {
   use std::fmt;
   use crate::*;
+  use debug::RowWrapper;
   use gcore::client::Client;
   use commands::gspread::CommonArgs;
   use actions;
-  use actions::gspread::get_spreadsheet_id_from_url;
+  use actions::utils::get_spreadsheet_id_from_url;
   use format_tools::AsTable;
   use utils::display_table::display_header;
 
