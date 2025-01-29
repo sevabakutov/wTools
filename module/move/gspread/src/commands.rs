@@ -60,6 +60,7 @@ crate::mod_interface!
   layer gspread_column;
   layer gspread_clear;
   layer gspread_clear_custom;
+  layer gspread_copy;
 
   own use
   {

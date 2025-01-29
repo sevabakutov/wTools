@@ -9,7 +9,7 @@ mod private
   use serde_json::json;
   use std::collections::HashMap;
 
-  use crate::gcore::client::{BatchClearValuesRequest, BatchClearValuesResponse, ValuesClearResponse};
+  use crate::gcore::client::{BatchClearValuesRequest, BatchClearValuesResponse, SheetProperties, ValuesClearResponse};
 use crate::*;
   use gcore::error::{ Error, Result };
   use gcore::client::
@@ -903,6 +903,45 @@ use crate::*;
     }
   }
 
+  /// # copy_to
+  /// 
+  /// Copies a spreadsheet's sheet to the other spreadsheet.
+  /// 
+  /// ## Prameters:
+  ///  - `client`
+  ///   A referebce to a [`Client`] object.
+  /// - `spreadsheet_id`
+  ///   A reference to string slice which represents a spreadsheet id.
+  /// - `sheet_id`
+  ///   A reference to a string slice which represents a source sheet's id.
+  /// - `dest`
+  ///   A reference to a string slice which represents a destination spreadsheet's id.
+  /// 
+  /// ## Returns:
+  ///   - `Result< `[SheetProperties]` >`
+  /// 
+  /// ## Errors:
+  ///   - [`Error::ApiError`]
+  ///   - [`Error::ParseError`]
+  pub async fn copy_to
+  (
+    client : &Client<'_>,
+    spreadsheet_id : &str,
+    sheet_id : &str,
+    dest : &str
+  ) -> Result< SheetProperties >
+  {
+    match client
+    .sheet()
+    .copy_to( spreadsheet_id, sheet_id, dest )
+    .doit()
+    .await
+    {
+      Ok( response ) => Ok( response ),
+      Err( error ) => Err( error )
+    }
+  }
+
   /// Action to do if one or more rows were found.
   pub enum OnFind
   {
@@ -944,6 +983,7 @@ crate::mod_interface!
     get_row_by_custom_row_key,
     get_column,
     clear,
-    clear_by_custom_row_key
+    clear_by_custom_row_key,
+    copy_to
   };
 }

@@ -91,6 +91,14 @@ use serde_json::json;
         client : self
       }
     }
+
+    pub fn sheet( &self ) -> SpreadSheetMethod
+    {
+      SpreadSheetMethod
+      {
+        client : self
+      }
+    }
   }
 
   // Custom initialization for auth field.
@@ -105,6 +113,137 @@ use serde_json::json;
       self.storage.token = Some( secret.get_token().await? );
       
       Ok( self )
+    }
+  }
+
+
+  /// # SpreadSheetMethod
+  ///
+  /// A helper struct that provides methods for working with spreadsheet sheet in the
+  /// Google Sheets API. This struct is associated with a given [`Client`] instance and
+  /// offers specialized methods for working with sheets.
+  ///
+  /// ## Fields
+  ///
+  /// - `client`  
+  ///   - A reference to a [`Client`] object.  
+  ///   - Used to perform authenticated HTTP requests against the Google Sheets API.
+  ///
+  /// ## Methods
+  ///
+  /// - **`copy_to`**:
+  ///   Copy a source sheet to a destination spreadsheet.
+  ///  
+  /// ## Usage
+  ///
+  /// This struct is usually obtained by calling the `sheet()` method on a
+  /// fully-initialized [`Client`] instance:
+  pub struct SpreadSheetMethod<'a>
+  {
+    client : &'a Client<'a>,
+  }
+
+  impl SpreadSheetMethod<'_>
+  {
+    /// Build SheetCopyMethod.
+    pub fn copy_to<'a>
+    (
+      &'a self,
+      spreadsheet_id : &'a str,
+      sheet_id : &'a str,
+      dest : &'a str
+    ) -> SheetCopyMethod<'a>
+    {
+      SheetCopyMethod
+      {
+        client : self.client,
+        _spreadsheet_id : spreadsheet_id,
+        _sheet_id : sheet_id,
+        _dest : dest
+      }
+    }
+  }
+
+
+  /// # SheetCopyMethod
+  ///
+  /// Represents a specialized request builder for copying a sheet.
+  ///
+  /// This struct is constructed internally by the library when calling
+  /// [`SpreadSheetMethod::copy_to`].
+  ///
+  /// ## Fields
+  ///
+  /// - `client`  
+  ///   A reference to the [`Client`] used for sending authenticated requests.
+  /// - `_spreadsheet_id`  
+  ///   The `String` ID of the spreadsheet from which values are fetched.
+  /// - `_sheet_id`
+  ///   The source sheet id.
+  /// - `_dest`
+  ///   The destination spreadsheet id.
+  ///
+  /// ## Method
+  ///
+  /// - `doit()`  
+  ///   Sends the configured request to the Google Sheets API to copy a source sheet to destinayion one.
+  pub struct SheetCopyMethod<'a>
+  {
+    client : &'a Client<'a>,
+    _spreadsheet_id : &'a str,
+    _sheet_id : &'a str,
+    _dest : &'a str
+  }
+
+  impl SheetCopyMethod<'_>
+  {
+    /// Sends the POST request to
+    /// https://sheets.googleapis.com/v4/spreadsheets/{spreadsheetId}/sheets/{sheetId}:copyTo
+    /// 
+    /// ## Returns:
+    ///  - `Result< [SheetProperties] >`
+    /// 
+    /// ## Errors:
+    ///  - `ApiError`
+    ///  - `ParseError`
+    pub async fn doit( &self ) -> Result< SheetProperties >
+    {
+      let endpoint = format!
+      ( 
+        "{}/{}/sheets/{}:copyTo",
+        self.client.endpoint,
+        self._spreadsheet_id,
+        self._sheet_id
+      );
+
+      let request = SheetCopyRequest
+      {
+        dest : Some( self._dest.to_string() )
+      };
+
+      let response = reqwest::Client::new()
+      .post( endpoint )
+      .json( &request )
+      .bearer_auth( &self.client.token )
+      .send()
+      .await
+      .map_err( | err | Error::ApiError( err.to_string() ) )?;
+
+      if !response.status().is_success()
+      {
+        let response_text = response
+        .text()
+        .await
+        .map_err( | err | Error::ParseError( err.to_string() ) )?;
+        
+        return Err( Error::ApiError( response_text ) );
+      }
+
+      let response_parsed = response.json::<SheetProperties>()
+      .await
+      .map_err( | err | Error::ParseError( err.to_string() ) )?;
+
+      Ok( response_parsed )
     }
   }
 
@@ -881,6 +1020,285 @@ use serde_json::json;
     }
   }
 
+  #[ derive( Debug, Serialize, Deserialize ) ]
+  pub struct SheetCopyRequest
+  {
+    #[ serde( rename = "destinationSpreadsheetId" ) ]
+    pub dest : Option< String >
+  }
+
+  /// The kind of sheet.
+  #[ derive( Debug, Serialize, Deserialize) ]
+  pub enum SheetType
+  {
+    /// The sheet is a grid. 
+    #[ serde( rename = "GRID" ) ]
+    Grid,
+    /// The sheet has no grid and instead has an object like a chart or image. 
+    #[ serde( rename = "OBJECT" ) ]
+    Object,
+    /// The sheet connects with an external DataSource and shows the preview of data.
+    #[ serde( rename = "DATA_SOURCE" ) ]
+    DataSource
+  }
+  
+  /// Properties of a grid.
+  #[ derive( Debug, Serialize, Deserialize ) ]
+  pub struct GridProperties
+  {
+    /// The number of rows in the grid. 
+    #[ serde( rename = "rowCount" ) ]
+    row_count : Option< u64 >,
+    /// The number of columns in the grid. 
+    #[ serde( rename = "columnCount" ) ]
+    column_count : Option< u32 >,
+    /// The number of rows that are frozen in the grid. 
+    #[ serde( rename = "frozenRowCount" ) ]
+    frozen_row_count : Option< u64 >,
+    /// The number of columns that are frozen in the grid. 
+    #[ serde( rename = "frozenColumnCount" ) ]
+    frozen_column_count : Option< u64 >,
+    /// True if the grid isn't showing gridlines in the UI. 
+    #[ serde( rename = "hideGridlines" ) ]
+    hide_grid_lines : Option< bool >,
+    /// True if the row grouping control toggle is shown after the group. 
+    #[ serde( rename = "rowGroupControlAfter" ) ]
+    row_group_control_after : Option< bool >,
+    /// True if the column grouping control toggle is shown after the group. 
+    #[ serde( rename = "columnGroupControlAfter" ) ]
+    column_group_control_after : Option< bool >
+  }
+
+  /// Represents a color in the RGBA color space. 
+  /// More information here [color google docs](https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets/other#Color)
+  #[ derive( Debug, Serialize, Deserialize ) ]
+  pub struct Color
+  {
+    /// The amount of red in the color as a value in the interval [0, 1]. 
+    pub red : Option< f32 >,
+    /// The amount of green in the color as a value in the interval [0, 1]. 
+    pub green : Option< f32 >,
+    /// The amount of blue in the color as a value in the interval [0, 1]. 
+    pub blue : Option< f32 >,
+    /// The fraction of this color that should be applied to the pixel.
+    pub alpha : Option< f32 >
+  }
+
+  /// Theme color types.  
+  #[ derive( Debug, Serialize, Deserialize ) ]
+  pub enum ThemeColorType
+  {
+    /// Represents the primary text color 
+    #[ serde( rename = "TEXT" ) ]
+    Text,
+    /// Represents the primary background color 
+    #[ serde( rename = "BACKGROUND" ) ]
+    Background,
+    /// Represents the first accent color 
+    #[ serde( rename = "ACCENT1" ) ]
+    Accent1,
+    /// Represents the second accent color 
+    #[ serde( rename = "ACCENT2" ) ]
+    Accent2,
+    #[ serde( rename = "ACCENT3" ) ]
+    /// Represents the third accent color 
+    Accent3,
+    #[ serde( rename = "ACCENT4" ) ]
+    /// Represents the fourth accent color 
+    Accent4,
+    #[ serde( rename = "ACCENT5" ) ]
+    /// Represents the fifth accent color
+    Accent5,
+    #[ serde( rename = "ACCENT6" ) ]
+    /// Represents the sixth accent color
+    Accent6,
+    /// Represents the color to use for hyperlinks
+    #[ serde( rename = "LINK" ) ]
+    Link
+  }
+
+  /// A color value.
+  #[ derive( Debug, Serialize, Deserialize ) ]
+  pub enum ColorStyle
+  {
+    #[ serde( rename = "rgbColor" ) ]
+    RgbColor( Color ),
+    #[ serde( rename = "themeColor" ) ]
+    ThemeColor( ThemeColorType )
+  }
+
+  /// An unique identifier that references a data source column.
+  #[ derive( Debug, Serialize, Deserialize ) ]
+  pub struct DataSourceColumnReference
+  {
+    /// The display name of the column. It should be unique within a data source. 
+    pub name : Option< String >
+  }
+
+  /// A column in a data source.
+  #[ derive( Debug, Serialize, Deserialize ) ]
+  pub struct DataSourceColumn
+  {
+    /// The column reference. 
+    pub reference : Option< DataSourceColumnReference >,
+    /// The formula of the calculated column. 
+    pub formula : Option< String >
+  }
+
+  /// An enumeration of data execution states. 
+  #[ derive( Debug, Serialize, Deserialize ) ]
+  pub enum DataExecutionState
+  {
+    /// The data execution has not started. 
+    #[ serde( rename = "NOT_STARTED" ) ]
+    NotStarted,
+    /// The data execution has started and is running.
+    #[ serde( rename = "RUNNING" ) ]
+    Running,
+    /// The data execution is currently being cancelled.
+    #[ serde( rename = "CANCELLING" ) ]
+    Cancelling,
+    /// The data execution has completed successfully. 
+    #[ serde( rename = "SUCCEEDED" ) ]
+    Succeeded,
+    /// The data execution has completed with errors.
+    #[ serde( rename = "FAILED" ) ]
+    Failed
+  }
+
+  /// An enumeration of data execution error code.
+  #[ derive( Debug, Serialize, Deserialize ) ]
+  pub enum DataExecutionErrorCode
+  {
+    /// The data execution timed out. 
+    #[ serde( rename = "TIMED_OUT" ) ]
+    TimedOut,
+    /// The data execution returns more rows than the limit.
+    #[ serde( rename = "TOO_MANY_ROWS" ) ]
+    TooManyRows,
+    /// The data execution returns more columns than the limit.
+    #[ serde( rename = "TOO_MANY_COLUMNS" ) ]
+    TooManyColumns,
+    /// The data execution returns more cells than the limit.
+    #[ serde( rename = "TOO_MANY_CELLS" ) ]
+    TooManyCells,
+    /// Error is received from the backend data execution engine (e.g. BigQuery)
+    #[ serde( rename = "ENGINE" ) ]
+    Engine,
+    /// One or some of the provided data source parameters are invalid. 
+    #[ serde( rename = "PARAMETER_INVALID" ) ]
+    ParameterInvalid,
+    /// The data execution returns an unsupported data type. 
+    #[ serde( rename = "UNSUPPORTED_DATA_TYPE" ) ]
+    UnsupportedDataType,
+    /// The data execution returns duplicate column names or aliases.
+    #[ serde( rename = "DUPLICATE_COLUMN_NAMES" ) ]
+    DuplicateColumnNames,
+    /// The data execution is interrupted. Please refresh later.
+    #[ serde( rename = "INTERRUPTED" ) ]
+    Interrupted,
+    /// The data execution is currently in progress, can not be refreshed until it completes. 
+    #[ serde( rename = "CONCURRENT_QUERY" ) ]
+    ConcurrentQuery,
+    /// Other errors. 
+    #[ serde( rename = "OTHER" ) ]
+    Other,
+    /// The data execution returns values that exceed the maximum characters allowed in a single cell.
+    #[ serde( rename = "TOO_MANY_CHARS_PER_CELL" ) ]
+    TooManyCharsPerCell,
+    /// The database referenced by the data source is not found.
+    #[ serde( rename = "DATA_NOT_FOUND" ) ]
+    DataNotFound,
+    /// The user does not have access to the database referenced by the data source. 
+    #[ serde( rename = "PERMISSION_DENIED" ) ]
+    PermissionDenied,
+    /// The data execution returns columns with missing aliases. 
+    #[ serde( rename = "MISSING_COLUMN_ALIAS" ) ]
+    MissingColumnAlias,
+    /// The data source object does not exist. 
+    #[ serde( rename = "OBJECT_NOT_FOUND" ) ]
+    ObjectNotFound,
+    /// The data source object is currently in error state.
+    #[ serde( rename = "OBJECT_IN_ERROR_STATE" ) ]
+    ObjectInErrorState,
+    /// The data source object specification is invalid. 
+    #[ serde( rename = "OBJECT_SPEC_INVALID" ) ]
+    ObjectSprecInvalid,
+    /// The data execution has been cancelled. 
+    #[ serde( rename = "DATA_EXECUTION_CANCELLED" ) ]
+    DataExecutionCancelled
+  }
+
+  /// The data execution status.
+  /// More information [here](https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets/other#DataExecutionStatus)
+  #[ derive( Debug, Serialize, Deserialize ) ]
+  pub struct DataExecutinStatus
+  {
+    /// The state of the data execution.
+    pub state : Option< DataExecutionState >,
+    /// The error code
+    #[ serde( rename = "errorCode" ) ]
+    pub error_code : Option< DataExecutionErrorCode >,
+    /// The error message, which may be empty. 
+    #[ serde( rename = "errorMessage" ) ]
+    pub error_message : Option< String >,
+    /// lastRefreshTime
+    #[ serde( rename = "lastRefreshTime" ) ]
+    pub last_refresh_time : Option< String >
+  }
+
+  /// Additional properties of a [DATA_SOURCE](https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets/sheets#SheetType) sheet. 
+  #[ derive( Debug, Serialize, Deserialize ) ]
+  pub struct DataSourceSheetProperties
+  {
+    /// ID of the [DataSource](https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets#DataSource) the sheet is connected to. 
+    #[ serde( rename = "dataSourceId" ) ]
+    pub data_source_id : Option< String >,
+    /// The columns displayed on the sheet, corresponding to the values in [RowData](https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets/sheets#RowData). 
+    pub columns : Option< Vec< DataSourceColumn > >,
+    /// The data execution status.
+    #[ serde( rename = "dataExecutionStatus" ) ]
+    pub data_executin_status : Option< DataExecutinStatus >
+  }
+
+  /// Properties of a sheet. 
+  #[ derive( Debug, Serialize, Deserialize ) ]
+  pub struct SheetProperties
+  {
+    /// The ID of the sheet. Must be non-negative. This field cannot be changed once set. 
+    #[ serde( rename = "sheetId" ) ]
+    pub sheet_id : Option< u64 >,
+    /// The name of the sheet. 
+    pub title : Option< String >,
+    /// The index of the sheet within the spreadsheet. When adding or updating sheet properties, if this field is excluded then
+    /// the sheet is added or moved to the end of the sheet list. When updating sheet indices or inserting sheets, movement 
+    /// is considered in "before the move" indexes. For example, if there were three sheets (S1, S2, S3) in order to move S1
+    /// ahead of S2 the index would have to be set to 2. A sheet index update request is ignored if the requested index is
+    /// identical to the sheets current index or if the requested new index is equal to the current sheet index + 1. 
+    pub index : Option< u64 >,
+    #[ serde( rename = "sheetType" ) ]
+    /// The type of sheet. Defaults to GRID. This field cannot be changed once set.
+    pub sheet_type : Option< SheetType >,
+    /// Additional properties of the sheet if this sheet is a grid. (If the sheet is an object sheet, containing a chart or image, then this field will be absent.) When writing it is an error to set any grid properties on non-grid sheets. 
+    #[ serde( rename = "gridProperties" ) ]
+    pub grid_properties : Option< GridProperties >,
+    /// True if the sheet is hidden in the UI, false if it's visible. 
+    pub hidden : Option< bool >,
+    /// The color of the tab in the UI. Deprecated: Use tabColorStyle. 
+    #[ serde( rename = "tabColor" ) ]
+    pub tab_color : Option< Color >,
+    /// The color of the tab in the UI. If tabColor is also set, this field takes precedence. 
+    #[ serde( rename = "tabColorStyle" ) ]
+    pub tab_color_style : Option< ColorStyle >,
+    /// True if the sheet is an RTL sheet instead of an LTR sheet. 
+    #[ serde( rename = "rightToLeft" ) ]
+    pub right_to_left : Option< bool >,
+    /// Output only. If present, the field contains DATA_SOURCE sheet specific properties. 
+    #[ serde( rename = "dataSourceSheetProperties" ) ]
+    pub data_source_sheet_properties : Option< DataSourceSheetProperties >
+  }
+
+
   #[ derive( Debug, Serialize ) ]
   pub struct GetValuesRequest
   {
@@ -1153,6 +1571,7 @@ crate::mod_interface!
   own use
   {
     Client,
+    SheetProperties,
     Dimension,
     ValueRange,
     InsertDataOption,

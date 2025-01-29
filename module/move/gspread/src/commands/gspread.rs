@@ -18,7 +18,8 @@ mod private
     gspread_cell,
     gspread_column,
     gspread_clear,
-    gspread_clear_custom
+    gspread_clear_custom,
+    gspread_copy
   };
 
   /// # CommonArgs
@@ -56,6 +57,7 @@ mod private
   /// - `Row`: Updates or appends rows.
   /// - `Column`: Retrives a column. 
   /// - `Clear`: Clears a sheet.
+  /// - `Copy`: Copies a spreadsheet's sheet to other spreadsheet.
   ///
   /// ## Examples:
   /// - Retrieve the header:
@@ -165,6 +167,20 @@ mod private
     ClearCustom
     (
       gspread_clear_custom::Args
+    ),
+
+    /// Copies a spreadsheet's sheet to the other spreadsheet.
+    ///
+    /// **Example:**
+    /// 
+    /// gspread copy
+    /// --url 'https://docs.google.com/spreadsheets/d/1EAEdegMpitv-sTuxt8mV8xQxzJE7h_J0MxQoyLH7xxU/edit?gid=0#gid=0'
+    /// --sheet-id 1484163460
+    /// --dest 'https://docs.google.com/spreadsheets/d/1MW1HeYk_Ra8X6bNBGDgDGarzwGq6ILzP3cWke8mspSk/edit?gid=0#gid=0'
+    #[ command( name = "copy" ) ]
+    Copy
+    (
+      gspread_copy::Args
     )
 
   }
@@ -218,6 +234,11 @@ mod private
       Command::ClearCustom( args ) =>
       {
         gspread_clear_custom::command( client, args ).await;
+      },
+
+      Command::Copy( args ) =>
+      {
+        gspread_copy::command( client, args ).await;
       }
     }
   }
