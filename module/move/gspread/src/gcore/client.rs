@@ -6,6 +6,7 @@ mod private
 {
   use reqwest::{ self, Url };
   use former::Former;
+use serde_json::json;
  
   use crate::*;
   use gcore::error::{ Error, Result };
@@ -774,6 +775,7 @@ mod private
 
       let response = reqwest::Client::new()
       .post( endpoint )
+      .json( &json!( {} ) )
       .bearer_auth( &self.client.token )
       .send()
       .await

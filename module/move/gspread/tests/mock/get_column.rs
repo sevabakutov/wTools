@@ -81,7 +81,7 @@ async fn test_mock_get_column_should_work()
 /// 3. Call `get_column` function which sends a GET request to /{spreadsheet_id}/values/{sheet_name}!{column_id}:{column_id}
 /// 4. Check results (an empty array is returned).
 #[ tokio::test ]
-async fn test_mock_get_column_no_data_should_return_empty()
+async fn test_mock_get_empty_column_should_work()
 {
   let spreadsheet_id = "12345";
   let sheet_name = "tab2";

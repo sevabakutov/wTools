@@ -12,3 +12,4 @@ mod set_cell;
 mod update_row;
 mod update_rows_by_custom_row_key;
 mod get_column;
+mod clear;

@@ -9,13 +9,15 @@ mod private
   use clap::{ Subcommand, Parser };
   use gcore::client::Client;
 
-  use crate::{commands::gspread_column, *};
+  use crate::*;
   use commands::
   {
     gspread_header,
     gspread_row,
     gspread_rows,
     gspread_cell,
+    gspread_column,
+    gspread_clear
   };
 
   /// # CommonArgs
@@ -127,10 +129,24 @@ mod private
       gspread_row::Commands 
     ),
 
+    /// Retreive a column.
     #[ command( subcommand, name = "column" ) ]
     Column
     (
       gspread_column::Commands
+    ),
+
+    /// Clears a specified range.
+    ///
+    /// **Example:**
+    /// 
+    /// gspread clear
+    /// --url 'https://docs.google.com/spreadsheets/d/1EAEdegMpitv-sTuxt8mV8xQxzJE7h_J0MxQoyLH7xxU/edit?gid=0#gid=0'
+    /// --tab tab1
+    #[ command( name = "clear" ) ]
+    Clear
+    (
+      CommonArgs
     ),
 
   }
@@ -174,6 +190,11 @@ mod private
       Command::Column( column_command ) =>
       {
         gspread_column::command( client, column_command ).await;
+      },
+
+      Command::Clear( clear_command ) => 
+      {
+        gspread_clear::command( client, clear_command ).await;
       }
     }
   }
