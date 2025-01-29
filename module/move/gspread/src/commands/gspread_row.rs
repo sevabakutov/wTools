@@ -357,9 +357,9 @@ mod private
 
       #[ arg( long, help = "Action to take if one or more rows are found.
       Available: 
-        - all - Update all matched rows, with provided values.
-        - first - Update first matched row with provided values.
-        - last - Update last matched row with provided data." ) ]
+        - all - Retreive all matched rows.
+        - first - Retreive first matched row.
+        - last - Retreive last matched row." ) ]
       on_find : String
     }
   }

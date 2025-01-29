@@ -1,10 +1,13 @@
-
+//!
+//! clear command
+//! 
 
 mod private
 {
-  use crate::{actions::utils::get_spreadsheet_id_from_url, *};
+  use crate::*;
   use gcore::client::Client;
   use commands::gspread::CommonArgs;
+  use actions::utils::get_spreadsheet_id_from_url;
 
   pub async fn command
   (

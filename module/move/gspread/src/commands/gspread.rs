@@ -17,7 +17,8 @@ mod private
     gspread_rows,
     gspread_cell,
     gspread_column,
-    gspread_clear
+    gspread_clear,
+    gspread_clear_custom
   };
 
   /// # CommonArgs
@@ -52,7 +53,9 @@ mod private
   /// - `Rows`: Retrieves all rows (excluding the header) from a specific sheet.
   /// - `Cell`: Retrieves or updates a single cell in a sheet.
   /// - `Cells`: Updates multiple cells in a specific row.
-  /// - `Row`: Updates or appends rows. 
+  /// - `Row`: Updates or appends rows.
+  /// - `Column`: Retrives a column. 
+  /// - `Clear`: Clears a sheet.
   ///
   /// ## Examples:
   /// - Retrieve the header:
@@ -149,6 +152,21 @@ mod private
       CommonArgs
     ),
 
+    /// Clears a specified range.
+    ///
+    /// **Example:**
+    /// 
+    /// gspread clear-custom
+    /// --url 'https://docs.google.com/spreadsheets/d/1EAEdegMpitv-sTuxt8mV8xQxzJE7h_J0MxQoyLH7xxU/edit?gid=0#gid=0'
+    /// --tab tab1
+    /// --key-by '["A", 4]'
+    /// --on-find all
+    #[ command( name = "clear-custom" ) ]
+    ClearCustom
+    (
+      gspread_clear_custom::Args
+    )
+
   }
 
   /// # `command`
@@ -195,6 +213,11 @@ mod private
       Command::Clear( clear_command ) => 
       {
         gspread_clear::command( client, clear_command ).await;
+      },
+
+      Command::ClearCustom( args ) =>
+      {
+        gspread_clear_custom::command( client, args ).await;
       }
     }
   }

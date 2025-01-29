@@ -19,5 +19,6 @@ crate::mod_interface!
   layer gspread_row_update_custom;
   layer gspread_column_get;
   layer gspread_clear;
+  layer gspread_clear_custom;
 }
 

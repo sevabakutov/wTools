@@ -144,8 +144,11 @@ use serde_json::json;
   ///   Returns defined value ranges.
   /// 
   /// - **`clear(spreadsheet_id, range) -> `Result<[ValuesClearResponse]>``**
-  ///   Returns all the information about cleared range.
-  ///
+  ///   Returns metadata of a cleared range.
+  /// 
+  /// - **`clear_batch(spreadsheet_id, req) -> `Result<[BatchClearValuesResponse]>``**
+  ///   Returns metadata of a cleared range.
+  ///  
   /// ## Usage
   ///
   /// This struct is usually obtained by calling the `spreadsheet()` method on a
@@ -273,7 +276,22 @@ use serde_json::json;
         _spreadsheet_id : spreadsheet_id,
         _range : range
       }
-      
+    }
+
+    /// Clear a specified range.
+    pub fn clear_batch<'a>
+    (
+      &'a self,
+      spreadsheet_id : &'a str,
+      req : BatchClearValuesRequest
+    ) -> ValuesBatchClearMethod<'a>
+    {
+      ValuesBatchClearMethod
+      {
+        client : self.client,
+        _spreadsheet_id : spreadsheet_id,
+        _request : req
+      }
     }
   }
 
@@ -762,7 +780,7 @@ use serde_json::json;
     ///
     /// # Errors
     /// - [`Error::ApiError`] if the HTTP status is not successful or the API returns an error.
-    /// - [`Error::ParseError`] if the body cannot be deserialized into [`ValuesAppendResponse`].
+    /// - [`Error::ParseError`] if the body cannot be deserialized into [`ValuesClearResponse`].
     pub async fn doit( &self ) -> Result< ValuesClearResponse >
     {
       let endpoint = format!
@@ -799,6 +817,69 @@ use serde_json::json;
     } 
   }
 
+  /// A builder for clearing values from a sheet.
+  ///
+  /// This struct lets you configure:
+  ///
+  /// By calling [`ValuesBatchClearMethod::doit`], you perform an HTTP `POST` request
+  /// to `https://sheets.googleapis.com/v4/spreadsheets/{spreadsheetId}/values:batchClear`.
+  /// 
+  /// On success, it returns a [`BatchClearValuesResponse`] containing metadata about the clear result.
+  /// On error, returns an [`Error`].
+  pub struct ValuesBatchClearMethod<'a>
+  {
+    client : &'a Client<'a>,
+    _spreadsheet_id : &'a str,
+    _request : BatchClearValuesRequest
+  }
+
+  impl ValuesBatchClearMethod<'_>
+  {
+    /// Executes the configured clear request.
+    ///
+    /// Sends a `POST` request to:
+    /// `https://sheets.googleapis.com/v4/spreadsheets/{spreadsheetId}/values:batchClear`
+    ///
+    /// Returns [`BatchClearValuesResponse`] on success, or an [`Error`] if the request fails 
+    /// or if response parsing fails.
+    ///
+    /// # Errors
+    /// - [`Error::ApiError`] if the HTTP status is not successful or the API returns an error.
+    /// - [`Error::ParseError`] if the body cannot be deserialized into [`BatchClearValuesResponse`].
+    pub async fn doit( &self ) -> Result< BatchClearValuesResponse >
+    {
+      let endpoint = format!
+      (
+        "{}/{}/values:batchClear",
+        self.client.endpoint,
+        self._spreadsheet_id
+      );
+
+      let response = reqwest::Client::new()
+      .post( endpoint )
+      .json( &self._request )
+      .bearer_auth( &self.client.token )
+      .send()
+      .await
+      .map_err( | err | Error::ApiError( err.to_string() ) )?;
+
+      if !response.status().is_success()
+      {
+        let response_text = response
+        .text()
+        .await
+        .map_err( | err | Error::ParseError( err.to_string() ) )?;
+
+        return Err( Error::ApiError( response_text ) );
+      }
+
+      let response_parsed = response.json::<BatchClearValuesResponse>()
+      .await
+      .map_err( | err | Error::ParseError( err.to_string() ) )?;
+
+      Ok( response_parsed )
+    }
+  }
 
   #[ derive( Debug, Serialize ) ]
   pub struct GetValuesRequest
@@ -871,6 +952,14 @@ use serde_json::json;
     pub response_date_time_render_option : Option< DateTimeRenderOption >
   }
 
+  /// The request body.
+  #[ derive( Debug, Serialize, Deserialize ) ]
+  pub struct BatchClearValuesRequest
+  {
+    /// The ranges to clear, in A1 notation or R1C1 notation.
+    pub ranges : Vec< String >
+  }
+
   /// Response from [`values.batchGet`](https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets.values/batchGet).
   #[derive(Debug, Serialize, Deserialize)]
   pub struct BatchGetValuesResponse 
@@ -931,17 +1020,29 @@ use serde_json::json;
   }
 
   /// Response from [`values.append`](https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets.values/append).
-  #[derive(Debug, Serialize, Deserialize)]
+  #[ derive( Debug, Serialize, Deserialize ) ]
   pub struct ValuesAppendResponse 
   {
     /// The ID of the spreadsheet to which data was appended.
-    #[serde(rename = "spreadsheetId")]
-    pub spreadsheet_id: Option<String>,
+    #[ serde( rename = "spreadsheetId" ) ]
+    pub spreadsheet_id : Option< String >,
     /// The range (A1 notation) that covered the appended data before the append.
-    #[serde(rename = "tableRange")]
-    pub table_range: Option<String>,
+    #[ serde( rename = "tableRange" ) ]
+    pub table_range : Option< String >,
     /// If `includeValuesInResponse` was `true`, this field contains metadata about the update.
-    pub updates: Option<UpdateValuesResponse>,
+    pub updates : Option< UpdateValuesResponse >,
+  }
+
+  /// Response from [values.clearBatch](https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets.values/batchClear)
+  #[ derive( Debug, Default, Serialize, Deserialize ) ]
+  pub struct BatchClearValuesResponse
+  {
+    /// The spreadsheet the updates were applied to.
+    #[ serde( rename = "spreadsheetId" ) ]
+    pub spreadsheet_id : Option< String >,
+    /// The ranges that were cleared, in A1 notation. If the requests are for an unbounded range or a ranger larger than the bounds of the sheet, this is the actual ranges that were cleared, bounded to the sheet's limits.
+    #[ serde( rename = "clearedRanges" ) ]
+    pub cleared_ranges : Option< Vec< String > >
   }
 
   /// Response from [`values.clear`](https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets.values/clear)
@@ -1062,6 +1163,8 @@ crate::mod_interface!
     UpdateValuesResponse,
     BatchUpdateValuesRequest,
     BatchUpdateValuesResponse,
-    ValuesClearResponse
+    ValuesClearResponse,
+    BatchClearValuesRequest,
+    BatchClearValuesResponse
   };
 }

@@ -9,7 +9,7 @@ mod private
   use serde_json::json;
   use std::collections::HashMap;
 
-  use crate::gcore::client::ValuesClearResponse;
+  use crate::gcore::client::{BatchClearValuesRequest, BatchClearValuesResponse, ValuesClearResponse};
 use crate::*;
   use gcore::error::{ Error, Result };
   use gcore::client::
@@ -827,6 +827,82 @@ use crate::*;
     }
   }
 
+  /// # clear_by_custom_row_key
+  /// 
+  /// Clears matched rows by doing action provided by `on_find`.
+  /// 
+  /// ## Parameters:
+  /// - `client`:  
+  ///   A reference to the `Client` client configured for the Google Sheets API.
+  /// - `spreadsheet_id`:  
+  ///   A `&str` representing the unique identifier of the spreadsheet.
+  /// - `sheet_name`:
+  ///   A `&str` specifying the name of the sheet where the cell is located.
+  /// - `key_by`:
+  ///   A tuple representing a column id and value to find in that column.
+  /// - `on_find`:
+  ///   Action to do on finded matches.
+  /// 
+  /// ## Returns:
+  /// - Result<[`BatchClearValuesResponse`]>
+  /// 
+  /// ## Errors:
+  /// - `Error::ApiError`:  
+  ///   Occurs if the Google Sheets API returns an error, such as invalid input or insufficient permissions.
+  pub async fn clear_by_custom_row_key
+  (
+    client : &Client<'_>,
+    spreadsheet_id : &str,
+    sheet_name : &str,
+    key_by : ( &str, serde_json::Value ),
+    on_find : OnFind,
+  ) -> Result< BatchClearValuesResponse >
+  {
+    match get_column
+    (
+      client, 
+      spreadsheet_id, 
+      sheet_name, 
+      key_by.0
+    )
+    .await
+    {
+      Ok( column ) =>
+      {
+        if column.is_empty()
+        {
+          return Ok( BatchClearValuesResponse::default() );
+        }
+
+        let key_matches = get_key_matches( &column, &key_by.1 );
+        let row_keys = get_row_keys( key_matches, on_find );
+
+        let mut ranges = Vec::with_capacity( row_keys.len() );
+        for row_key in row_keys
+        {
+          let range = format!( "{}!A{}:ZZZ{}", sheet_name, row_key + 1, row_key + 1 );
+          ranges.push( range );
+        }
+
+        let request = BatchClearValuesRequest
+        {
+          ranges : ranges
+        };
+
+        match client
+        .spreadsheet()
+        .clear_batch( spreadsheet_id, request )
+        .doit()
+        .await
+        {
+          Ok( response ) => Ok( response ),
+          Err( error ) => Err( error )
+        }
+      },
+      Err( error ) => Err( error )
+    }
+  }
+
   /// Action to do if one or more rows were found.
   pub enum OnFind
   {
@@ -867,6 +943,7 @@ crate::mod_interface!
     update_rows_by_custom_row_key,
     get_row_by_custom_row_key,
     get_column,
-    clear
+    clear,
+    clear_by_custom_row_key
   };
 }

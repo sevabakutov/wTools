@@ -17,7 +17,6 @@ use serde_json::json;
 /// # What
 /// This test checks that `get_row_by_custom_row_key` returns an empty vector
 /// when the specified key value does not exist in the given column.  
-/// Also, we verify that no `batchGet` request is made in this scenario.
 ///
 /// # How
 /// 1. Start a mock server.
