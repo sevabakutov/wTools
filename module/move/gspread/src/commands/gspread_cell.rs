@@ -136,10 +136,7 @@ mod private
   ///
   /// ## Parameters:
   /// - `client`:  
-  ///   A `GspreadClient` enum.
-  ///   - `Variants`: 
-  ///     `SheetsType` variant is used for interacting with the Google Sheets API. 
-  ///     `MockClient` variant is used for mock testing.
+  ///   A `Client` type.
   /// - `commands`:  
   ///   A variant of the `Commands` enum specifying the operation to execute.
   ///

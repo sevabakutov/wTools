@@ -828,5 +828,6 @@ crate::mod_interface!
     append_row,
     update_rows_by_custom_row_key,
     get_row_by_custom_row_key,
+    get_column
   };
 }

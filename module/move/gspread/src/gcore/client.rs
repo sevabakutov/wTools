@@ -6,6 +6,7 @@ mod private
 {
   use reqwest::{ self, Url };
   use former::Former;
+use yup_oauth2::hyper::client;
  
   use crate::*;
   use gcore::error::{ Error, Result };
@@ -142,6 +143,8 @@ mod private
   /// - **`values_get_batch(spreadsheet_id)` -> [`ValuesBatchGetMethod`]**
   ///   Returns defined value ranges.
   /// 
+  /// - **`clear(spreadsheet_id, range) -> `Result<[ValuesClearResponse]>``**
+  ///   Returns all the information about cleared range.
   ///
   /// ## Usage
   ///
@@ -254,6 +257,23 @@ mod private
         _response_date_time_render_option : Default::default(),
         _response_value_render_option : Default::default()
       }
+    }
+
+    /// Clears a specified range.
+    pub fn clear<'a>
+    (
+      &'a self,
+      spreadsheet_id : &'a str,
+      range : &'a str
+    ) -> ValuesClearMethod<'a>
+    {
+      ValuesClearMethod
+      {
+        client : self.client,
+        _spreadsheet_id : spreadsheet_id,
+        _range : range
+      }
+      
     }
   }
 
@@ -714,6 +734,70 @@ mod private
     }
   }
 
+  /// A builder for clearing values from a sheet.
+  ///
+  /// This struct lets you configure:
+  ///
+  /// By calling [`ValuesClearMethod::doit`], you perform an HTTP `POST` request
+  /// to `https://sheets.googleapis.com/v4/spreadsheets/{spreadsheetId}/values/{range}:clear`.
+  /// 
+  /// On success, it returns a [`ValuesClearResponse`] containing metadata about the clear result.
+  /// On error, returns an [`Error`].
+  pub struct ValuesClearMethod<'a>
+  {
+    client : &'a Client<'a>,
+    _spreadsheet_id : &'a str,
+    _range : &'a str
+  }
+
+  impl ValuesClearMethod<'_>
+  {
+    /// Executes the configured clear request.
+    ///
+    /// Sends a `POST` request to:
+    /// `https://sheets.googleapis.com/v4/spreadsheets/{spreadsheetId}/values/{range}:clear`
+    ///
+    /// Returns [`ValuesClearResponse`] on success, or an [`Error`] if the request fails 
+    /// or if response parsing fails.
+    ///
+    /// # Errors
+    /// - [`Error::ApiError`] if the HTTP status is not successful or the API returns an error.
+    /// - [`Error::ParseError`] if the body cannot be deserialized into [`ValuesAppendResponse`].
+    pub async fn doit( &self ) -> Result< ValuesClearResponse >
+    {
+      let endpoint = format!
+      (
+        "{}/{}/values/{}:clear", 
+        self.client.endpoint, 
+        self._spreadsheet_id, 
+        self._range
+      );
+
+      let response = reqwest::Client::new()
+      .post( endpoint )
+      .bearer_auth( &self.client.token )
+      .send()
+      .await
+      .map_err( | err | Error::ApiError( err.to_string() ) )?;
+
+      if !response.status().is_success()
+      {
+        let response_text = response
+        .text()
+        .await
+        .map_err( | err | Error::ParseError( err.to_string() ) )?;
+
+        return Err( Error::ApiError( response_text ) )
+      }
+
+      let response_parsed = response.json::<ValuesClearResponse>()
+      .await
+      .map_err( | err | Error::ParseError( err.to_string() ) )?;
+
+      Ok( response_parsed )
+    } 
+  }
+
 
   #[ derive( Debug, Serialize ) ]
   pub struct GetValuesRequest
@@ -857,6 +941,18 @@ mod private
     pub table_range: Option<String>,
     /// If `includeValuesInResponse` was `true`, this field contains metadata about the update.
     pub updates: Option<UpdateValuesResponse>,
+  }
+
+  /// Response from [`values.clear`](https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets.values/clear)
+  #[ derive( Debug, Serialize, Deserialize ) ]
+  pub struct ValuesClearResponse
+  {
+    /// The spreadsheet the updates were applied to.
+    #[ serde( rename = "spreadsheetId" ) ]
+    pub spreadsheet_id : Option< String >,
+    /// The range (in A1 notation) that was cleared. (If the request was for an unbounded range or a ranger larger than the bounds of the sheet, this will be the actual range that was cleared, bounded to the sheet's limits.)
+    #[ serde( rename = "clearedRange" ) ]
+    pub cleared_range : Option< String >
   }
 
   /// Determines how existing data is changed when new data is input.

@@ -9,7 +9,7 @@ mod private
   use clap::{ Subcommand, Parser };
   use gcore::client::Client;
 
-  use crate::*;
+  use crate::{commands::gspread_column, *};
   use commands::
   {
     gspread_header,
@@ -125,7 +125,13 @@ mod private
     Row
     ( 
       gspread_row::Commands 
-    )
+    ),
+
+    #[ command( subcommand, name = "column" ) ]
+    Column
+    (
+      gspread_column::Commands
+    ),
 
   }
 
@@ -163,6 +169,11 @@ mod private
       Command::Row( row_command ) =>
       {
         gspread_row::command( client, row_command ).await;
+      },
+
+      Command::Column( column_command ) =>
+      {
+        gspread_column::command( client, column_command ).await;
       }
     }
   }

@@ -4,7 +4,8 @@ mod private
 {
   use clap::Subcommand;
   use debug::{Report, RowWrapper};
-use serde_json::json;
+  use serde_json::json;
+  
   use crate::*;
   use gcore::client::Client;
   use actions::
