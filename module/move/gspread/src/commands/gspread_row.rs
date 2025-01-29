@@ -4,6 +4,7 @@ mod private
 {
   use clap::Subcommand;
   use debug::{Report, RowWrapper};
+use serde_json::json;
   use crate::*;
   use gcore::client::Client;
   use actions::
@@ -129,6 +130,31 @@ mod private
   ///   --on_fail append \
   ///   --on_find all
   /// ```
+  /// 
+  /// ### `Get`
+  /// Retreives a specific row from a Google Sheet.
+  /// 
+  /// **Arguments:**
+  /// - `url`:  
+  ///   The full URL of the Google Sheet.  
+  ///   Example:  
+  ///   `--url 'https://docs.google.com/spreadsheets/d/your_spreadsheet_id/edit?gid=0#gid=0'`
+  ///
+  /// - `tab`:  
+  ///   The name of the specific sheet (tab) in the Google Spreadsheet.  
+  ///   Example:  
+  ///   `--tab 'Sheet1'`
+  /// 
+  /// - `row-key`:
+  ///   Row key (id). The range starts from 1.
+  ///   Example:
+  ///   `row-key 2`
+  /// 
+  /// **Example:**
+  /// 
+  /// gspread row get
+  /// --url 'https://docs.google.com/spreadsheets/d/1EAEdegMpitv-sTuxt8mV8xQxzJE7h_J0MxQoyLH7xxU/edit?gid=0#gid=0' \
+  /// --tab 'tab1'
   /// 
   /// ### `GetCustom`
   /// Retrieves one or more rows from a Google Sheet based on a custom key condition,
@@ -281,6 +307,28 @@ mod private
       on_find : String
     },
 
+    /// Retreives a specific row from a Google Sheet.
+    /// 
+    /// **Example:**
+    /// 
+    /// gspread row get
+    /// --url 'https://docs.google.com/spreadsheets/d/1EAEdegMpitv-sTuxt8mV8xQxzJE7h_J0MxQoyLH7xxU/edit?gid=0#gid=0' \
+    /// --tab 'tab1'
+    /// --row-key 2
+    #[ command( name = "get" ) ]
+    Get
+    {
+      #[ arg( long, help = "Full URL of Google Sheet.\n\
+      It has to be inside of '' to avoid parse errors.\n\
+      Example: 'https://docs.google.com/spreadsheets/d/your_spreadsheet_id/edit?gid=0#gid=0'" ) ]
+      url : String,
+
+      #[ arg( long, help = "Sheet name.\nExample: Sheet1" ) ]
+      tab : String,
+
+      #[ arg( long, help = "A row key. Example: row_key=2" ) ]
+      row_key : u32,
+    },
 
     /// Retrieves one or more rows from a Google Sheet based on a custom key condition,
     /// specifying how to handle multiple matches.
@@ -408,6 +456,41 @@ mod private
           Err( error ) => println!( "Error:\n{}", error )
         }
       },
+
+      Commands::Get { url, tab, row_key } => 
+      {
+        let spreadsheet_id = match get_spreadsheet_id_from_url( &url ) 
+        {
+          Ok( id ) => id,
+          Err( error ) => 
+          {
+            eprintln!( "Error extracting spreadsheet ID: {}", error );
+            return;
+          }
+        };
+
+        match actions::gspread_row_get::action
+        (
+          client, 
+          spreadsheet_id, 
+          &tab,
+          json!( row_key )
+        )
+        .await
+        {
+          Ok( row ) => 
+          {
+            let row_wrapped = RowWrapper
+            {
+              max_len : row.len(), 
+              row : row
+            };
+
+            println!( "Row:\n{}", Report{ rows: vec![ row_wrapped ] } );
+          },
+          Err( error ) => eprintln!( "Error:\n{}", error ),
+        }
+      }
 
       Commands::GetCustom { url, tab, key_by, on_find } =>
       {

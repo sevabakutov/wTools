@@ -58,14 +58,8 @@ mod private
       {
         let column_name = format!( "{} ", index );
         let title = Box::leak( column_name.into_boxed_str() ) as &str;
-        let cleaned: String = value
-        .to_string()
-        .chars()
-        .skip( 1 )
-        .take( value.to_string().chars().count() - 2 )
-        .collect();
 
-        dst.push( ( title, Some( Cow::Owned( cleaned ) ) ) )
+        dst.push( ( title, Some( Cow::Owned( value.to_string() ) ) ) )
       }
 
       // adding empty values for missing cells

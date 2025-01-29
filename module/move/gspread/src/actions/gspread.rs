@@ -592,6 +592,56 @@ mod private
     
   }
 
+  /// # get_row
+  /// 
+  /// Retreive a specific row by its key for a Google Sheet.
+  /// 
+  /// ## Parameters:
+  /// - `client`:  
+  ///   A reference to the `Client` client configured for the Google Sheets API.
+  /// - `spreadsheet_id`:  
+  ///   A `&str` representing the unique identifier of the spreadsheet.
+  /// - `sheet_name`:  
+  ///   A `&str` specifying the name of the sheet whose rows are to be retrieved.
+  /// - `row_key`:
+  ///   A `serde_json::Value` represents row's key. Key starts from 1.
+  pub async fn get_row
+  (
+    client : &Client<'_>,
+    spreadsheet_id : &str,
+    sheet_name : &str,
+    row_key : serde_json::Value
+  ) -> Result< Vec< serde_json::Value > >
+  {
+    let range = format!( "{}!A{}:ZZZ{}", sheet_name, row_key, row_key );
+
+    match client
+    .spreadsheet()
+    .values_get( spreadsheet_id, &range )
+    .value_render_option( ValueRenderOption::UnformattedValue )
+    .doit()
+    .await
+    {
+      Ok( response ) => 
+      {
+        match response.values
+        {
+          Some( values ) =>
+          {
+            let row = values
+            .into_iter()
+            .next()
+            .unwrap_or_default();
+
+            Ok( row )
+          },
+          None => Ok( Vec::new() )
+        }
+      }
+      Err( error ) => Err( error )
+    }
+  }
+
   /// # `get_rows`
   ///
   /// Retrieves all rows (excluding the header) from a specific sheet.
@@ -771,6 +821,7 @@ crate::mod_interface!
     OnFail,
     set_cell,
     get_cell,
+    get_row,
     get_rows,
     update_row,
     get_header,
