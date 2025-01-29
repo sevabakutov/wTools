@@ -6,7 +6,6 @@ mod private
 {
   use reqwest::{ self, Url };
   use former::Former;
-use yup_oauth2::hyper::client;
  
   use crate::*;
   use gcore::error::{ Error, Result };
@@ -1061,5 +1060,6 @@ crate::mod_interface!
     UpdateValuesResponse,
     BatchUpdateValuesRequest,
     BatchUpdateValuesResponse,
+    ValuesClearResponse
   };
 }

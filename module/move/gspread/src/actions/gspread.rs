@@ -9,7 +9,8 @@ mod private
   use serde_json::json;
   use std::collections::HashMap;
 
-  use crate::*;
+  use crate::gcore::client::ValuesClearResponse;
+use crate::*;
   use gcore::error::{ Error, Result };
   use gcore::client::
   {
@@ -789,6 +790,43 @@ mod private
     }
   }
 
+  /// # clear
+  /// 
+  /// Clears a provided sheet.
+  /// 
+  /// ## Parameters:
+  /// - `client`:  
+  ///   A reference to the `Client` client configured for the Google Sheets API.
+  /// - `spreadsheet_id`:  
+  ///   A `&str` representing the unique identifier of the spreadsheet.
+  /// - `sheet_name`:
+  ///   A `&str` specifying the name of the sheet where the cell is located.
+  /// 
+  /// ## Returns:
+  /// - Result<[`ValuesClearResponse`]>
+  /// 
+  /// ## Errors:
+  /// - `Error::ApiError`:  
+  ///   Occurs if the Google Sheets API returns an error, such as invalid input or insufficient permissions.
+  pub async fn clear
+  (
+    client : &Client<'_>,
+    spreadsheet_id : &str,
+    sheet_name : &str
+  ) -> Result< ValuesClearResponse >
+  {
+    let range = format!( "{sheet_name}!A:ZZZ" );
+    match client
+    .spreadsheet()
+    .clear( spreadsheet_id, &range )
+    .doit()
+    .await
+    {
+      Ok( response ) => Ok( response ),
+      Err( error ) => Err( error )
+    }
+  }
+
   /// Action to do if one or more rows were found.
   pub enum OnFind
   {
@@ -828,6 +866,7 @@ crate::mod_interface!
     append_row,
     update_rows_by_custom_row_key,
     get_row_by_custom_row_key,
-    get_column
+    get_column,
+    clear
   };
 }
