@@ -7,6 +7,7 @@ mod private
   use std::fmt;
   use crate::*;
   use debug::RowWrapper;
+  use gcore::Secret;
   use gcore::client::Client;
   use commands::gspread::CommonArgs;
   use actions;
@@ -55,21 +56,12 @@ mod private
   ///
   /// Processes the `header` command by retrieving the header (first row) from a specified Google Sheet
   /// and displaying it in a table format in the console.
-  ///
-  /// ## Parameters:
-  /// - `client`:  
-  ///   A `GspreadClient` enum.
-  ///   - `Variants`: 
-  ///     `SheetsType` variant is used for interacting with the Google Sheets API. 
-  ///     `MockClient` variant is used for mock testing.
-  /// - `args`:  
-  ///   A `CommonArgs` instance containing the sheet's URL and tab name.
   /// 
   /// ## Errors:
   /// - Prints an error message if the spreadsheet ID extraction or header retrieval fails.
-  pub async fn command
+  pub async fn command<S: Secret>
   (
-    client : &Client<'_>,
+    client : &Client<'_, S>,
     args : CommonArgs,
   )
   {

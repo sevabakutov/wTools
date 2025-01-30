@@ -7,6 +7,7 @@ mod private
   use serde_json::json;
   
   use crate::*;
+  use gcore::Secret;
   use gcore::client::Client;
   use actions::
   {
@@ -27,7 +28,7 @@ mod private
   /// - `url`:  
   ///   The full URL of the Google Sheet.  
   ///   Example:  
-  ///   `--url 'https://docs.google.com/spreadsheets/d/your_spreadsheet_id/edit?gid=0#gid=0'`
+  ///   `--url 'https://docs.google.com/spreadsheets/d/{spreadsheet_id}/edit?gid={sheet_id}#gid={sheet_id}'`
   ///
   /// - `tab`:  
   ///   The name of the specific sheet (tab) in the Google Spreadsheet.  
@@ -46,7 +47,7 @@ mod private
   /// **Example:**
   /// ```bash
   /// gspread row append \
-  ///   --url 'https://docs.google.com/spreadsheets/d/1EAEdegMpitv-sTuxt8mV8xQxzJE7h_J0MxQoyLH7xxU/edit?gid=0#gid=0' \
+  ///   --url 'https://docs.google.com/spreadsheets/d/{spreadsheet_id}/edit?gid={sheet_id}#gid={sheet_id}' \
   ///   --tab 'tab1' \
   ///   --json '{"A": "Hello", "B": "World"}'
   /// ```
@@ -58,7 +59,7 @@ mod private
   /// - `url`:  
   ///   The full URL of the Google Sheet.  
   ///   Example:  
-  ///   `--url 'https://docs.google.com/spreadsheets/d/your_spreadsheet_id/edit?gid=0#gid=0'`
+  ///   `--url 'https://docs.google.com/spreadsheets/d/{spreadsheet_id}/edit?gid={sheet_id}#gid={sheet_id}'`
   /// 
   /// - `tab`:  
   ///   The name of the specific sheet (tab) in the Google Spreadsheet.  
@@ -79,7 +80,7 @@ mod private
   /// **Example:**
   /// ```bash
   /// gspread row update \
-  /// --url 'https://docs.google.com/spreadsheets/d/1EAEdegMpitv-sTuxt8mV8xQxzJE7h_J0MxQoyLH7xxU/edit?gid=0#gid=0' \
+  /// --url 'https://docs.google.com/spreadsheets/d/{spreadsheet_id}/edit?gid={sheet_id}#gid={sheet_id}' \
   /// --tab tab1 \
   /// --select-row-by-key "id" \
   /// --json '{"id": 2, "A": 1, "B": 2}'
@@ -93,7 +94,7 @@ mod private
   /// - `url`:  
   ///   The full URL of the Google Sheet.  
   ///   Example:  
-  ///   `--url 'https://docs.google.com/spreadsheets/d/your_spreadsheet_id/edit?gid=0#gid=0'`
+  ///   `--url 'https://docs.google.com/spreadsheets/d/{spreadsheet_id}/edit?gid={sheet_id}#gid={sheet_id}'`
   ///
   /// - `tab`:  
   ///   The name of the specific sheet (tab) in the Google Spreadsheet.  
@@ -124,7 +125,7 @@ mod private
   /// **Example:**
   /// ```bash
   /// gspread row update-custom \
-  ///   --url 'https://docs.google.com/spreadsheets/d/1EAEdegMpitv-sTuxt8mV8xQxzJE7h_J0MxQoyLH7xxU/edit?gid=0#gid=0' \
+  ///   --url 'https://docs.google.com/spreadsheets/d/{spreadsheet_id}/edit?gid={sheet_id}#gid={sheet_id}' \
   ///   --tab tab1 \
   ///   --json '{"A": "newVal", "B": "updatedVal"}' \
   ///   --key-by '["C", 12]' \
@@ -139,7 +140,7 @@ mod private
   /// - `url`:  
   ///   The full URL of the Google Sheet.  
   ///   Example:  
-  ///   `--url 'https://docs.google.com/spreadsheets/d/your_spreadsheet_id/edit?gid=0#gid=0'`
+  ///   `--url 'https://docs.google.com/spreadsheets/d/{spreadsheet_id}/edit?gid={sheet_id}#gid={sheet_id}'`
   ///
   /// - `tab`:  
   ///   The name of the specific sheet (tab) in the Google Spreadsheet.  
@@ -154,7 +155,7 @@ mod private
   /// **Example:**
   /// 
   /// gspread row get
-  /// --url 'https://docs.google.com/spreadsheets/d/1EAEdegMpitv-sTuxt8mV8xQxzJE7h_J0MxQoyLH7xxU/edit?gid=0#gid=0' \
+  /// --url 'https://docs.google.com/spreadsheets/d/{spreadsheet_id}/edit?gid={sheet_id}#gid={sheet_id}' \
   /// --tab 'tab1'
   /// 
   /// ### `GetCustom`
@@ -165,7 +166,7 @@ mod private
   /// - `url`:  
   ///   The full URL of the Google Sheet.  
   ///   Example:  
-  ///   `--url 'https://docs.google.com/spreadsheets/d/your_spreadsheet_id/edit?gid=0#gid=0'`
+  ///   `--url 'https://docs.google.com/spreadsheets/d/{spreadsheet_id}/edit?gid={sheet_id}#gid={sheet_id}'`
   ///
   /// - `tab`:  
   ///   The name of the specific sheet (tab) in the Google Spreadsheet.  
@@ -189,28 +190,29 @@ mod private
   /// **Example:**
   /// ```bash
   /// gspread row get-custom \
-  ///   --url 'https://docs.google.com/spreadsheets/d/1EAEdegMpitv-sTuxt8mV8xQxzJE7h_J0MxQoyLH7xxU/edit?gid=0#gid=0' \
+  ///   --url 'https://docs.google.com/spreadsheets/d/{spreadsheet_id}/edit?gid={sheet_id}#gid={sheet_id}' \
   ///   --tab 'Sheet1' \
   ///   --key-by '["C", 12]' \
   ///   --on-find all
   /// ```
   #[ derive( Debug, Subcommand ) ]
+  #[ command( long_about = "\n\nSubcommands for `ROW` command" ) ]
   pub enum Commands
   {
-    /// Appends a new row to at the end of Google Sheet.
-    ///
-    /// **Example:**
-    /// 
-    /// gspread row append
-    ///   --url 'https://docs.google.com/spreadsheets/d/1EAEdegMpitv-sTuxt8mV8xQxzJE7h_J0MxQoyLH7xxU/edit?gid=0#gid=0'
-    ///   --tab 'tab1'
-    ///   --json '{"A": "Hello", "B": "World"}'
-    #[ command( name = "append" ) ]
+    #[ command( name = "append", about = "Appends a new row to at the end of Google Sheet.", long_about = r#"
+    
+Appends a new row to at the end of Google Sheet.
+
+Example:  gspread row append \
+          --url 'https://docs.google.com/spreadsheets/d/{spreadsheet_id}/edit?gid={sheet_id}#gid={sheet_id}' \
+          --tab 'tab1' \
+          --json '{"A": "Hello", "B": "World"}'
+    "# ) ]
     Append
     {
       #[ arg( long, help = "Full URL of Google Sheet.\n\
       It has to be inside of '' to avoid parse errors.\n\
-      Example: 'https://docs.google.com/spreadsheets/d/your_spreadsheet_id/edit?gid=0#gid=0'" ) ]
+      Example: 'https://docs.google.com/spreadsheets/d/{spreadsheet_id}/edit?gid={sheet_id}#gid={sheet_id}'" ) ]
       url : String,
 
       #[ arg( long, help = "Sheet name.\nExample: Sheet1" ) ]
@@ -225,16 +227,16 @@ mod private
       json : String
     },
 
-    /// Updates a specific row in a Google Sheet with a given set of values.
-    /// 
-    /// **Example**:
-    /// 
-    /// gspread row update
-    /// --url 'https://docs.google.com/spreadsheets/d/1EAEdegMpitv-sTuxt8mV8xQxzJE7h_J0MxQoyLH7xxU/edit?gid=0#gid=0'
-    /// --tab tab1
-    /// --select-row-by-key "id"
-    /// --json '{"id": 2, "A": 1, "B": 2}'
-    #[ command( name = "update" ) ]
+    #[ command( name = "update", about = "Updates a specific row in a Google Sheet with a given set of values.", long_about = r#"
+    
+Updates a specific row in a Google Sheet with a given set of values.
+
+Example:  gspread row update
+          --url 'https://docs.google.com/spreadsheets/d/{spreadsheet_id}/edit?gid={sheet_id}#gid={sheet_id}' \
+          --tab tab1 \
+          --select-row-by-key "id" \
+          --json '{"id": 2, "A": 1, "B": 2}'
+    "# ) ]
     Update
     {
       #[ arg( long, help = "Identifier of a row. Available identifiers: id (row's unique identifier).\n\
@@ -252,31 +254,30 @@ mod private
 
       #[ arg( long, help = "Full URL of Google Sheet.\n\
       It has to be inside of '' to avoid parse errors.\n\
-      Example: 'https://docs.google.com/spreadsheets/d/your_spreadsheet_id/edit?gid=0#gid=0'" ) ]
+      Example: 'https://docs.google.com/spreadsheets/d/{spreadsheet_id}/edit?gid={sheet_id}#gid={sheet_id}'" ) ]
       url : String,
 
       #[ arg( long, help = "Sheet name.\nExample: Sheet1" ) ]
       tab : String
     },
 
-    /// Updates one or more rows in a Google Sheet based on a custom key,
-    /// with control over how to handle matches or missing rows.
-    ///
-    /// **Example:**
-    /// 
-    /// gspread row update-custom
-    ///   --url 'https://docs.google.com/spreadsheets/d/1EAEdegMpitv-sTuxt8mV8xQxzJE7h_J0MxQoyLH7xxU/edit?gid=0#gid=0'
-    ///   --tab 'tab1'
-    ///   --json '{"A": "newVal", "B": "updatedVal"}'
-    ///   --key-by '["C", 12]'
-    ///   --on-fail error
-    ///   --on-find first
-    #[ command( name = "update-custom" ) ]
+    #[ command( name = "update-custom", about = "Updates a specific row in a Google Sheet with a given set of values.", long_about = r#"
+    
+Updates one or more rows in a Google Sheet based on a custom key and provided actions `on-fail` and `on-find`.
+
+Example:  gspread row update-custom \
+          --url 'https://docs.google.com/spreadsheets/d/{spreadsheet_id}/edit?gid={sheet_id}#gid={sheet_id}' \
+          --tab 'tab1' \
+          --json '{"A": "newVal", "B": "updatedVal"}' \
+          --key-by '["C", 12]' \
+          --on-fail error \
+          --on-find first
+    "# ) ]
     UpdateCustom
     {
       #[ arg( long, help = "Full URL of Google Sheet.\n\
       It has to be inside of '' to avoid parse errors.\n\
-      Example: 'https://docs.google.com/spreadsheets/d/your_spreadsheet_id/edit?gid=0#gid=0'" ) ]
+      Example: 'https://docs.google.com/spreadsheets/d/{spreadsheet_id}/edit?gid={sheet_id}#gid={sheet_id}'" ) ]
       url : String,
 
       #[ arg( long, help = "Sheet name.\nExample: Sheet1" ) ]
@@ -308,20 +309,20 @@ mod private
       on_find : String
     },
 
-    /// Retreives a specific row from a Google Sheet.
-    /// 
-    /// **Example:**
-    /// 
-    /// gspread row get
-    /// --url 'https://docs.google.com/spreadsheets/d/1EAEdegMpitv-sTuxt8mV8xQxzJE7h_J0MxQoyLH7xxU/edit?gid=0#gid=0' \
-    /// --tab 'tab1'
-    /// --row-key 2
-    #[ command( name = "get" ) ]
+    #[ command( name = "get", about = "Retreives a specific row from a Google Sheet.", long_about = r#"
+    
+Retreives a specific row from a Google Sheet.
+
+Example:  gspread row get \
+          --url 'https://docs.google.com/spreadsheets/d/{spreadsheet_id}/edit?gid={sheet_id}#gid={sheet_id}' \
+          --tab 'tab1' \
+          --row-key 2
+    "# ) ]
     Get
     {
       #[ arg( long, help = "Full URL of Google Sheet.\n\
       It has to be inside of '' to avoid parse errors.\n\
-      Example: 'https://docs.google.com/spreadsheets/d/your_spreadsheet_id/edit?gid=0#gid=0'" ) ]
+      Example: 'https://docs.google.com/spreadsheets/d/{spreadsheet_id}/edit?gid={sheet_id}#gid={sheet_id}'" ) ]
       url : String,
 
       #[ arg( long, help = "Sheet name.\nExample: Sheet1" ) ]
@@ -331,22 +332,21 @@ mod private
       row_key : u32,
     },
 
-    /// Retrieves one or more rows from a Google Sheet based on a custom key condition,
-    /// specifying how to handle multiple matches.
-    /// 
-    /// **Example:**
-    /// 
-    /// gspread row get-custom
-    ///   --url 'https://docs.google.com/spreadsheets/d/1EAEdegMpitv-sTuxt8mV8xQxzJE7h_J0MxQoyLH7xxU/edit?gid=0#gid=0' \
-    ///   --tab 'tab1'
-    ///   --key-by '["C", 12]'
-    ///   --on-find all
-    #[ command( name = "get-custom" ) ]
+    #[ command( name = "get-custom", about = "Retreives a specific row from a Google Sheet.", long_about = r#"
+    
+Retrieves one or more rows from a Google Sheet based on a custom key and `on-find` action.
+
+Example:  gspread row get-custom \
+          --url 'https://docs.google.com/spreadsheets/d/{spreadsheet_id}/edit?gid={sheet_id}#gid={sheet_id}' \
+          --tab 'tab1' \
+          --key-by '["C", 12]' \
+          --on-find all
+    "# ) ]
     GetCustom
     {
       #[ arg( long, help = "Full URL of Google Sheet.\n\
       It has to be inside of '' to avoid parse errors.\n\
-      Example: 'https://docs.google.com/spreadsheets/d/your_spreadsheet_id/edit?gid=0#gid=0'" ) ]
+      Example: 'https://docs.google.com/spreadsheets/d/{spreadsheet_id}/edit?gid={sheet_id}#gid={sheet_id}'" ) ]
       url : String,
 
       #[ arg( long, help = "Sheet name.\nExample: Sheet1" ) ]
@@ -364,9 +364,9 @@ mod private
     }
   }
 
-  pub async fn command
+  pub async fn command<S: Secret>
   (
-    client : &Client<'_>,
+    client : &Client<'_, S>,
     commands : Commands
   )
   {

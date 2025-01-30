@@ -10,7 +10,7 @@ use gspread::
     get_row_by_custom_row_key, 
     OnFind
   },
-  gcore::client::Client,
+  gcore::{client::Client, ApplicationSecret},
 };
 use serde_json::json;
 
@@ -54,7 +54,7 @@ async fn test_mock_get_row_by_custom_row_key_no_matches() {
   });
 
   let endpoint = server.url( "" );
-  let client = Client::former()
+  let client: Client<'_, ApplicationSecret> = Client::former()
   .endpoint( &*endpoint )
   .form();
 
@@ -124,7 +124,7 @@ async fn test_mock_get_row_by_custom_row_key_multiple_matches_last()
   });
 
   let endpoint = server.url( "" );
-  let client = Client::former()
+  let client: Client<'_, ApplicationSecret> = Client::former()
   .endpoint( &*endpoint )
   .form();
 

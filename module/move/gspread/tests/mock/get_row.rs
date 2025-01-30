@@ -7,10 +7,10 @@ use serde_json::json;
 use gspread::
 {
   actions::gspread::get_row, 
-  gcore::client::
+  gcore::{client::
   {
     Client, ValueRange
-  }
+  }, ApplicationSecret}
 };
 
 
@@ -50,7 +50,7 @@ async fn test_mock_get_row_should_work()
 
   // 2. Create a client.
   let endpoint = server.url( "" );
-  let client = Client::former()
+  let client: Client<'_, ApplicationSecret> = Client::former()
   .endpoint( &*endpoint )
   .form();
 
@@ -102,7 +102,7 @@ async fn test_mock_get_row_no_data_should_work()
 
   // 2. Create a client.
   let endpoint = server.url( "" );
-  let client = Client::former()
+  let client: Client<'_, ApplicationSecret> = Client::former()
   .endpoint( &*endpoint )
   .form();
 
@@ -147,7 +147,7 @@ async fn test_mock_get_row_with_error_should_panic()
   } );
 
   let endpoint = server.url( "" );
-  let client = Client::former()
+  let client: Client<'_, ApplicationSecret> = Client::former()
   .endpoint( &*endpoint )
   .form();
 

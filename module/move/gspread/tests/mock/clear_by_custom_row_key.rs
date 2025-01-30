@@ -7,10 +7,10 @@ use serde_json::json;
 use gspread::
 {
   actions::gspread::{clear_by_custom_row_key, OnFind}, 
-  gcore::client::
+  gcore::{client::
   {
     BatchClearValuesResponse, Client, Dimension, ValueRange 
-  },
+  }, ApplicationSecret},
 };
 
 
@@ -70,7 +70,7 @@ async fn test_mock_clear_by_custom_row_key_should_work()
   } );
 
   let endpoint = server.url( "" );
-  let client = Client::former()
+  let client: Client<'_, ApplicationSecret> = Client::former()
   .endpoint( &*endpoint )
   .form();
 
@@ -131,7 +131,7 @@ async fn test_mock_clear_by_custom_row_key_no_matches_should_return_default()
   } );
 
   let endpoint = server.url( "" );
-  let client = Client::former()
+  let client: Client<'_, ApplicationSecret> = Client::former()
   .endpoint( &*endpoint )
   .form();
 
@@ -184,7 +184,7 @@ async fn test_mock_clear_by_custom_row_key_error_in_get_column_should_panic()
   } );
 
   let endpoint = server.url( "" );
-  let client = Client::former()
+  let client: Client<'_, ApplicationSecret> = Client::former()
   .endpoint( &*endpoint )
   .form();
 
@@ -250,7 +250,7 @@ async fn test_mock_clear_by_custom_row_key_error_in_batch_clear_should_panic()
   } );
 
   let endpoint = server.url( "" );
-  let client = Client::former()
+  let client: Client<'_, ApplicationSecret> = Client::former()
   .endpoint( &*endpoint )
   .form();
 

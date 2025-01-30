@@ -9,6 +9,7 @@ mod private
 {
   use crate::*;
   use actions::gspread::set_cell;
+  use gcore::Secret;
   use gcore::error::
   {
     Error,
@@ -17,9 +18,9 @@ mod private
   use gcore::client::Client;
   use serde_json::json;
 
-  pub async fn action
+  pub async fn action<S: Secret>
   (
-    client : &Client<'_>,
+    client : &Client<'_, S>,
     spreadsheet_id : &str,
     sheet_name : &str,
     cell_id : &str,

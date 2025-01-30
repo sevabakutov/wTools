@@ -8,12 +8,12 @@ use serde_json::json;
 use gspread::
 {
   actions::gspread::update_row, 
-  gcore::client::
+  gcore::{client::
   {BatchUpdateValuesResponse, 
     Client, 
     Dimension, 
     ValueRange
-  }
+  }, ApplicationSecret}
 };
 
 /// # What
@@ -67,7 +67,7 @@ async fn test_mock_update_row_should_work()
 
   // 2. Create a client.
   let endpoint = server.url("");
-  let client = Client::former()
+  let client: Client<'_, ApplicationSecret> = Client::former()
   .endpoint( &*endpoint )
   .form();
 
@@ -127,7 +127,7 @@ async fn test_mock_update_row_with_empty_values_should_work()
 
   // 2. Create a client.
   let endpoint = server.url("");
-  let client = Client::former()
+  let client: Client<'_, ApplicationSecret> = Client::former()
   .endpoint( &*endpoint )
   .form();
 
@@ -177,7 +177,7 @@ async fn test_mock_update_row_with_invalid_row_key_should_panic()
 
   // 2. Create a client.
   let endpoint = server.url("");
-  let client = Client::former()
+  let client: Client<'_, ApplicationSecret> = Client::former()
   .endpoint( &*endpoint )
   .form();
 
@@ -214,7 +214,7 @@ async fn test_mock_update_row_with_invalid_row_key_val_should_panic()
 
   // 2. Create a client.
   let endpoint = server.url("");
-  let client = Client::former()
+  let client: Client<'_, ApplicationSecret> = Client::former()
   .endpoint( &*endpoint )
   .form();
 

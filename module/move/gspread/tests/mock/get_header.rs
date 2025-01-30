@@ -3,6 +3,7 @@
 //! It can return only one of the common errors.
 //! 
 
+use gspread::gcore::ApplicationSecret;
 use httpmock::prelude::*;
 
 use serde_json::json;
@@ -51,7 +52,7 @@ async fn test_mock_get_header_should_work()
 
   // 2. Create a client. 
   let endpoint = server.url("");
-  let client = Client::former()
+  let client: Client<'_, ApplicationSecret> = Client::former()
   .endpoint( &*endpoint )
   .form();
 
@@ -93,7 +94,7 @@ async fn test_mock_get_header_with_empty_column_betwee_columns_should_work()
 
   // 2. Create a client. 
   let endpoint = server.url("");
-  let client = Client::former()
+  let client: Client<'_, ApplicationSecret> = Client::former()
   .endpoint( &*endpoint )
   .form();
 
@@ -135,7 +136,7 @@ async fn test_mock_get_header_with_empty_first_column_should_work()
 
   // 2. Create a client. 
   let endpoint = server.url("");
-  let client = Client::former()
+  let client: Client<'_, ApplicationSecret> = Client::former()
   .endpoint( &*endpoint )
   .form();
 
@@ -177,7 +178,7 @@ async fn test_mock_get_header_with_empty_column_columns_should_work()
 
   // 2. Create a client. 
   let endpoint = server.url("");
-  let client = Client::former()
+  let client: Client<'_, ApplicationSecret> = Client::former()
   .endpoint( &*endpoint )
   .form();
 

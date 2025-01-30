@@ -5,6 +5,7 @@ mod private
   use std::collections::HashMap;
   use crate::*;
   use actions::gspread::append_row;
+  use gcore::Secret;
   use gcore::client::Client;
   use gcore::error::{ Error, Result };
 
@@ -26,9 +27,9 @@ mod private
     Ok( parsed_json )
   }
 
-  pub async fn action
+  pub async fn action<S: Secret>
   (
-    client : &Client<'_>,
+    client : &Client<'_, S>,
     spreadsheet_id : &str,
     sheet_name : &str,
     json_str : &str

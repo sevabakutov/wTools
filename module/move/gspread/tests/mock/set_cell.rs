@@ -2,6 +2,7 @@
 //! Tests for `set_cell` function.
 //! 
 
+use gspread::gcore::ApplicationSecret;
 use httpmock::prelude::*;
 
 use serde_json::json;
@@ -60,7 +61,7 @@ async fn test_mock_set_cell_should_work()
   // 2. Create a client.
   let endpoint = server.url( "" );
 
-  let client = Client::former()
+  let client: Client<'_, ApplicationSecret> = Client::former()
   .endpoint( &*endpoint )
   .form();
 
@@ -116,7 +117,7 @@ async fn test_mock_set_cell_bad_cell_id_should_panic()
 
   // 2. Create a client.
   let endpoint = server.url( "" );
-  let client = Client::former()
+  let client: Client<'_, ApplicationSecret> = Client::former()
   .endpoint( &*endpoint )
   .form();
 

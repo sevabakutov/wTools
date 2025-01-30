@@ -5,13 +5,14 @@
 mod private
 {
   use crate::*;
+  use gcore::Secret;
   use gcore::error::Result;
   use gcore::client::Client;
   use actions::gspread::get_column; 
 
-  pub async fn action
+  pub async fn action<S: Secret>
   (
-    client : &Client<'_>,
+    client : &Client<'_, S>,
     spreadsheet_id : &str,
     sheet_name : &str,
     column_id : &str

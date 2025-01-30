@@ -21,8 +21,7 @@ async fn main() -> Result< (), Box< dyn Error > >
   let secret = ApplicationSecret::read();
 
   let client = Client::former()
-  .token( &secret )
-  .await?
+  .secret( &secret )
   .form();
 
   let cli = Cli::parse();

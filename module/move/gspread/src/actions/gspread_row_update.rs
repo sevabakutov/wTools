@@ -7,7 +7,8 @@ mod private
   use std::collections::HashMap;
 
   use crate::*;
-  use ser::Deserialize; 
+  use ser::Deserialize;
+  use gcore::Secret; 
   use gcore::client::Client;
   use gcore::error::{ Error, Result };
   use actions::gspread::update_row;
@@ -111,9 +112,9 @@ mod private
     }
   }
 
-  pub async fn action
+  pub async fn action<S: Secret>
   (
-    client : &Client<'_>,
+    client : &Client<'_, S>,
     select_row_by_key : &str,
     json_str : &str,
     spreadsheet_id : &str,

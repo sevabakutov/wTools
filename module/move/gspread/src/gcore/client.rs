@@ -6,9 +6,9 @@ mod private
 {
   use reqwest::{ self, Url };
   use former::Former;
-use serde_json::json;
+  use serde_json::json;
  
-  use crate::*;
+  use crate::{gcore::Secret, *};
   use gcore::error::{ Error, Result };
   use ser::
   { 
@@ -51,40 +51,20 @@ use serde_json::json;
   /// You can use this client also for mock testing. In such case you need to provide `endpoint`
   /// using `endpoint( url )` and there is no need to set `token`.
   /// 
-  /// ```rust,ignore
-  /// # use gspread::*;
-  /// # use gcore::Secret;
-  /// # use gcore::client::Client;
-  /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
-  /// dotenv().ok();
-  /// let secret = Secret::read();
-  ///
-  /// // Build a new Client with an OAuth2 token
-  /// let client = Client::former()
-  ///     .token(&secret)
-  ///     .await? 
-  ///     .form();
-  ///
-  /// # Ok(())
-  /// # }
-  /// ```
-  /// 
   /// Once the `Client` is fully constructed, you can use the `spreadsheet()` method
   /// to access various Google Sheets API operations, such as reading or updating
   /// spreadsheet cells.
   #[ derive( Former ) ]
-  pub struct Client<'a>
+  pub struct Client<'a, S: Secret + 'a >
   {
-    #[ former( default = "" ) ]
-    #[ scalar( setter = false ) ]
-    token : String,
+    secret : Option< &'a S >,
     #[ former( default = GOOGLE_API_URL ) ]
     endpoint : &'a str,
   }
 
-  impl Client<'_>
+  impl<S: Secret> Client<'_, S>
   {
-    pub fn spreadsheet( &self ) -> SpreadSheetValuesMethod
+    pub fn spreadsheet( &self ) -> SpreadSheetValuesMethod<S>
     {
       SpreadSheetValuesMethod
       {
@@ -92,27 +72,12 @@ use serde_json::json;
       }
     }
 
-    pub fn sheet( &self ) -> SpreadSheetMethod
+    pub fn sheet( &self ) -> SpreadSheetMethod<S>
     {
       SpreadSheetMethod
       {
         client : self
       }
-    }
-  }
-
-  // Custom initialization for auth field.
-  impl< 'a, Definition > ClientFormer< 'a, Definition >
-  where
-    Definition : former::FormerDefinition< Storage = ClientFormerStorage<'a> >,
-  {
-    pub async fn token< S >( mut self, secret : &S ) -> Result< Self > where S : gcore::Secret
-    {
-      debug_assert!( self.storage.token.is_none() );
-
-      self.storage.token = Some( secret.get_token().await? );
-      
-      Ok( self )
     }
   }
 
@@ -138,12 +103,12 @@ use serde_json::json;
   ///
   /// This struct is usually obtained by calling the `sheet()` method on a
   /// fully-initialized [`Client`] instance:
-  pub struct SpreadSheetMethod<'a>
+  pub struct SpreadSheetMethod<'a, S: Secret>
   {
-    client : &'a Client<'a>,
+    client : &'a Client<'a, S>,
   }
 
-  impl SpreadSheetMethod<'_>
+  impl<S: Secret> SpreadSheetMethod<'_, S>
   {
     /// Build SheetCopyMethod.
     pub fn copy_to<'a>
@@ -152,7 +117,7 @@ use serde_json::json;
       spreadsheet_id : &'a str,
       sheet_id : &'a str,
       dest : &'a str
-    ) -> SheetCopyMethod<'a>
+    ) -> SheetCopyMethod<'a, S>
     {
       SheetCopyMethod
       {
@@ -187,15 +152,15 @@ use serde_json::json;
   ///
   /// - `doit()`  
   ///   Sends the configured request to the Google Sheets API to copy a source sheet to destinayion one.
-  pub struct SheetCopyMethod<'a>
+  pub struct SheetCopyMethod<'a, S: Secret>
   {
-    client : &'a Client<'a>,
+    client : &'a Client<'a, S>,
     _spreadsheet_id : &'a str,
     _sheet_id : &'a str,
     _dest : &'a str
   }
 
-  impl SheetCopyMethod<'_>
+  impl<S: Secret> SheetCopyMethod<'_, S>
   {
     /// Sends the POST request to
     /// https://sheets.googleapis.com/v4/spreadsheets/{spreadsheetId}/sheets/{sheetId}:copyTo
@@ -221,10 +186,20 @@ use serde_json::json;
         dest : Some( self._dest.to_string() )
       };
 
+      let token = if let Some( secret ) = self.client.secret 
+      {
+        secret
+        .get_token()
+        .await
+        .map_err(|err| Error::ApiError(err.to_string()))?
+      } else {
+        "".to_string()
+      };
+
       let response = reqwest::Client::new()
       .post( endpoint )
       .json( &request )
-      .bearer_auth( &self.client.token )
+      .bearer_auth( token )
       .send()
       .await
       .map_err( | err | Error::ApiError( err.to_string() ) )?;
@@ -292,12 +267,12 @@ use serde_json::json;
   ///
   /// This struct is usually obtained by calling the `spreadsheet()` method on a
   /// fully-initialized [`Client`] instance:
-  pub struct SpreadSheetValuesMethod<'a>
+  pub struct SpreadSheetValuesMethod<'a, S: Secret>
   {
-    client : &'a Client<'a>,
+    client : &'a Client<'a, S>,
   }
 
-  impl SpreadSheetValuesMethod<'_>
+  impl<S: Secret> SpreadSheetValuesMethod<'_, S>
   {
     /// Creates a new request object that updates the values within the specified `range`
     /// of the spreadsheet identified by `spreadsheet_id`, using the provided `value_range`.
@@ -306,7 +281,7 @@ use serde_json::json;
       &self,
       spreadsheet_id : &str,
       range : &str
-    ) -> ValuesGetMethod
+    ) -> ValuesGetMethod<S>
     {
       ValuesGetMethod
       {
@@ -324,7 +299,7 @@ use serde_json::json;
     (
       &'a self,
       spreadsheet_id : &'a str,
-    ) -> ValuesBatchGetMethod<'a>
+    ) -> ValuesBatchGetMethod<'a, S>
     {
       ValuesBatchGetMethod
       {
@@ -345,7 +320,7 @@ use serde_json::json;
       value_range : ValueRange,
       spreadsheet_id : &'a str,
       range : &'a str 
-    ) -> ValuesUpdateMethod<'a>
+    ) -> ValuesUpdateMethod<'a, S>
     {
       ValuesUpdateMethod
       {
@@ -368,7 +343,7 @@ use serde_json::json;
       &self,
       spreadsheet_id : &str,
       req : BatchUpdateValuesRequest,
-    ) -> ValuesBatchUpdateMethod
+    ) -> ValuesBatchUpdateMethod<S>
     {
       ValuesBatchUpdateMethod
       {
@@ -385,7 +360,7 @@ use serde_json::json;
       spreadsheet_id : &'a str,
       range : &'a str,
       value_range : ValueRange
-    ) -> ValuesAppendMethod<'a>
+    ) -> ValuesAppendMethod<'a, S>
     {
       ValuesAppendMethod
       {
@@ -407,7 +382,7 @@ use serde_json::json;
       &'a self,
       spreadsheet_id : &'a str,
       range : &'a str
-    ) -> ValuesClearMethod<'a>
+    ) -> ValuesClearMethod<'a, S>
     {
       ValuesClearMethod
       {
@@ -423,7 +398,7 @@ use serde_json::json;
       &'a self,
       spreadsheet_id : &'a str,
       req : BatchClearValuesRequest
-    ) -> ValuesBatchClearMethod<'a>
+    ) -> ValuesBatchClearMethod<'a, S>
     {
       ValuesBatchClearMethod
       {
@@ -466,9 +441,9 @@ use serde_json::json;
   ///   Sends the configured request to the Google Sheets API to retrieve the
   ///   specified range of values. Returns a [`ValueRange`] on success, or an
   ///   [`Error`] if the API request fails.
-  pub struct ValuesGetMethod<'a>
+  pub struct ValuesGetMethod<'a, S: Secret>
   {
-    client : &'a Client<'a>,
+    client : &'a Client<'a, S>,
     _spreadsheet_id : String,
     _range : String,
     _major_dimension : Option< Dimension >,
@@ -476,7 +451,7 @@ use serde_json::json;
     _date_time_render_option : Option< DateTimeRenderOption >
   }
 
-  impl ValuesGetMethod<'_>
+  impl<S: Secret> ValuesGetMethod<'_, S>
   {
     /// The major dimension that results should use. For example, if the spreadsheet data is: `A1=1,B1=2,A2=3,B2=4`, then requesting `ranges=["A1:B2"],majorDimension=ROWS` returns `[[1,2],[3,4]]`, whereas requesting `ranges=["A1:B2"],majorDimension=COLUMNS` returns `[[1,3],[2,4]]`.
     ///
@@ -518,10 +493,20 @@ use serde_json::json;
         date_time_render_option : self._date_time_render_option
       };
 
+      let token = if let Some( secret ) = self.client.secret 
+      {
+        secret
+        .get_token()
+        .await
+        .map_err(|err| Error::ApiError(err.to_string()))?
+      } else {
+        "".to_string()
+      };
+
       let response = reqwest::Client::new()
       .get( endpoint )
       .query( &query )
-      .bearer_auth( &self.client.token )
+      .bearer_auth( token )
       .send()
       .await
       .map_err( | err | Error::ApiError( err.to_string() ) )?;
@@ -554,9 +539,9 @@ use serde_json::json;
   /// 
   /// Then, by calling [`ValuesBatchGetMethod::doit`], you send the `GET` request to retrieve all those ranges in a single batch.  
   /// On success, it returns a [`BatchGetValuesResponse`] with the data. On error, it returns an [`Error`].
-  pub struct ValuesBatchGetMethod<'a>
+  pub struct ValuesBatchGetMethod<'a, S: Secret>
   {
-    client : &'a Client<'a>,
+    client : &'a Client<'a, S>,
     _spreadsheet_id : &'a str,
     _ranges : Vec< String >,
     _major_dimension : Option< Dimension >,
@@ -564,7 +549,7 @@ use serde_json::json;
     _date_time_render_option : Option< DateTimeRenderOption >
   }
 
-  impl<'a> ValuesBatchGetMethod<'a>
+  impl<'a, S: Secret> ValuesBatchGetMethod<'a, S>
   {
     /// Executes the request configured by `ValuesBatchGetMethod`.
     ///
@@ -592,11 +577,21 @@ use serde_json::json;
         }
       }
 
+      let token = if let Some( secret ) = self.client.secret 
+      {
+        secret
+        .get_token()
+        .await
+        .map_err(|err| Error::ApiError(err.to_string()))?
+      } else {
+        "".to_string()
+      };
+
       url = parsed_url.into();
 
       let response = reqwest::Client::new()
       .get( url )
-      .bearer_auth( &self.client.token )
+      .bearer_auth( token )
       .send()
       .await
       .map_err( | err | Error::ApiError( err.to_string() ) )?;
@@ -619,7 +614,7 @@ use serde_json::json;
     }
 
     /// Set ranges to retrive in A1 notation format.
-    pub fn ranges( mut self, new_val : Vec< String >  ) -> ValuesBatchGetMethod<'a>
+    pub fn ranges( mut self, new_val : Vec< String >  ) -> ValuesBatchGetMethod<'a, S>
     {
       self._ranges = new_val;
       self
@@ -664,9 +659,9 @@ use serde_json::json;
   ///   Sends the configured request to the Google Sheets API to update the specified
   ///   range with new data. Returns an [`UpdateValuesResponse`] on success, or an
   ///   [`Error`] if the API request fails.
-  pub struct ValuesUpdateMethod<'a>
+  pub struct ValuesUpdateMethod<'a, S: Secret>
   {
-    client : &'a Client<'a>,
+    client : &'a Client<'a, S>,
     _value_range : ValueRange,
     _spreadsheet_id : &'a str,
     _range : &'a str,
@@ -676,7 +671,7 @@ use serde_json::json;
     _response_date_time_render_option : Option< DateTimeRenderOption >
   }
 
-  impl ValuesUpdateMethod<'_>
+  impl< S: Secret > ValuesUpdateMethod< '_, S >
   {
     /// Executes the request configured by `ValuesUpdateMethod`.
     ///
@@ -702,11 +697,21 @@ use serde_json::json;
         response_date_time_render_option : self._response_date_time_render_option
       };
 
+      let token = if let Some( secret ) = self.client.secret 
+      {
+        secret
+        .get_token()
+        .await
+        .map_err(|err| Error::ApiError(err.to_string()))?
+      } else {
+        "".to_string()
+      };
+
       let response = reqwest::Client::new()
       .put( endpoint )
       .query( &query )
       .json( &self._value_range )
-      .bearer_auth( &self.client.token )
+      .bearer_auth( token )
       .send()
       .await
       .map_err( | err | Error::ApiError( err.to_string() ) )?;
@@ -755,14 +760,14 @@ use serde_json::json;
   ///   Sends the configured request to the Google Sheets API to perform multiple
   ///   updates on the target spreadsheet. Returns a [`BatchUpdateValuesResponse`]
   ///   on success, or an [`Error`] if the API request fails.
-  pub struct ValuesBatchUpdateMethod<'a>
+  pub struct ValuesBatchUpdateMethod<'a, S: Secret>
   {
-    pub client : &'a Client<'a>,
+    pub client : &'a Client<'a, S>,
     pub _spreadsheet_id : String,
     pub _request : BatchUpdateValuesRequest
   }
 
-  impl ValuesBatchUpdateMethod<'_>
+  impl< S: Secret > ValuesBatchUpdateMethod<'_, S>
   {
     /// Executes the request configured by `ValuesBatchUpdateMethod`.
     ///
@@ -779,10 +784,20 @@ use serde_json::json;
         self._spreadsheet_id
       );
 
+      let token = if let Some( secret ) = self.client.secret 
+      {
+        secret
+        .get_token()
+        .await
+        .map_err(|err| Error::ApiError(err.to_string()))?
+      } else {
+        "".to_string()
+      };
+
       let response = reqwest::Client::new()
       .post( endpoint )
       .json( &self._request )
-      .bearer_auth( &self.client.token )
+      .bearer_auth( token )
       .send()
       .await
       .map_err( | err | Error::ApiError( err.to_string() ) )?;
@@ -816,9 +831,9 @@ use serde_json::json;
   /// 
   /// On success, it returns a [`ValuesAppendResponse`] containing metadata about the append result.
   /// On error, returns an [`Error`].
-  pub struct ValuesAppendMethod<'a>
+  pub struct ValuesAppendMethod<'a, S: Secret>
   {
-    client : &'a Client<'a>,
+    client : &'a Client<'a, S>,
     _value_range : ValueRange,
     _spreadsheet_id : &'a str,
     _range : &'a str,
@@ -829,7 +844,7 @@ use serde_json::json;
     _response_date_time_render_option : Option< DateTimeRenderOption >
   }
 
-  impl ValuesAppendMethod<'_>
+  impl< S: Secret > ValuesAppendMethod<'_, S>
   {
     /// Executes the configured append request.
     ///
@@ -864,11 +879,21 @@ use serde_json::json;
         response_date_time_render_option : self._response_date_time_render_option
       };
 
+      let token = if let Some( secret ) = self.client.secret 
+      {
+        secret
+        .get_token()
+        .await
+        .map_err(|err| Error::ApiError(err.to_string()))?
+      } else {
+        "".to_string()
+      };
+
       let response = reqwest::Client::new()
       .post( endpoint )
       .query( &query )
       .json( &self._value_range )
-      .bearer_auth( &self.client.token )
+      .bearer_auth( token )
       .send()
       .await
       .map_err( | err | Error::ApiError( err.to_string() ) )?;
@@ -900,14 +925,14 @@ use serde_json::json;
   /// 
   /// On success, it returns a [`ValuesClearResponse`] containing metadata about the clear result.
   /// On error, returns an [`Error`].
-  pub struct ValuesClearMethod<'a>
+  pub struct ValuesClearMethod<'a, S: Secret>
   {
-    client : &'a Client<'a>,
+    client : &'a Client<'a, S>,
     _spreadsheet_id : &'a str,
     _range : &'a str
   }
 
-  impl ValuesClearMethod<'_>
+  impl<S: Secret> ValuesClearMethod<'_, S>
   {
     /// Executes the configured clear request.
     ///
@@ -930,10 +955,20 @@ use serde_json::json;
         self._range
       );
 
+      let token = if let Some( secret ) = self.client.secret 
+      {
+        secret
+        .get_token()
+        .await
+        .map_err(|err| Error::ApiError(err.to_string()))?
+      } else {
+        "".to_string()
+      };
+
       let response = reqwest::Client::new()
       .post( endpoint )
       .json( &json!( {} ) )
-      .bearer_auth( &self.client.token )
+      .bearer_auth( token )
       .send()
       .await
       .map_err( | err | Error::ApiError( err.to_string() ) )?;
@@ -965,14 +1000,14 @@ use serde_json::json;
   /// 
   /// On success, it returns a [`BatchClearValuesResponse`] containing metadata about the clear result.
   /// On error, returns an [`Error`].
-  pub struct ValuesBatchClearMethod<'a>
+  pub struct ValuesBatchClearMethod<'a, S: Secret>
   {
-    client : &'a Client<'a>,
+    client : &'a Client<'a, S>,
     _spreadsheet_id : &'a str,
     _request : BatchClearValuesRequest
   }
 
-  impl ValuesBatchClearMethod<'_>
+  impl<S: Secret> ValuesBatchClearMethod<'_, S>
   {
     /// Executes the configured clear request.
     ///
@@ -994,10 +1029,20 @@ use serde_json::json;
         self._spreadsheet_id
       );
 
+      let token = if let Some( secret ) = self.client.secret 
+      {
+        secret
+        .get_token()
+        .await
+        .map_err(|err| Error::ApiError(err.to_string()))?
+      } else {
+        "".to_string()
+      };
+
       let response = reqwest::Client::new()
       .post( endpoint )
       .json( &self._request )
-      .bearer_auth( &self.client.token )
+      .bearer_auth( token )
       .send()
       .await
       .map_err( | err | Error::ApiError( err.to_string() ) )?;

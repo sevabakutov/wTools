@@ -4,6 +4,7 @@
 mod private
 {
   use crate::*;
+  use gcore::Secret;
   use gcore::error::Result;
   use gcore::client::Client;
   use actions::gspread::update_rows_by_custom_row_key;
@@ -16,9 +17,9 @@ mod private
   };
 
 
-  pub async fn action
+  pub async fn action<S: Secret>
   (
-    client : &Client<'_>,
+    client : &Client<'_, S>,
     spreadsheet_id : &str,
     sheet_name : &str,
     key_by : &str,

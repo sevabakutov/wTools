@@ -6,6 +6,7 @@ mod private
 {
   use crate::*;
   use actions;
+  use gcore::Secret;
   use gcore::client::Client;
   use debug::{ Report, RowWrapper };
   use commands::gspread::CommonArgs;
@@ -16,20 +17,11 @@ mod private
   /// Processes the `rows` command by retrieving rows from a specified Google Sheet
   /// and displaying them in a table format in the console.
   ///
-  /// ## Parameters:
-  /// - `client`:  
-  ///   A `GspreadClient` enum.
-  ///   - `Variants`: 
-  ///     `SheetsType` variant is used for interacting with the Google Sheets API. 
-  ///     `MockClient` variant is used for mock testing.
-  /// - `args`:  
-  ///   A `CommonArgs` instance containing the sheet's URL and tab name.
-  ///
   /// ## Errors:
   /// - Prints an error message if the spreadsheet ID extraction or row retrieval fails.
-  pub async fn command
+  pub async fn command<S: Secret>
   (
-    client : &Client<'_>,
+    client : &Client<'_, S>,
     args : CommonArgs
   )
   {

@@ -6,9 +6,10 @@ mod private
 {
 
   use clap::Subcommand;
-  use gcore::client::Client;
-
   use crate::*;
+
+  use gcore::client::Client;
+  use gcore::Secret;
   use actions;
   use actions::utils::get_spreadsheet_id_from_url;
 
@@ -25,7 +26,7 @@ mod private
   /// **Arguments:**
   /// - `url`:  
   ///   The full URL of the Google Sheet.  
-  ///   Example: `'https://docs.google.com/spreadsheets/d/your_spreadsheet_id/edit?gid=0#gid=0'`.
+  ///   Example: `'https://docs.google.com/spreadsheets/d/{spreadsheet_id}/edit?gid={sheet_id}#gid={sheet_id}'`.
   ///
   /// - `tab`:  
   ///   The name of the specific sheet to target.  
@@ -38,7 +39,7 @@ mod private
   /// **Example:**
   /// ```bash
   /// gspread cell get \
-  /// --url 'https://docs.google.com/spreadsheets/d/1EAEdegMpitv-sTuxt8mV8xQxzJE7h_J0MxQoyLH7xxU/edit?gid=0#gid=0' \
+  /// --url 'https://docs.google.com/spreadsheets/d/{spreadsheet_id}/edit?gid={sheet_id}#gid={sheet_id}' \
   /// --tab tab1 \
   /// --cell A1
   /// ```
@@ -50,7 +51,7 @@ mod private
   /// **Arguments:**
   /// - `url`:  
   ///   The full URL of the Google Sheet.  
-  ///   Example: `'https://docs.google.com/spreadsheets/d/your_spreadsheet_id/edit?gid=0#gid=0'`.
+  ///   Example: `'https://docs.google.com/spreadsheets/d/{spreadsheet_id}/edit?gid={sheet_id}#gid={sheet_id}'`.
   ///
   /// - `tab`:  
   ///   The name of the specific sheet to target.  
@@ -67,28 +68,29 @@ mod private
   /// **Example:**
   /// ```bash
   /// gspread cell set \
-  /// --url 'https://docs.google.com/spreadsheets/d/1EAEdegMpitv-sTuxt8mV8xQxzJE7h_J0MxQoyLH7xxU/edit?gid=0#gid=0' \
+  /// --url 'https://docs.google.com/spreadsheets/d/{spreadsheet_id}/edit?gid={sheet_id}#gid={sheet_id}' \
   /// --tab tab1 \
   /// --cell A1 \
   /// --val 13
   /// ```
   #[ derive( Debug, Subcommand ) ]
+  #[ command( long_about = "\n\nSubcommands for the `CELL` command, used to interact with individual cells in a Google Sheet." ) ]
   pub enum Commands
   {
-    /// Retrieves a single cell of a specific sheet.
-    /// 
-    /// **Example**:
-    /// 
-    /// gspread cell get
-    /// --url 'https://docs.google.com/spreadsheets/d/1EAEdegMpitv-sTuxt8mV8xQxzJE7h_J0MxQoyLH7xxU/edit?gid=0#gid=0'
-    /// --tab tab1
-    /// --cell A1
-    #[ command( name = "get" ) ]
+    #[ command( name = "get", about = "Retrieves a single cell of a specific sheet.", long_about = r#"
+    
+Retrieves a single cell of a specific sheet.
+
+Example:  gspread cell get \
+          --url 'https://docs.google.com/spreadsheets/d/{spreadsheet_id}/edit?gid={sheet_id}#gid={sheet_id}' \
+          --tab tab1 \
+          --cell A1
+    "# ) ]
     Get
     {
       #[ arg( long, help = "Full URL of Google Sheet.\n\
       It has to be inside of '' to avoid parse errors.\n\
-      Example: 'https://docs.google.com/spreadsheets/d/your_spreadsheet_id/edit?gid=0#gid=0'" ) ]
+      Example: 'https://docs.google.com/spreadsheets/d/{spreadsheet_id}/edit?gid={sheet_id}#gid={sheet_id}'" ) ]
       url : String,
 
       #[ arg( long, help = "Sheet name.\nExample: Sheet1" ) ]
@@ -100,21 +102,21 @@ mod private
       cell : String,
     },
 
-    /// Updates a single cell of a specific sheet.
-    /// 
-    /// **Example**:
-    /// 
-    /// gspread cell set
-    /// --url 'https://docs.google.com/spreadsheets/d/1EAEdegMpitv-sTuxt8mV8xQxzJE7h_J0MxQoyLH7xxU/edit?gid=0#gid=0'
-    /// --tab tab1
-    /// --cell A1
-    /// --val 13
-    #[ command( name = "set" ) ]
+    #[ command( name = "set", about = "Updates a single cell of a specific sheet.", long_about = r#"
+    
+Updates a single cell of a specific sheet.
+
+Example:  gspread cell set \
+          --url 'https://docs.google.com/spreadsheets/d/{spreadsheet_id}/edit?gid={sheet_id}#gid={sheet_id}' \
+          --tab tab1 \
+          --cell A1 \
+          --val 13
+    "# ) ]
     Set
     {
       #[ arg( long, help = "Full URL of Google Sheet.\n\
       It has to be inside of '' to avoid parse errors.\n\
-      Example: 'https://docs.google.com/spreadsheets/d/your_spreadsheet_id/edit?gid=0#gid=0'" ) ]
+      Example: 'https://docs.google.com/spreadsheets/d/{spreadsheet_id}/edit?gid={sheet_id}#gid={sheet_id}'" ) ]
       url : String,
 
       #[ arg( long, help = "Sheet name.\nExample: Sheet1" ) ]
@@ -142,9 +144,9 @@ mod private
   ///
   /// ## Errors:
   /// - Prints an error message if the spreadsheet ID extraction, retrieval, or update fails.
-  pub async fn command
+  pub async fn command<S: Secret>
   (
-    client : &Client<'_>,
+    client : &Client<'_, S>,
     commands : Commands
   )
   {

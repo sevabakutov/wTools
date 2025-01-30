@@ -7,12 +7,12 @@ use serde_json::json;
 use gspread::
 {
   actions::gspread::get_column, 
-  gcore::client::
+  gcore::{client::
   {
     Client, 
     Dimension, 
     ValueRange, 
-  }
+  }, ApplicationSecret}
 };
 
 
@@ -53,7 +53,7 @@ async fn test_mock_get_column_should_work()
 
   // 2. Create a client.
   let endpoint = server.url( "" );
-  let client = Client::former()
+  let client: Client<'_, ApplicationSecret> = Client::former()
   .endpoint( &*endpoint )
   .form();
 
@@ -108,7 +108,7 @@ async fn test_mock_get_empty_column_should_work()
 
   // 2. Create a client.
   let endpoint = server.url( "" );
-  let client = Client::former()
+  let client: Client<'_, ApplicationSecret> = Client::former()
   .endpoint( &*endpoint )
   .form();
 
@@ -155,7 +155,7 @@ async fn test_mock_get_column_with_error_should_panic()
 
   // 2. Create a client.
   let endpoint = server.url( "" );
-  let client = Client::former()
+  let client: Client<'_, ApplicationSecret> = Client::former()
   .endpoint( &*endpoint )
   .form();
 

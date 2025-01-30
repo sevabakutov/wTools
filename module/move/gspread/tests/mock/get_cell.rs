@@ -7,12 +7,12 @@ use serde_json::json;
 use gspread::
 {
   actions::gspread::get_cell, 
-  gcore::client::
+  gcore::{client::
   {
     Client, 
     Dimension, 
     ValueRange
-  }
+  }, ApplicationSecret}
 };
 
 /// # What
@@ -46,7 +46,7 @@ async fn test_mock_get_cell_should_work()
 
   // 2. Creating a client.
   let endpoint = server.url("");
-  let client = Client::former()
+  let client: Client<'_, ApplicationSecret> = Client::former()
   .endpoint( &*endpoint )
   .form();
 
@@ -84,7 +84,7 @@ async fn test_mock_get_empty_cell_should_work()
 
   // 2. Creating a client.
   let endpoint = server.url("");
-  let client = Client::former()
+  let client: Client<'_, ApplicationSecret> = Client::former()
   .endpoint( &*endpoint )
   .form();
 
@@ -122,7 +122,7 @@ async fn test_mock_get_cell_with_bad_range_should_panic()
 
   // 2. Creating a client.
   let endpoint = server.url("");
-  let client = Client::former()
+  let client: Client<'_, ApplicationSecret> = Client::former()
   .endpoint( &*endpoint )
   .form();
 

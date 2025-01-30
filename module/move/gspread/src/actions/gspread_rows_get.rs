@@ -9,12 +9,13 @@ mod private
 {
   use crate::*;
   use actions::gspread::get_rows;
+  use gcore::Secret;
   use gcore::error::Result;
   use gcore::client::Client;
 
-  pub async fn action
+  pub async fn action<S: Secret>
   (
-    client : &Client<'_>,
+    client : &Client<'_, S>,
     spreadsheet_id : &str,
     sheet_name : &str
   ) -> Result< Vec< Vec < serde_json::Value > > >

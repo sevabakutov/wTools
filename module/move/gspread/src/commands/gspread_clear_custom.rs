@@ -5,6 +5,7 @@ mod private
   use clap::Parser;
   
   use crate::*;
+  use gcore::Secret;
   use gcore::client::Client;
   use actions::utils::get_spreadsheet_id_from_url;
 
@@ -13,7 +14,7 @@ mod private
   {
     #[ arg( long, help = "Full URL of Google Sheet.\n\
     It has to be inside of '' to avoid parse errors.\n\
-    Example: 'https://docs.google.com/spreadsheets/d/your_spreadsheet_id/edit?gid=0#gid=0'" ) ]
+    Example: 'https://docs.google.com/spreadsheets/d/{spreadsheet_id}/edit?gid={sheet_id}#gid={sheet_id}'" ) ]
     pub url : String,
 
     #[ arg( long, help = "Sheet name.\nExample: Sheet1" ) ]
@@ -30,9 +31,9 @@ mod private
     on_find : String
   }
 
-  pub async fn command
+  pub async fn command<S: Secret>
   (
-    client : &Client<'_>,
+    client : &Client<'_, S>,
     command : Args
   )
   {

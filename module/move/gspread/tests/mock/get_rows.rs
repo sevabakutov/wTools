@@ -2,6 +2,7 @@
 //! Tests for `get_rows` function.
 //! 
 
+use gspread::gcore::ApplicationSecret;
 use httpmock::prelude::*;
 
 use serde_json::json;
@@ -57,7 +58,7 @@ async fn test_mock_get_rows_should_work()
 
   // 2. Create a client.
   let endpoint = server.url("" );
-  let client = Client::former()
+  let client: Client<'_, ApplicationSecret> = Client::former()
   .endpoint( &*endpoint )
   .form();
 
@@ -109,7 +110,7 @@ async fn test_mock_get_rows_with_empty_columns()
 
   // 2. Create a client.
   let endpoint = server.url("" );
-  let client = Client::former()
+  let client: Client<'_, ApplicationSecret> = Client::former()
   .endpoint( &*endpoint )
   .form();
 
@@ -164,7 +165,7 @@ async fn test_mock_get_rows_with_empty_row_in_the_middle()
 
   // 2. Create a client.
   let endpoint = server.url("" );
-  let client = Client::former()
+  let client: Client<'_, ApplicationSecret> = Client::former()
   .endpoint( &*endpoint )
   .form();
 
@@ -216,7 +217,7 @@ async fn test_mock_get_rows_empty_should_work()
 
   // 2. Create a client.
   let endpoint = server.url("" );
-  let client = Client::former()
+  let client: Client<'_, ApplicationSecret> = Client::former()
   .endpoint( &*endpoint )
   .form();
 

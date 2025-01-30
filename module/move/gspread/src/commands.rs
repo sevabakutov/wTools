@@ -43,8 +43,7 @@ mod private
   #[ derive ( Debug, Subcommand ) ]
   pub enum CliCommand
   {
-    /// Google Sheets commands.
-    #[ command ( subcommand, name = "gspread" ) ]
+    #[ command ( subcommand, long_about = "\n\nGoogle Sheets commands.", name = "gspread" ) ]
     GSpread( gspread::Command ),
   }
 

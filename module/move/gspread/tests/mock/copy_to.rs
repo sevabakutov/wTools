@@ -6,8 +6,7 @@ use httpmock::prelude::*;
 use serde_json::json;
 use gspread::
 {
-  gcore::client::Client,
-  actions::gspread::copy_to,
+  actions::gspread::copy_to, gcore::{client::Client, ApplicationSecret}
 };
 
 /// # What
@@ -43,7 +42,7 @@ async fn test_mock_copy_to_should_work() {
 
   // 2. Create a client pointing to our mock server.
   let endpoint = server.url( "" );
-  let client = Client::former()
+  let client: Client<'_, ApplicationSecret> = Client::former()
   .endpoint( &*endpoint )
   .form();
 
@@ -96,7 +95,7 @@ async fn test_mock_copy_to_should_panic() {
 
   // 2. Create a client pointing to our mock server.
   let endpoint = server.url( "" );
-  let client = Client::former()
+  let client: Client<'_, ApplicationSecret> = Client::former()
   .endpoint( &*endpoint )
   .form();
 

@@ -8,13 +8,14 @@
 mod private
 {
   use crate::*;
-  use actions::gspread::get_header; 
+  use actions::gspread::get_header;
+  use gcore::Secret;
   use gcore::client::Client;
   use gcore::error::Result;
 
-  pub async fn action
+  pub async fn action<S: Secret>
   (
-    client : &Client<'_>,
+    client : &Client<'_, S>,
     spreadsheet_id : &str,
     sheet_name : &str
   ) -> Result< Vec< serde_json::Value > >

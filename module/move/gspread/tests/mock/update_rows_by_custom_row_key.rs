@@ -3,7 +3,7 @@
 //! 
 
 use httpmock::prelude::*;
-use gspread::{actions::gspread::{update_rows_by_custom_row_key, OnFail, OnFind}, gcore::client::{BatchUpdateValuesResponse, Client, Dimension, ValueRange}};
+use gspread::{actions::gspread::{update_rows_by_custom_row_key, OnFail, OnFind}, gcore::{client::{BatchUpdateValuesResponse, Client, Dimension, ValueRange}, ApplicationSecret}};
 use serde_json::json;
 
 
@@ -36,7 +36,7 @@ async fn test_mock_update_rows_by_custom_row_key_on_fail_nothing_should_work()
 
   // 2. Create a client.
   let endpoint = server.url( "" );
-  let client = Client::former()
+  let client: Client<'_, ApplicationSecret> = Client::former()
   .endpoint( &*endpoint )
   .form();
 
@@ -99,7 +99,7 @@ async fn test_mock_update_rows_by_custom_row_key_on_fail_error_should_panic()
 
   // 2. Create a client.
   let endpoint = server.url( "" );
-  let client = Client::former()
+  let client: Client<'_, ApplicationSecret> = Client::former()
   .endpoint( &*endpoint )
   .form();
 
@@ -169,7 +169,7 @@ async fn test_mock_update_rows_by_custom_row_key_on_find_append_row_should_work(
 
   // 3. Create a client.
   let endpoint = server.url( "" );
-  let client = Client::former()
+  let client: Client<'_, ApplicationSecret> = Client::former()
   .endpoint( &*endpoint )
   .form();
 
@@ -265,7 +265,7 @@ async fn test_mock_update_rows_by_custom_row_key_on_find_update_first_row_should
 
   // 3. Create a client.
   let endpoint = server.url( "" );
-  let client = Client::former()
+  let client: Client<'_, ApplicationSecret> = Client::former()
   .endpoint( &*endpoint )
   .form();
 
@@ -374,7 +374,7 @@ async fn test_mock_update_rows_by_custom_row_key_on_find_update_all_rows_should_
 
   // 3. Create a client.
   let endpoint = server.url( "" );
-  let client = Client::former()
+  let client: Client<'_, ApplicationSecret> = Client::former()
   .endpoint( &*endpoint )
   .form();
 
@@ -478,7 +478,7 @@ async fn test_mock_update_rows_by_custom_row_key_on_find_update_last_row_should_
 
   // 3. Create a client.
   let endpoint = server.url( "" );
-  let client = Client::former()
+  let client: Client<'_, ApplicationSecret> = Client::former()
   .endpoint( &*endpoint )
   .form();
 

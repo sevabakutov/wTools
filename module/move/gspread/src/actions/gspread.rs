@@ -9,8 +9,8 @@ mod private
   use serde_json::json;
   use std::collections::HashMap;
 
-  use crate::gcore::client::{BatchClearValuesRequest, BatchClearValuesResponse, SheetProperties, ValuesClearResponse};
-use crate::*;
+  use crate::*;
+  use gcore::Secret;
   use gcore::error::{ Error, Result };
   use gcore::client::
   {
@@ -22,7 +22,11 @@ use crate::*;
     UpdateValuesResponse, 
     ValuesAppendResponse,
     BatchUpdateValuesRequest, 
-    BatchUpdateValuesResponse, 
+    BatchUpdateValuesResponse,
+    BatchClearValuesRequest,
+    BatchClearValuesResponse, 
+    SheetProperties, 
+    ValuesClearResponse
   };
 
   /// # get_key_matches
@@ -113,9 +117,9 @@ use crate::*;
   /// ## Errors:
   /// - `Error::ApiError`:  
   ///   Occurs if the Google Sheets API returns an error, e.g., due to invalid input or insufficient permissions.
-  pub async fn update_row
+  pub async fn update_row<S: Secret>
   (
-    client : &Client<'_>,
+    client : &Client<'_, S>,
     spreadsheet_id : &str,
     sheet_name : &str,
     row_key : serde_json::Value,
@@ -177,9 +181,9 @@ use crate::*;
   /// ## Errors:
   /// - `Error::ApiError`:  
   ///   Occurs if the Google Sheets API returns an error, e.g., due to invalid input or insufficient permissions.
-  pub async fn get_column
+  pub async fn get_column<S: Secret>
   (
-    client : &Client<'_>,
+    client : &Client<'_, S>,
     spreadsheet_id : &str,
     sheet_name : &str,
     column_id : &str
@@ -243,9 +247,9 @@ use crate::*;
   /// ## Errors:
   /// - `Error::ApiError`:  
   ///   Occurs if the Google Sheets API returns an error, e.g., due to invalid input or insufficient permissions.
-  pub async fn update_rows_by_custom_row_key
+  pub async fn update_rows_by_custom_row_key<S: Secret>
   (
-    client : &Client<'_>,
+    client : &Client<'_, S>,
     spreadsheet_id : &str,
     sheet_name : &str,
     key_by : ( &str, serde_json::Value ), 
@@ -399,9 +403,9 @@ use crate::*;
   /// - `Error::ApiError`:  
   ///   Occurs if the Google Sheets API returns an error, such as an invalid spreadsheet ID
   ///   or insufficient permissions.
-  pub async fn append_row
+  pub async fn append_row<S: Secret>
   (
-    client : &Client<'_>,
+    client : &Client<'_, S>,
     spreadsheet_id : &str,
     sheet_name : &str,
     row_key_val : &HashMap< String, serde_json::Value >
@@ -479,9 +483,9 @@ use crate::*;
   ///   Occurs if the Google Sheets API returns an error, 
   ///   such as an invalid spreadsheet ID, insufficient permissions, 
   ///   or any issues during the request/response cycle.
-  pub async fn get_row_by_custom_row_key
+  pub async fn get_row_by_custom_row_key<S: Secret>
   (
-    client : &Client<'_>,
+    client : &Client<'_, S>,
     spreadsheet_id : &str,
     sheet_name : &str,
     key_by : ( &str, serde_json::Value ),
@@ -564,10 +568,10 @@ use crate::*;
   /// - `Error::ApiError`:  
   ///   Occurs if the Google Sheets API returns an error, such as an invalid spreadsheet ID
   ///   or insufficient permissions.
-  pub async fn get_header
+  pub async fn get_header<S: Secret>
   (
 
-    client : &Client<'_>,
+    client : &Client<'_, S>,
     spreadsheet_id : &str,
     sheet_name : &str, 
   ) -> Result< Vec< serde_json::Value > >
@@ -606,9 +610,9 @@ use crate::*;
   ///   A `&str` specifying the name of the sheet whose rows are to be retrieved.
   /// - `row_key`:
   ///   A `serde_json::Value` represents row's key. Key starts from 1.
-  pub async fn get_row
+  pub async fn get_row<S: Secret>
   (
-    client : &Client<'_>,
+    client : &Client<'_, S>,
     spreadsheet_id : &str,
     sheet_name : &str,
     row_key : serde_json::Value
@@ -662,9 +666,9 @@ use crate::*;
   /// - `Error::ApiError`:  
   ///   Occurs if the Google Sheets API returns an error, such as an invalid spreadsheet ID
   ///   or insufficient permissions.
-  pub async fn get_rows
+  pub async fn get_rows<S: Secret>
   (
-    client : &Client<'_>,
+    client : &Client<'_, S>,
     spreadsheet_id : &str,
     sheet_name : &str, 
   ) -> Result< Vec< Vec< serde_json::Value > > >
@@ -712,9 +716,9 @@ use crate::*;
   /// - `Error::ApiError`:  
   ///   Occurs if the Google Sheets API returns an error, such as an invalid spreadsheet ID
   ///   or insufficient permissions.
-  pub async fn get_cell
+  pub async fn get_cell<S: Secret>
   (
-    client : &Client<'_>,
+    client : &Client<'_, S>,
     spreadsheet_id : &str,
     sheet_name : &str,
     cell_id : &str
@@ -762,9 +766,9 @@ use crate::*;
   /// ## Errors:
   /// - `Error::ApiError`:  
   ///   Occurs if the Google Sheets API returns an error, such as invalid input or insufficient permissions.
-  pub async fn set_cell
+  pub async fn set_cell<S: Secret>
   (
-    client : &Client<'_>,
+    client : &Client<'_, S>,
     spreadsheet_id : &str,
     sheet_name : &str,
     cell_id : &str,
@@ -808,9 +812,9 @@ use crate::*;
   /// ## Errors:
   /// - `Error::ApiError`:  
   ///   Occurs if the Google Sheets API returns an error, such as invalid input or insufficient permissions.
-  pub async fn clear
+  pub async fn clear<S: Secret>
   (
-    client : &Client<'_>,
+    client : &Client<'_, S>,
     spreadsheet_id : &str,
     sheet_name : &str
   ) -> Result< ValuesClearResponse >
@@ -849,9 +853,9 @@ use crate::*;
   /// ## Errors:
   /// - `Error::ApiError`:  
   ///   Occurs if the Google Sheets API returns an error, such as invalid input or insufficient permissions.
-  pub async fn clear_by_custom_row_key
+  pub async fn clear_by_custom_row_key<S: Secret>
   (
-    client : &Client<'_>,
+    client : &Client<'_, S>,
     spreadsheet_id : &str,
     sheet_name : &str,
     key_by : ( &str, serde_json::Value ),
@@ -923,9 +927,9 @@ use crate::*;
   /// ## Errors:
   ///   - [`Error::ApiError`]
   ///   - [`Error::ParseError`]
-  pub async fn copy_to
+  pub async fn copy_to<S: Secret>
   (
-    client : &Client<'_>,
+    client : &Client<'_, S>,
     spreadsheet_id : &str,
     sheet_id : &str,
     dest : &str
