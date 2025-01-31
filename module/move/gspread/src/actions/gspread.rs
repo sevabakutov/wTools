@@ -381,8 +381,6 @@ mod private
   /// # `append_row`
   ///
   /// Append a new row at the end of the sheet.
-  /// If provided range is empty, it will put values begining from A index.
-  /// More information you can find here [append docs](https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets.values/append)
   ///
   /// ## Parameters:
   /// - `client`:  
@@ -413,14 +411,15 @@ mod private
   {
     // Sort column indexes, from A -> ZZZ
     let mut columns: Vec< &String > = row_key_val.keys().collect();
+
     columns.sort_by_key( | col | _column_label_to_number( col ) );
 
-    let min_idx = _column_label_to_number( columns.first().unwrap() );
+    let min_idx = 1;
     let max_idx = _column_label_to_number( columns.last().unwrap() );
 
     // Creating a row, Vec< serde_json::Value >
     let mut row = Vec::with_capacity( max_idx - min_idx + 1 );
-
+    
     for idx in min_idx..=max_idx
     {
       let col_label = _number_to_column_label( idx );
