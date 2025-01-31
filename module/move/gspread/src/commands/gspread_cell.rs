@@ -77,14 +77,47 @@ mod private
   #[ command( long_about = "\n\nSubcommands for the `CELL` command, used to interact with individual cells in a Google Sheet." ) ]
   pub enum Commands
   {
-    #[ command( name = "get", about = "Retrieves a single cell of a specific sheet.", long_about = r#"
-    
-Retrieves a single cell of a specific sheet.
-
-Example:  gspread cell get \
-          --url 'https://docs.google.com/spreadsheets/d/{spreadsheet_id}/edit?gid={sheet_id}#gid={sheet_id}' \
-          --tab tab1 \
-          --cell A1
+    #[ command( name = "get", about = "Retrieves a single cell.", long_about = r#"
+|---------------------------------------------------------------------------------------------------------------|
+|                                              CELL GET                                                         |
+|---------------------------------------------------------------------------------------------------------------|
+| ● Description:                                                                                                |
+|   ↓ ↓ ↓ ↓ ↓ ↓                                                                                                 |
+|                                                                                                               |
+| Retrieves a single cell specified by the `--cell` argument in A1 notation.                                    |
+|                                                                                                               |
+|---------------------------------------------------------------------------------------------------------------|
+| ● Command example:                                                                                            |
+|   ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓                                                                                             |
+|                                                                                                               |
+| cargo run gspread cell get \                                                                                            |
+|         --url 'https://docs.google.com/spreadsheets/d/{spreadsheet_id}/edit?gid={sheet_id}#gid={sheet_id}' \  |
+|         --tab tab1 \                                                                                          |
+|         --cell A1                                                                                             |
+|                                                                                                               |
+|---------------------------------------------------------------------------------------------------------------|
+| ● Output:  Prints the value of the cell:                                                                      |
+|   ↓ ↓ ↓ ↓                                                                                                     |
+|                                                                                                               |
+| Value: "Name"                                                                                                 |
+|                                                                                                               |
+|---------------------------------------------------------------------------------------------------------------|
+| ● Errors:                                                                                                     |
+|   ↓ ↓ ↓ ↓                                                                                                     |
+|                                                                                                               |
+|  ◦ Error::ApiError:                                                                                           |
+|    |----------------------------------------------------------------|                                         |
+|    | Occurs if the Google Sheets API returns an error,              |                                         |
+|    | such as an invalid spreadsheet ID, insufficient permissions    |                                         |
+|    | or invalid sheet name.                                         |                                         |
+|    |----------------------------------------------------------------|                                         |
+|                                                                                                               |
+|  ◦ Error::InvalidURL:                                                                                         |
+|    |----------------------------------------------------------------------|                                   |
+|    | Occurs when you pass a URL with an invalid spreadsheet format.       |                                   |
+|    |----------------------------------------------------------------------|                                   |
+|                                                                                                               |
+|---------------------------------------------------------------------------------------------------------------|
     "# ) ]
     Get
     {
@@ -102,15 +135,53 @@ Example:  gspread cell get \
       cell : String,
     },
 
-    #[ command( name = "set", about = "Updates a single cell of a specific sheet.", long_about = r#"
-    
-Updates a single cell of a specific sheet.
-
-Example:  gspread cell set \
-          --url 'https://docs.google.com/spreadsheets/d/{spreadsheet_id}/edit?gid={sheet_id}#gid={sheet_id}' \
-          --tab tab1 \
-          --cell A1 \
-          --val 13
+    #[ command( name = "set", about = "Updates a single cell.", long_about = r#"
+|---------------------------------------------------------------------------------------------------------------|
+|                                             CELL SET                                                          |
+|---------------------------------------------------------------------------------------------------------------|
+| ● Description:                                                                                                |
+|   ↓ ↓ ↓ ↓ ↓ ↓                                                                                                 |
+|                                                                                                               |
+| Updates a single cell specified by `--cell` (in A1 notation) and `--val`.                                     |
+|                                                                                                               |
+|---------------------------------------------------------------------------------------------------------------|
+| ● Command example:                                                                                            |
+|   ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓                                                                                             |
+|                                                                                                               |
+| cargo run gspread cell set \                                                                                  |
+|         --url 'https://docs.google.com/spreadsheets/d/{spreadsheet_id}/edit?gid={sheet_id}#gid={sheet_id}' \  |
+|         --tab tab1 \                                                                                          |
+|         --cell A1 \                                                                                           |
+|         --val 'New Value'                                                                                     |
+|                                                                                                               |
+|---------------------------------------------------------------------------------------------------------------|
+| ● Output:  Prints a message indicating the number of cells updated:                                           |
+|   ↓ ↓ ↓ ↓                                                                                                     |
+|                                                                                                               |
+| You successfully update 1 cell!                                                                               |
+|                                                                                                               |
+|---------------------------------------------------------------------------------------------------------------|
+| ● Errors:                                                                                                     |
+|   ↓ ↓ ↓ ↓                                                                                                     |
+|                                                                                                               |
+|  ◦ Error::ApiError:                                                                                           |
+|    |----------------------------------------------------------------|                                         |
+|    | Occurs if the Google Sheets API returns an error,              |                                         |
+|    | such as an invalid spreadsheet ID, insufficient permissions    |                                         |
+|    | or invalid sheet name.                                         |                                         |
+|    |----------------------------------------------------------------|                                         |
+|                                                                                                               |
+|  ◦ Error::ParseError:                                                                                         |
+|    |---------------------------------------------------------|                                                |
+|    | Occurs when serde_json::Value parse error               |                                                |
+|    |---------------------------------------------------------|                                                |
+|                                                                                                               |
+|  ◦ Error::InvalidURL:                                                                                         |
+|    |----------------------------------------------------------------------|                                   |
+|    | Occurs when you pass a URL with an invalid spreadsheet format.       |                                   |
+|    |----------------------------------------------------------------------|                                   |
+|                                                                                                               |
+|---------------------------------------------------------------------------------------------------------------|
     "# ) ]
     Set
     {

@@ -98,7 +98,7 @@ mod private
     key : &str
   ) -> Result< () > 
   {
-    let keys = vec![ "id", "custom" ];
+    let keys = vec![ "id" ];
     if keys.contains( &key )
     {
       Ok( () )
