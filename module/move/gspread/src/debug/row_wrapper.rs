@@ -24,24 +24,24 @@ mod private
   ///
   /// ## Fields:
   /// - `row`:  
-  ///   A `Vec<JsonValue>` representing a single row of the table. This can include headers or data rows.
+  ///   A `Vec< JsonValue >` representing a single row of the table. This can include headers or data rows.
   /// - `max_len`:  
   ///   An `usize` specifying the maximum number of columns in the table.  
   ///   This ensures proper alignment and display of the table in the console.
   ///
   /// ## Traits Implemented:
   /// - `TableWithFields`:  
-  /// - `Fields<&'_ str, Option<Cow<'_, str>>>`:  
+  /// - `Fields< &'_ str, Option< Cow< '_, str > > >`:  
   ///
   /// ## Implementation Details:
-  /// - Missing cells in a row are filled with empty strings (`""`) to ensure all rows have `max_len` columns.
+  /// - Missing cells in a row are filled with empty strings ( `""` ) to ensure all rows have `max_len` columns.
   /// - Keys (column names) are dynamically generated based on the column index.
   /// - Values are sanitized to remove unnecessary characters such as leading/trailing quotes.
   #[ derive( Debug, Clone ) ]
   pub struct RowWrapper
   {
-    pub row: Vec< serde_json::Value >,
-    pub max_len: usize
+    pub row : Vec< serde_json::Value >,
+    pub max_len : usize
   }
 
   impl TableWithFields for RowWrapper {}
@@ -50,7 +50,7 @@ mod private
   {
     type Key< 'k > = &'k str;
     type Val< 'v > = Option< Cow< 'v, str > >;
-    fn fields( &self ) -> impl IteratorTrait< Item= ( &'_ str, Option<Cow<'_, str > > ) >
+    fn fields( &self ) -> impl IteratorTrait< Item = ( &'_ str, Option<Cow<'_, str > > ) >
     {
       let mut dst = Vec::new();
 

@@ -3,14 +3,13 @@
 //!
 
 use httpmock::prelude::*;
-use gspread::
+use gspread::*;
+use actions::gspread::clear;
+use gcore::ApplicationSecret;
+use gcore::client::
 {
-  actions::gspread::clear, 
-  gcore::{client::
-  {
-    Client,
-    ValuesClearResponse
-  }, ApplicationSecret}
+  Client,
+  ValuesClearResponse
 };
 
 
@@ -47,7 +46,7 @@ async fn test_mock_clear_should_work()
 
   // 2. Create a client.
   let endpoint = server.url( "" );
-  let client: Client<'_, ApplicationSecret> = Client::former()
+  let client : Client< '_, ApplicationSecret > = Client::former()
   .endpoint( &*endpoint )
   .form();
 
@@ -96,7 +95,7 @@ async fn test_mock_clear_empty_result_should_work()
 
   // 2. Create a client.
   let endpoint = server.url( "" );
-  let client: Client<'_, ApplicationSecret> = Client::former()
+  let client : Client< '_, ApplicationSecret > = Client::former()
   .endpoint( &*endpoint )
   .form();
 
@@ -141,7 +140,7 @@ async fn test_mock_clear_with_error_should_panic()
 
   // 2. Create a client.
   let endpoint = server.url( "" );
-  let client: Client<'_, ApplicationSecret> = Client::former()
+  let client : Client< '_, ApplicationSecret > = Client::former()
     .endpoint( &*endpoint )
     .form();
 

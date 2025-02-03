@@ -21,7 +21,7 @@ mod private
   ///
   /// ## Fields:
   /// - `header`:  
-  ///   A `Vec<RowWrapper>` representing the retrieved header rows.
+  ///   A `Vec< RowWrapper >` representing the retrieved header rows.
   ///
   /// ## Usage:
   /// This structure is used in conjunction with the `fmt::Display` trait to render the header in a formatted table view.
@@ -59,9 +59,9 @@ mod private
   /// 
   /// ## Errors:
   /// - Prints an error message if the spreadsheet ID extraction or header retrieval fails.
-  pub async fn command<S: Secret>
+  pub async fn command< S : Secret >
   (
-    client : &Client<'_, S>,
+    client : &Client< '_, S >,
     args : CommonArgs,
   )
   {
@@ -94,7 +94,7 @@ mod private
                 max_len : header.len(),
                 row : header
               };
-              println!( "Header:\n{}", Report{ header: vec![ header_wrapped ] } );
+              println!( "Header:\n{}", Report{ header : vec![ header_wrapped ] } );
             }
           Err( error ) => eprintln!( "Error:\n{}", error ),
         }

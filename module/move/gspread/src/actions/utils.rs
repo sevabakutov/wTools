@@ -5,8 +5,15 @@ mod private
   use std::collections::HashMap;
 
   use crate::*;
-  use gcore::error::{ Error, Result };
-  use actions::gspread::{ OnFail, OnFind };
+  use gcore::error::
+  { 
+    Error, Result 
+  };
+  use actions::gspread::
+  { 
+    OnFail, 
+    OnFind 
+  };
 
   /// # parse_key_by
   /// 
@@ -15,9 +22,9 @@ mod private
   /// ## Errors
   /// 
   /// Can occur if passed string is not valid.
-  pub fn parse_key_by( s: &str ) -> Result< ( &str, serde_json::Value ) >
+  pub fn parse_key_by( s : &str ) -> Result< ( &str, serde_json::Value ) >
   {
-    let result: ( &str, serde_json::Value ) = serde_json::from_str( s )
+    let result : ( &str, serde_json::Value ) = serde_json::from_str( s )
     .map_err( | err | Error::ParseError( format!( "Failed to parse key_by. {}", err ) ) )?;
     
     Ok( result )
@@ -30,7 +37,7 @@ mod private
   /// ## Errors
   /// 
   /// Can occur if variant is not allowed.
-  pub fn parse_on_find( on_find: &str ) -> Result< OnFind >
+  pub fn parse_on_find( on_find : &str ) -> Result< OnFind >
   {
     check_variant( on_find, vec![ "first", "last", "all" ] )?;
     match on_find
@@ -49,7 +56,7 @@ mod private
   /// ## Errors
   /// 
   /// Can occur if variant is not allowed.
-  pub fn parse_on_fail( on_fail: &str ) -> Result< OnFail >
+  pub fn parse_on_fail( on_fail : &str ) -> Result< OnFail >
   {
     check_variant( on_fail, vec![ "none", "error", "append" ] )?;
     match on_fail
@@ -73,7 +80,7 @@ mod private
   /// Can occur if passed varaint is not alllowed.
   pub fn check_variant
   ( 
-    variant: &str,
+    variant : &str,
     allowed : Vec< &str > 
   ) -> Result< () >
   {
@@ -105,7 +112,7 @@ mod private
     json_str : &str 
   ) -> Result< HashMap< String, serde_json::Value > >
   {
-    let parsed_json: HashMap< String, serde_json::Value > = serde_json::from_str( json_str )
+    let parsed_json : HashMap< String, serde_json::Value > = serde_json::from_str( json_str )
     .map_err( | error | Error::InvalidJSON( format!( "Failed to parse JSON: {}", error ) ) )?;
 
     Ok( parsed_json )
@@ -120,7 +127,7 @@ mod private
   ///   A `&str` containing the full URL of the Google spreadsheet.  
   ///
   /// ## Returns:
-  /// - `Result<&str>`
+  /// - `Result< &str >`
   ///
   /// ## Errors:
   /// - `Error::InvalidUrl`:  

@@ -4,15 +4,14 @@
 
 use httpmock::prelude::*;
 use serde_json::json;
-use gspread::
+use gspread::*;
+use actions::gspread::get_cell, 
+use gcore::ApplicationSecret;
+use gcore::client::
 {
-  actions::gspread::get_cell, 
-  gcore::{client::
-  {
-    Client, 
-    Dimension, 
-    ValueRange
-  }, ApplicationSecret}
+  Client, 
+  Dimension, 
+  ValueRange
 };
 
 /// # What
@@ -23,7 +22,7 @@ use gspread::
 /// 2. Create a client.
 /// 3. Send a GET request to "/{spreadsheet_id}/values/{range}".
 /// 4. Check for correct results.
-#[tokio::test]
+#[ tokio::test ]
 async fn test_mock_get_cell_should_work() 
 {
   let body = ValueRange
@@ -45,8 +44,8 @@ async fn test_mock_get_cell_should_work()
   } );
 
   // 2. Creating a client.
-  let endpoint = server.url("");
-  let client: Client<'_, ApplicationSecret> = Client::former()
+  let endpoint = server.url( "" );
+  let client : Client< '_, ApplicationSecret > = Client::former()
   .endpoint( &*endpoint )
   .form();
 
@@ -61,7 +60,7 @@ async fn test_mock_get_cell_should_work()
   assert_eq!( result, serde_json::Value::String( "Steeve".to_string() ) );
 }
 
-#[tokio::test]
+#[ tokio::test ]
 async fn test_mock_get_empty_cell_should_work() 
 {
   let body = ValueRange
@@ -83,8 +82,8 @@ async fn test_mock_get_empty_cell_should_work()
   } );
 
   // 2. Creating a client.
-  let endpoint = server.url("");
-  let client: Client<'_, ApplicationSecret> = Client::former()
+  let endpoint = server.url( "" );
+  let client : Client< '_, ApplicationSecret > = Client::former()
   .endpoint( &*endpoint )
   .form();
 
@@ -121,8 +120,8 @@ async fn test_mock_get_cell_with_bad_range_should_panic()
   } );
 
   // 2. Creating a client.
-  let endpoint = server.url("");
-  let client: Client<'_, ApplicationSecret> = Client::former()
+  let endpoint = server.url( "" );
+  let client : Client< '_, ApplicationSecret > = Client::former()
   .endpoint( &*endpoint )
   .form();
 

@@ -23,7 +23,7 @@ use gspread::gcore::client::
 /// 2. Create a client.
 /// 3. Send a PUT request to /{spreadsheet_id}/values/{range}?valueInputOption=RAW.
 /// 4. Check results.
-#[tokio::test]
+#[ tokio::test ]
 async fn test_mock_set_cell_should_work() 
 {
   // 1. Start a mock server.
@@ -56,12 +56,12 @@ async fn test_mock_set_cell_should_work()
       .status( 200 )
       .header( "Content-Type", "application/json" )
       .json_body_obj( &response_body );
-  });
+  } );
 
   // 2. Create a client.
   let endpoint = server.url( "" );
 
-  let client: Client<'_, ApplicationSecret> = Client::former()
+  let client : Client< '_, ApplicationSecret > = Client::former()
   .endpoint( &*endpoint )
   .form();
 
@@ -72,7 +72,7 @@ async fn test_mock_set_cell_should_work()
     spreadsheet_id, 
     "tab2", 
     "A1", 
-    serde_json::Value::String( "Val".to_string() ) 
+    json!( "Val" ) 
   )
   .await
   .expect( "set_cell failed with mock" );
@@ -113,11 +113,11 @@ async fn test_mock_set_cell_bad_cell_id_should_panic()
       .status( 400 )
       .header( "Content-Type", "application/json" )
       .body( r#"{ error: invalid range. }"# );
-  });
+  } );
 
   // 2. Create a client.
   let endpoint = server.url( "" );
-  let client: Client<'_, ApplicationSecret> = Client::former()
+  let client : Client< '_, ApplicationSecret > = Client::former()
   .endpoint( &*endpoint )
   .form();
 

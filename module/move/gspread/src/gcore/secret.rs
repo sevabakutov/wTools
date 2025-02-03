@@ -119,7 +119,7 @@ mod private
       let r = dotenv::from_path( path );
       if let Err( ref err ) = r
       {
-        if !matches!( err, dotenv::Error::Io(_) )
+        if !matches!( err, dotenv::Error::Io( _ ) )
         {
           return Err( r.expect_err( &format!( "Failed to load {path}" ) ).into() );
         }
@@ -157,7 +157,7 @@ Add missing secret to .env file in .secret directory. Example: MISSING_SECRET=YO
 "#
         );
         panic!( "{}", explanation );
-       })
+       } )
     }
 
     pub fn get() -> &'static ApplicationSecret
@@ -172,7 +172,7 @@ Add missing secret to .env file in .secret directory. Example: MISSING_SECRET=YO
   {
     async fn get_token( &self ) -> gcore::error::Result< String > 
     {
-      let secret: yup_oauth2::ApplicationSecret = yup_oauth2::ApplicationSecret
+      let secret : yup_oauth2::ApplicationSecret = yup_oauth2::ApplicationSecret
       {
         client_id : self.CLIENT_ID.clone(),
         auth_uri : self.AUTH_URI.clone(),
@@ -229,7 +229,7 @@ Add missing secret to .env file in .secret directory. Example: MISSING_SECRET=YO
       let r = dotenv::from_path( path );
       if let Err( ref err ) = r
       {
-        if !matches!( err, dotenv::Error::Io(_) )
+        if !matches!( err, dotenv::Error::Io( _ ) )
         {
           return Err( r.expect_err( &format!( "Failed to load {path}" ) ).into() );
         }
@@ -374,7 +374,7 @@ Add missing secret to .env file in .secret directory. Example: MISSING_SECRET=YO
   {
     let p = var( name, default )?;
     pth::AbsolutePath::from_paths( ( pth::CurrentPath, p ) )
-    .map_err( |e| Error::VariableIllformed( name, e.to_string() ) )
+    .map_err( | e | Error::VariableIllformed( name, e.to_string() ) )
   }
 
 }

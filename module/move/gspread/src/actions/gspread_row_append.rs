@@ -7,7 +7,11 @@ mod private
   use actions::gspread::append_row;
   use gcore::Secret;
   use gcore::client::Client;
-  use gcore::error::{ Error, Result };
+  use gcore::error::
+  { 
+    Error, 
+    Result 
+  };
 
   /// # parse_json
   /// 
@@ -21,15 +25,15 @@ mod private
     json_str : &str 
   ) -> Result< HashMap< String, serde_json::Value > >
   {
-    let parsed_json: HashMap< String, serde_json::Value > = serde_json::from_str( json_str )
+    let parsed_json : HashMap< String, serde_json::Value > = serde_json::from_str( json_str )
     .map_err( | error | Error::InvalidJSON( format!( "Failed to parse JSON: {}", error ) ) )?;
 
     Ok( parsed_json )
   }
 
-  pub async fn action<S: Secret>
+  pub async fn action< S : Secret >
   (
-    client : &Client<'_, S>,
+    client : &Client< '_, S >,
     spreadsheet_id : &str,
     sheet_name : &str,
     json_str : &str

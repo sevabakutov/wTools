@@ -48,9 +48,9 @@ mod private
     pub dest : String
   }
 
-  pub async fn command<S: Secret>
+  pub async fn command< S : Secret >
   (
-    client : &Client<'_, S>,
+    client : &Client< '_, S >,
     args : Args
   )
   {

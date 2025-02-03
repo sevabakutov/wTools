@@ -3,18 +3,22 @@
 mod private
 {
   use crate::*;
-  use actions::{gspread::get_row_by_custom_row_key, utils::{parse_key_by, parse_on_find}};
+  use actions::gspread::get_row_by_custom_row_key;
+  use actions::utils::
+  {
+    parse_key_by, 
+    parse_on_find
+  };
   use gcore::
   {
     Secret,
     client::Client, 
     error::Result
   };
-
   
-  pub async fn action<S: Secret>
+  pub async fn action< S : Secret >
   (
-    client : &Client<'_, S>,
+    client : &Client< '_, S >,
     spreadsheet_id : &str,
     sheet_name : &str,
     key_by : &str,

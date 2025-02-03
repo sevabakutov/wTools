@@ -28,7 +28,7 @@ use gspread::gcore::client::
 /// 2. Create a client.
 /// 3. Call `get_rows` which sends a GET request to "/{spreadsheet_id}/values/{range}".
 /// 4. Check results.
-#[tokio::test]
+#[ tokio::test ]
 async fn test_mock_get_rows_should_work() 
 {
   let spreadsheet_id = "12345";
@@ -57,8 +57,8 @@ async fn test_mock_get_rows_should_work()
   } );
 
   // 2. Create a client.
-  let endpoint = server.url("" );
-  let client: Client<'_, ApplicationSecret> = Client::former()
+  let endpoint = server.url( "" );
+  let client : Client< '_, ApplicationSecret > = Client::former()
   .endpoint( &*endpoint )
   .form();
 
@@ -71,13 +71,13 @@ async fn test_mock_get_rows_should_work()
   mock.assert();
 
   assert_eq!( rows.len(), 2 );
-  assert_eq!( rows[0].len(), 2 );
-  assert_eq!( rows[0][0], serde_json::Value::String( "Row2Col1".to_string() ) );
-  assert_eq!( rows[0][1], serde_json::Value::String( "Row2Col2".to_string() ) );
+  assert_eq!( rows[ 0 ].len(), 2 );
+  assert_eq!( rows[ 0 ][ 0 ], json!( "Row2Col1" ) );
+  assert_eq!( rows[ 0 ][ 1 ], json!( "Row2Col2" ) );
 
-  assert_eq!( rows[1].len(), 2);
-  assert_eq!( rows[1][0], serde_json::Value::String( "Row3Col1".to_string() ) );
-  assert_eq!( rows[1][1], serde_json::Value::String( "Row3Col2".to_string() ) );
+  assert_eq!( rows[ 1 ].len(), 2 );
+  assert_eq!( rows[ 1 ][ 0 ], json!( "Row3Col1" ) );
+  assert_eq!( rows[ 1 ][ 1 ], json!( "Row3Col2" ) );
 }
 
 #[ tokio::test ]
@@ -109,8 +109,8 @@ async fn test_mock_get_rows_with_empty_columns()
   } );
 
   // 2. Create a client.
-  let endpoint = server.url("" );
-  let client: Client<'_, ApplicationSecret> = Client::former()
+  let endpoint = server.url( "" );
+  let client : Client< '_, ApplicationSecret > = Client::former()
   .endpoint( &*endpoint )
   .form();
 
@@ -123,15 +123,15 @@ async fn test_mock_get_rows_with_empty_columns()
   mock.assert();
 
   assert_eq!( rows.len(), 2 );
-  assert_eq!( rows[0].len(), 3 );
-  assert_eq!( rows[0][0], serde_json::Value::String( "Row2Col1".to_string() ) );
-  assert_eq!( rows[0][1], serde_json::Value::String( "".to_string() ) );
-  assert_eq!( rows[0][2], serde_json::Value::String( "Row2Col3".to_string() ) );
+  assert_eq!( rows[ 0 ].len(), 3 );
+  assert_eq!( rows[ 0 ][ 0 ], json!( "Row2Col1" ) );
+  assert_eq!( rows[ 0 ][ 1 ], json!( "" ) );
+  assert_eq!( rows[ 0 ][ 2 ], json!( "Row2Col3" ) );
 
-  assert_eq!( rows[1].len(), 3);
-  assert_eq!( rows[1][0], serde_json::Value::String( "Row3Col1".to_string() ) );  
-  assert_eq!( rows[1][1], serde_json::Value::String( "".to_string() ) );
-  assert_eq!( rows[1][2], serde_json::Value::String( "Row3Col3".to_string() ) );
+  assert_eq!( rows[ 1 ].len(), 3 );
+  assert_eq!( rows[ 1 ][ 0 ], json!( "Row3Col1" ) );  
+  assert_eq!( rows[ 1 ][ 1 ], json!( "" ) );
+  assert_eq!( rows[ 1 ][ 2 ], json!( "Row3Col3" ) );
 }
 
 #[ tokio::test ]
@@ -164,8 +164,8 @@ async fn test_mock_get_rows_with_empty_row_in_the_middle()
   } );
 
   // 2. Create a client.
-  let endpoint = server.url("" );
-  let client: Client<'_, ApplicationSecret> = Client::former()
+  let endpoint = server.url( "" );
+  let client : Client< '_, ApplicationSecret > = Client::former()
   .endpoint( &*endpoint )
   .form();
 
@@ -178,20 +178,20 @@ async fn test_mock_get_rows_with_empty_row_in_the_middle()
   mock.assert();
 
   assert_eq!( rows.len(), 3 );
-  assert_eq!( rows[0].len(), 3 );
-  assert_eq!( rows[0][0], serde_json::Value::String( "Row2Col1".to_string() ) );
-  assert_eq!( rows[0][1], serde_json::Value::String( "Row2Col2".to_string() ) );
-  assert_eq!( rows[0][2], serde_json::Value::String( "Row2Col3".to_string() ) );
+  assert_eq!( rows[ 0 ].len(), 3 );
+  assert_eq!( rows[ 0 ][ 0 ], json!( "Row2Col1" ) );
+  assert_eq!( rows[ 0 ][ 1 ], json!( "Row2Col2" ) );
+  assert_eq!( rows[ 0 ][ 2 ], json!( "Row2Col3" ) );
 
-  assert_eq!( rows[1].len(), 3);
-  assert_eq!( rows[1][0], serde_json::Value::String( "".to_string() ) );  
-  assert_eq!( rows[1][1], serde_json::Value::String( "".to_string() ) );
-  assert_eq!( rows[1][2], serde_json::Value::String( "".to_string() ) );
+  assert_eq!( rows[ 1 ].len(), 3 );
+  assert_eq!( rows[ 1 ][ 0 ], json!( "" ) );  
+  assert_eq!( rows[ 1 ][ 1 ], json!( "" ) );
+  assert_eq!( rows[ 1 ][ 2 ], json!( "" ) );
 
-  assert_eq!( rows[2].len(), 3);
-  assert_eq!( rows[2][0], serde_json::Value::String( "Row3Col1".to_string() ) );  
-  assert_eq!( rows[2][1], serde_json::Value::String( "Row3Col2".to_string() ) );
-  assert_eq!( rows[2][2], serde_json::Value::String( "Row3Col3".to_string() ) );
+  assert_eq!( rows[ 2 ].len(), 3 );
+  assert_eq!( rows[ 2 ][ 0 ], json!( "Row3Col1" ) );  
+  assert_eq!( rows[ 2 ][ 1 ], json!( "Row3Col2" ) );
+  assert_eq!( rows[ 2 ][ 2 ], json!( "Row3Col3" ) );
 }
 
 #[ tokio::test ]
@@ -216,8 +216,8 @@ async fn test_mock_get_rows_empty_should_work()
   } );
 
   // 2. Create a client.
-  let endpoint = server.url("" );
-  let client: Client<'_, ApplicationSecret> = Client::former()
+  let endpoint = server.url( "" );
+  let client : Client< '_, ApplicationSecret > = Client::former()
   .endpoint( &*endpoint )
   .form();
 

@@ -10,9 +10,9 @@ mod private
   use commands::gspread::CommonArgs;
   use actions::utils::get_spreadsheet_id_from_url;
 
-  pub async fn command<S: Secret>
+  pub async fn command< S : Secret >
   (
-    client : &Client<'_, S>,
+    client : &Client< '_, S >,
     args : CommonArgs
   )
   {

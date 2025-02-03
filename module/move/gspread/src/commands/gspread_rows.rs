@@ -8,9 +8,13 @@ mod private
   use actions;
   use gcore::Secret;
   use gcore::client::Client;
-  use debug::{ Report, RowWrapper };
   use commands::gspread::CommonArgs;
   use actions::utils::get_spreadsheet_id_from_url;
+  use debug::
+  { 
+    Report, 
+    RowWrapper 
+  };
 
   /// # `command`
   ///
@@ -19,9 +23,9 @@ mod private
   ///
   /// ## Errors:
   /// - Prints an error message if the spreadsheet ID extraction or row retrieval fails.
-  pub async fn command<S: Secret>
+  pub async fn command< S : Secret >
   (
-    client : &Client<'_, S>,
+    client : &Client< '_, S >,
     args : CommonArgs
   )
   {
@@ -60,7 +64,7 @@ mod private
             .map( | row | RowWrapper { row, max_len } )
             .collect();
 
-            println!( "Rows:\n{}", Report{ rows: rows_wrapped } );
+            println!( "Rows:\n{}", Report{ rows : rows_wrapped } );
           }
           Err( error ) => eprintln!( "Error:\n{}", error ),
         }

@@ -31,9 +31,9 @@ mod private
     on_find : String
   }
 
-  pub async fn command<S: Secret>
+  pub async fn command< S : Secret >
   (
-    client : &Client<'_, S>,
+    client : &Client< '_, S >,
     command : Args
   )
   {

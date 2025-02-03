@@ -3,8 +3,22 @@
 //! 
 
 use httpmock::prelude::*;
-use gspread::{actions::gspread::{update_rows_by_custom_row_key, OnFail, OnFind}, gcore::{client::{BatchUpdateValuesResponse, Client, Dimension, ValueRange}, ApplicationSecret}};
 use serde_json::json;
+use gspread::*
+use actions::gspread::
+{
+  update_rows_by_custom_row_key, 
+  OnFail, 
+  OnFind
+};
+use gcore::ApplicationSecret;
+use gcore::client::
+{
+  BatchUpdateValuesResponse, 
+  Client, 
+  Dimension, 
+  ValueRange
+};
 
 
 /// # What
@@ -15,28 +29,34 @@ use serde_json::json;
 /// 2. Create a client
 /// 3. Call `update_rows_by_custom_row_key`.
 /// 4. Check results.
-#[tokio::test]
+#[ tokio::test ]
 async fn test_mock_update_rows_by_custom_row_key_on_fail_nothing_should_work() 
 {
   // 1. Start a mock server.
   let server = MockServer::start();
   let spreadsheet_id = "12345";
 
-  let get_mock = server.mock( |when, then| {
+  let get_mock = server.mock( | when, then | {
     when.method( GET )
       .path( "/12345/values/tab1!E:E" );
     then.status( 200 )
       .header( "Content-Type", "application/json" )
-      .json_body( json!( {
-          "range": "tab1!E:E",
-          "majorDimension": "COLUMNS",
-          "values": [ [ "12", "12", "12", "12" ] ]
-      } ) );
+      .json_body
+      ( 
+        json!
+        ( 
+          {
+            "range" : "tab1!E:E",
+            "majorDimension" : "COLUMNS",
+            "values" : [ [ "12", "12", "12", "12" ] ]
+          } 
+        ) 
+      );
   } );
 
   // 2. Create a client.
   let endpoint = server.url( "" );
-  let client: Client<'_, ApplicationSecret> = Client::former()
+  let client : Client< '_, ApplicationSecret > = Client::former()
   .endpoint( &*endpoint )
   .form();
 
@@ -66,10 +86,6 @@ async fn test_mock_update_rows_by_custom_row_key_on_fail_nothing_should_work()
   get_mock.assert();
 }
 
-
-
-
-
 /// # What
 /// We check that updating rows in a Google Spreadsheet returns the correct response.
 ///
@@ -85,21 +101,27 @@ async fn test_mock_update_rows_by_custom_row_key_on_fail_error_should_panic()
   let server = MockServer::start();
   let spreadsheet_id = "12345";
 
-  let _get_mock = server.mock( |when, then| {
+  let _get_mock = server.mock( | when, then | {
     when.method( GET )
       .path( "/12345/values/tab1!E:E" );
     then.status( 200 )
       .header( "Content-Type", "application/json" )
-      .json_body( json!( {
-          "range": "tab1!E:E",
-          "majorDimension": "COLUMNS",
-          "values": [ [ "12", "12", "12", "12" ] ]
-      } ) );
+      .json_body
+      ( 
+        json!
+        ( 
+          {
+            "range" : "tab1!E:E",
+            "majorDimension" : "COLUMNS",
+            "values" : [ [ "12", "12", "12", "12" ] ]
+          } 
+        ) 
+      );
   } );
 
   // 2. Create a client.
   let endpoint = server.url( "" );
-  let client: Client<'_, ApplicationSecret> = Client::former()
+  let client : Client< '_, ApplicationSecret > = Client::former()
   .endpoint( &*endpoint )
   .form();
 
@@ -131,23 +153,29 @@ async fn test_mock_update_rows_by_custom_row_key_on_fail_error_should_panic()
 /// 3. Create a client
 /// 4. Call `update_rows_by_custom_row_key`.
 /// 5. Check resaults.
-#[tokio::test]
+#[ tokio::test ]
 async fn test_mock_update_rows_by_custom_row_key_on_find_append_row_should_work() 
 {
   // 1. Start get_mock.
   let server = MockServer::start();
   let spreadsheet_id = "12345";
 
-  let get_mock = server.mock( |when, then| {
+  let get_mock = server.mock( | when, then | {
     when.method( GET )
       .path( "/12345/values/tab1!E:E" );
     then.status( 200 )
       .header( "Content-Type", "application/json" )
-      .json_body( json!( {
-          "range": "tab1!E:E",
-          "majorDimension": "COLUMNS",
-          "values": [ [ "12", "12", "12", "12" ] ]
-      } ) );
+      .json_body
+      ( 
+        json!
+        ( 
+          {
+            "range" : "tab1!E:E",
+            "majorDimension" : "COLUMNS",
+            "values" : [ [ "12", "12", "12", "12" ] ]
+          } 
+        ) 
+      );
   } );
 
   let response_body = BatchUpdateValuesResponse
@@ -169,7 +197,7 @@ async fn test_mock_update_rows_by_custom_row_key_on_find_append_row_should_work(
 
   // 3. Create a client.
   let endpoint = server.url( "" );
-  let client: Client<'_, ApplicationSecret> = Client::former()
+  let client : Client< '_, ApplicationSecret > = Client::former()
   .endpoint( &*endpoint )
   .form();
 
@@ -208,23 +236,29 @@ async fn test_mock_update_rows_by_custom_row_key_on_find_append_row_should_work(
 /// 3. Create a client
 /// 4. Call `update_rows_by_custom_row_key`.
 /// 5. Check resaults.
-#[tokio::test]
+#[ tokio::test ]
 async fn test_mock_update_rows_by_custom_row_key_on_find_update_first_row_should_work() 
 {
   // 1. Start get_mock.
   let server = MockServer::start();
   let spreadsheet_id = "12345";
 
-  let get_mock = server.mock( |when, then| {
+  let get_mock = server.mock( | when, then | {
     when.method( GET )
       .path( "/12345/values/tab1!E:E" );
     then.status( 200 )
       .header( "Content-Type", "application/json" )
-      .json_body( json!( {
-          "range": "tab1!E:E",
-          "majorDimension": "COLUMNS",
-          "values": [ [ "12", "12", "12", "12" ] ]
-      } ) );
+      .json_body
+      ( 
+        json!
+        ( 
+          {
+            "range" : "tab1!E:E",
+            "majorDimension" : "COLUMNS",
+            "values" : [ [ "12", "12", "12", "12" ] ]
+          } 
+        ) 
+      );
   } );
 
   let mocked_value_ranges = vec!
@@ -232,15 +266,15 @@ async fn test_mock_update_rows_by_custom_row_key_on_find_update_first_row_should
     ValueRange 
     {
       major_dimension : Some( Dimension::Row ),
-      range: Some( format!( "tab1!A2" ) ),
-      values: Some( vec![ vec![ json!( "Hello" ) ] ] ),
+      range : Some( format!( "tab1!A2" ) ),
+      values : Some( vec![ vec![ json!( "Hello" ) ] ] ),
     },
 
     ValueRange
     {
-      major_dimension: Some( Dimension::Row ),
-      range: Some( format!( "tab1!B2" ) ),
-      values: Some( vec![ vec![ json!( 123 ) ] ] ),
+      major_dimension : Some( Dimension::Row ),
+      range : Some( format!( "tab1!B2" ) ),
+      values : Some( vec![ vec![ json!( 123 ) ] ] ),
     }
   ];
 
@@ -265,7 +299,7 @@ async fn test_mock_update_rows_by_custom_row_key_on_find_update_first_row_should
 
   // 3. Create a client.
   let endpoint = server.url( "" );
-  let client: Client<'_, ApplicationSecret> = Client::former()
+  let client : Client< '_, ApplicationSecret > = Client::former()
   .endpoint( &*endpoint )
   .form();
 
@@ -293,6 +327,7 @@ async fn test_mock_update_rows_by_custom_row_key_on_find_update_first_row_should
   assert_eq!( batch_result.total_updated_columns, Some( 2 ) );
   assert_eq!( batch_result.total_updated_rows, Some( 1 ) );
   assert_eq!( batch_result.total_updated_sheets, Some( 1 ) );
+  
   let responses = batch_result
   .responses
   .expect( "No responses found in BatchUpdateValuesResponse" );
@@ -311,23 +346,29 @@ async fn test_mock_update_rows_by_custom_row_key_on_find_update_first_row_should
 /// 3. Create a client
 /// 4. Call `update_rows_by_custom_row_key`.
 /// 5. Check resaults.
-#[tokio::test]
+#[ tokio::test ]
 async fn test_mock_update_rows_by_custom_row_key_on_find_update_all_rows_should_work() 
 {
   // 1. Start get_mock.
   let server = MockServer::start();
   let spreadsheet_id = "12345";
 
-  let get_mock = server.mock( |when, then| {
+  let get_mock = server.mock( | when, then | {
     when.method( GET )
       .path( "/12345/values/tab1!E:E" );
     then.status( 200 )
       .header( "Content-Type", "application/json" )
-      .json_body( json!( {
-          "range": "tab1!E:E",
-          "majorDimension": "COLUMNS",
-          "values": [ [ "12", "12", "12", "12" ] ]
-      } ) );
+      .json_body
+      ( 
+        json!
+        ( 
+          {
+            "range" : "tab1!E:E",
+            "majorDimension" : "COLUMNS",
+            "values" : [ [ "12", "12", "12", "12" ] ]
+          } 
+        ) 
+      );
   } );
 
   let mut mocked_value_ranges = vec![];
@@ -338,17 +379,17 @@ async fn test_mock_update_rows_by_custom_row_key_on_find_update_all_rows_should_
       ValueRange 
       {
         major_dimension : Some( Dimension::Row ),
-        range: Some( format!( "tab1!A{}", i ) ),
-        values: Some( vec![ vec![ json!( "Hello" ) ] ] ),
+        range : Some( format!( "tab1!A{}", i ) ),
+        values : Some( vec![ vec![ json!( "Hello" ) ] ] ),
       }
     );
     mocked_value_ranges.push
     (
       ValueRange
       {
-        major_dimension: Some( Dimension::Row ),
-        range: Some( format!( "tab1!B{}", i ) ),
-        values: Some( vec![ vec![ json!( 123 ) ] ] ),
+        major_dimension : Some( Dimension::Row ),
+        range : Some( format!( "tab1!B{}", i ) ),
+        values : Some( vec![ vec![ json!( 123 ) ] ] ),
       }
     );
   }
@@ -374,7 +415,7 @@ async fn test_mock_update_rows_by_custom_row_key_on_find_update_all_rows_should_
 
   // 3. Create a client.
   let endpoint = server.url( "" );
-  let client: Client<'_, ApplicationSecret> = Client::former()
+  let client : Client< '_, ApplicationSecret > = Client::former()
   .endpoint( &*endpoint )
   .form();
 
@@ -404,6 +445,7 @@ async fn test_mock_update_rows_by_custom_row_key_on_find_update_all_rows_should_
   assert_eq!( batch_result.total_updated_columns, Some( 2 ) );
   assert_eq!( batch_result.total_updated_rows, Some( 4 ) );
   assert_eq!( batch_result.total_updated_sheets, Some( 1 ) );
+  
   let responses = batch_result
   .responses
   .expect( "No responses found in BatchUpdateValuesResponse" );
@@ -422,23 +464,29 @@ async fn test_mock_update_rows_by_custom_row_key_on_find_update_all_rows_should_
 /// 3. Create a client
 /// 4. Call `update_rows_by_custom_row_key`.
 /// 5. Check resaults.
-#[tokio::test]
+#[ tokio::test ]
 async fn test_mock_update_rows_by_custom_row_key_on_find_update_last_row_should_work() 
 {
   // 1. Start get_mock.
   let server = MockServer::start();
   let spreadsheet_id = "12345";
 
-  let get_mock = server.mock( |when, then| {
+  let get_mock = server.mock( | when, then | {
     when.method( GET )
       .path( "/12345/values/tab1!E:E" );
     then.status( 200 )
       .header( "Content-Type", "application/json" )
-      .json_body( json!( {
-          "range": "tab1!E:E",
-          "majorDimension": "COLUMNS",
-          "values": [ [ "12", "12", "12", "12" ] ]
-      } ) );
+      .json_body
+      ( 
+        json!
+        ( 
+          {
+            "range" : "tab1!E:E",
+            "majorDimension" : "COLUMNS",
+            "values" : [ [ "12", "12", "12", "12" ] ]
+          } 
+        ) 
+      );
   } );
 
   let mocked_value_ranges = vec!
@@ -446,14 +494,14 @@ async fn test_mock_update_rows_by_custom_row_key_on_find_update_last_row_should_
     ValueRange 
     {
       major_dimension : Some( Dimension::Row ),
-      range: Some( format!( "tab1!A2" ) ),
-      values: Some( vec![ vec![ json!( "Hello" ) ] ] ),
+      range : Some( format!( "tab1!A2" ) ),
+      values : Some( vec![ vec![ json!( "Hello" ) ] ] ),
     },
     ValueRange
     {
-      major_dimension: Some( Dimension::Row ),
-      range: Some( format!( "tab1!B2" ) ),
-      values: Some( vec![ vec![ json!( 123 ) ] ] ),
+      major_dimension : Some( Dimension::Row ),
+      range : Some( format!( "tab1!B2" ) ),
+      values : Some( vec![ vec![ json!( 123 ) ] ] ),
     }
   ];
 
@@ -478,7 +526,7 @@ async fn test_mock_update_rows_by_custom_row_key_on_find_update_last_row_should_
 
   // 3. Create a client.
   let endpoint = server.url( "" );
-  let client: Client<'_, ApplicationSecret> = Client::former()
+  let client : Client< '_, ApplicationSecret > = Client::former()
   .endpoint( &*endpoint )
   .form();
 
@@ -506,10 +554,11 @@ async fn test_mock_update_rows_by_custom_row_key_on_find_update_last_row_should_
   assert_eq!( batch_result.total_updated_sheets, Some( 1 ) );
   assert_eq!( batch_result.total_updated_cells, Some( 2 ) );
   assert_eq!( batch_result.total_updated_columns, Some( 2 ) );
+  
   let responses = batch_result
   .responses
   .expect( "No responses found in BatchUpdateValuesResponse" );
-  assert_eq!(responses.len(), 2);
+  assert_eq!( responses.len(), 2);
 
   get_mock.assert();
   update_mock.assert();

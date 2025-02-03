@@ -3,16 +3,18 @@
 //!.
 
 use httpmock::prelude::*;
-use gspread::
-{
-  actions::gspread::
-  {
-    get_row_by_custom_row_key, 
-    OnFind
-  },
-  gcore::{client::Client, ApplicationSecret},
-};
 use serde_json::json;
+use gspread::*;
+use actions::gspread::
+{
+  get_row_by_custom_row_key, 
+  OnFind
+};
+use gcore::
+{
+  client::Client, 
+  ApplicationSecret
+};
 
 /// # What
 /// This test checks that `get_row_by_custom_row_key` returns an empty vector
@@ -25,36 +27,49 @@ use serde_json::json;
 /// 4. Mock the `values:batchGet` request but expect it to be called **0 times**.
 /// 5. Call `get_row_by_custom_row_key`.
 /// 6. Assert that an empty `Vec` is returned, and `batchGet` was never triggered.
-#[tokio::test]
-async fn test_mock_get_row_by_custom_row_key_no_matches() {
+#[ tokio::test ]
+async fn test_mock_get_row_by_custom_row_key_no_matches() 
+{
   let server = MockServer::start();
   let spreadsheet_id = "12345";
 
   let get_mock = server.mock( | when, then | {
-    when.method(GET)
+    when.method( GET )
       .path( "/12345/values/tab1!E:E" );
     then.status( 200 )
       .header( "Content-Type", "application/json")
-      .json_body( json!( {
-        "range": "tab1!E:E",
-        "majorDimension": "COLUMNS",
-        "values": [["111", "111", "111"]]
-      } ) );
-  });
+      .json_body
+      ( 
+        json!
+        ( 
+          {
+            "range" : "tab1!E:E",
+            "majorDimension" : "COLUMNS",
+            "values" : [ [ "111", "111", "111" ] ]
+          } 
+        ) 
+      );
+  } );
 
   let batch_get_mock = server.mock( | when, then | {
     when.method( GET )
       .path( "/12345/values:batchGet" );
     then.status( 200 )
       .header( "Content-Type", "application/json" )
-      .json_body( json!( {
-          "spreadsheetId": "12345",
-          "valueRanges": []
-      } ) );
-  });
+      .json_body
+      ( 
+        json!
+        ( 
+          {
+            "spreadsheetId" : "12345",
+            "valueRanges" : []
+          } 
+        ) 
+      );
+  } );
 
   let endpoint = server.url( "" );
-  let client: Client<'_, ApplicationSecret> = Client::former()
+  let client : Client< '_, ApplicationSecret > = Client::former()
   .endpoint( &*endpoint )
   .form();
 
@@ -87,7 +102,7 @@ async fn test_mock_get_row_by_custom_row_key_no_matches() {
 /// 4. Mock the batchGet request for the last matching row (say row 5).
 /// 5. Call `get_row_by_custom_row_key` with `OnFind::LastMatchedRow`.
 /// 6. Verify only row #5's data is returned.
-#[tokio::test]
+#[ tokio::test ]
 async fn test_mock_get_row_by_custom_row_key_multiple_matches_last() 
 {
   let server = MockServer::start();
@@ -98,12 +113,18 @@ async fn test_mock_get_row_by_custom_row_key_multiple_matches_last()
       .path( "/12345/values/tab1!E:E" );
     then.status( 200 )
       .header( "Content-Type", "application/json" )
-      .json_body( json!( {
-        "range": "tab1!E:E",
-        "majorDimension": "COLUMNS",
-        "values": [ [ "foo", "targetVal", "bar", "targetVal" ] ]
-      } ) );
-  });
+      .json_body
+      ( 
+        json!
+        ( 
+          {
+            "range" : "tab1!E:E",
+            "majorDimension" : "COLUMNS",
+            "values" : [ [ "foo", "targetVal", "bar", "targetVal" ] ]
+          } 
+        ) 
+      );
+  } );
 
   let batch_get_mock = server.mock( | when, then | {
     when.method( GET )
@@ -111,20 +132,26 @@ async fn test_mock_get_row_by_custom_row_key_multiple_matches_last()
       .query_param( "ranges", "tab1!A4:ZZZ4" );
     then.status( 200 )
       .header( "Content-Type", "application/json" )
-      .json_body( json!( {
-        "spreadsheetId": "12345",
-        "valueRanges": [ {
-          "range": "tab1!A4:ZZZ4",
-          "majorDimension": "ROWS",
-          "values": [
-            [ "Charlie", "X", "targetVal"]
-          ]
-        }]
-      }));
-  });
+      .json_body
+      ( 
+        json!
+        ( 
+          {
+            "spreadsheetId" : "12345",
+            "valueRanges" : [ 
+              {
+                "range" : "tab1!A4:ZZZ4",
+                "majorDimension" : "ROWS",
+                "values" : [ [ "Charlie", "X", "targetVal" ] ]
+              } 
+            ]
+          }
+        )
+      );
+  } );
 
   let endpoint = server.url( "" );
-  let client: Client<'_, ApplicationSecret> = Client::former()
+  let client : Client< '_, ApplicationSecret > = Client::former()
   .endpoint( &*endpoint )
   .form();
 
@@ -133,16 +160,16 @@ async fn test_mock_get_row_by_custom_row_key_multiple_matches_last()
     &client,
     spreadsheet_id,
     "tab1",
-    ("E", json!("targetVal")),
+    ( "E", json!( "targetVal" ) ),
     OnFind::LastMatchedRow,
   )
   .await
   .expect( "get_row_by_custom_row_key failed" );
 
   assert_eq!( fetched_rows.len(), 1 );
-  assert_eq!( fetched_rows[0].len(), 3 );
-  assert_eq!( fetched_rows[0][0], json!( "Charlie" ) );
-  assert_eq!( fetched_rows[0][2], json!( "targetVal" ) );
+  assert_eq!( fetched_rows[ 0 ].len(), 3 );
+  assert_eq!( fetched_rows[ 0 ][ 0 ], json!( "Charlie" ) );
+  assert_eq!( fetched_rows[ 0 ][ 2 ], json!( "targetVal" ) );
 
   get_mock.assert();
   batch_get_mock.assert();

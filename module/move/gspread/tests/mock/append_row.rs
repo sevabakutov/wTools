@@ -5,17 +5,17 @@
 use httpmock::prelude::*;
 use serde_json::json;
 use std::collections::HashMap;
-use gspread::
+
+use gspread::*;
+use actions::gspread::append_row;
+use gcore::ApplicationSecret;
+use gcore::client::
 {
-  actions::gspread::append_row, 
-  gcore::{client::
-  {
-    Client, 
-    Dimension, 
-    UpdateValuesResponse, 
-    ValueRange, 
-    ValuesAppendResponse
-  }, ApplicationSecret}
+  Client, 
+  Dimension, 
+  UpdateValuesResponse, 
+  ValueRange, 
+  ValuesAppendResponse
 };
 
 
@@ -64,8 +64,8 @@ async fn test_mock_append_row_should_work()
   } );
 
   // 2. Create a client.
-  let endpoint = server.url("" );
-  let client: Client<'_, ApplicationSecret> = Client::former()
+  let endpoint = server.url( "" );
+  let client : Client< '_, ApplicationSecret > = Client::former()
   .endpoint( &*endpoint )
   .form();
 
@@ -129,8 +129,8 @@ async fn test_mock_append_row_begining_from_C_column_should_work()
   } );
 
   // 2. Create a client.
-  let endpoint = server.url("" );
-  let client: Client<'_, ApplicationSecret> = Client::former()
+  let endpoint = server.url( "" );
+  let client : Client< '_, ApplicationSecret > = Client::former()
   .endpoint( &*endpoint )
   .form();
 
@@ -180,8 +180,8 @@ async fn test_mock_append_row_with_bad_values_should_panic()
   } );
 
   // 2. Create a client.
-  let endpoint = server.url("" );
-  let client: Client<'_, ApplicationSecret> = Client::former()
+  let endpoint = server.url( "" );
+  let client : Client< '_, ApplicationSecret > = Client::former()
   .endpoint( &*endpoint )
   .form();
 
@@ -214,8 +214,8 @@ async fn test_mock_append_row_with_bad_values2_should_panic()
   } );
 
   // 2. Create a client.
-  let endpoint = server.url("" );
-  let client: Client<'_, ApplicationSecret> = Client::former()
+  let endpoint = server.url( "" );
+  let client : Client< '_, ApplicationSecret > = Client::former()
   .endpoint( &*endpoint )
   .form();
 

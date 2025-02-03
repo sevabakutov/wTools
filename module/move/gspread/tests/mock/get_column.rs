@@ -4,17 +4,15 @@
 
 use httpmock::prelude::*;
 use serde_json::json;
-use gspread::
+use gspread::*;
+use actions::gspread::get_column;
+use gcore::ApplicationSecret;
+use gcore::client::
 {
-  actions::gspread::get_column, 
-  gcore::{client::
-  {
-    Client, 
-    Dimension, 
-    ValueRange, 
-  }, ApplicationSecret}
+  Client, 
+  Dimension, 
+  ValueRange, 
 };
-
 
 /// # What 
 /// We test retrieving a single column from a sheet by its column ID.
@@ -43,17 +41,20 @@ async fn test_mock_get_column_should_work()
       .query_param( "valueRenderOption", "UNFORMATTED_VALUE" );
     then.status( 200 )
       .header( "Content-Type", "application/json" )
-      .json_body_obj( &ValueRange
-      {
-        range : Some( "tab2!A:A".to_string() ),
-        major_dimension : Some( Dimension::Column ),
-        values : Some( mock_response_values.clone() ),
-      } );
+      .json_body_obj
+      ( 
+        &ValueRange
+        {
+          range : Some( "tab2!A:A".to_string() ),
+          major_dimension : Some( Dimension::Column ),
+          values : Some( mock_response_values.clone() ),
+        } 
+      );
   } );
 
   // 2. Create a client.
   let endpoint = server.url( "" );
-  let client: Client<'_, ApplicationSecret> = Client::former()
+  let client : Client< '_, ApplicationSecret > = Client::former()
   .endpoint( &*endpoint )
   .form();
 
@@ -108,7 +109,7 @@ async fn test_mock_get_empty_column_should_work()
 
   // 2. Create a client.
   let endpoint = server.url( "" );
-  let client: Client<'_, ApplicationSecret> = Client::former()
+  let client : Client< '_, ApplicationSecret > = Client::former()
   .endpoint( &*endpoint )
   .form();
 
@@ -155,7 +156,7 @@ async fn test_mock_get_column_with_error_should_panic()
 
   // 2. Create a client.
   let endpoint = server.url( "" );
-  let client: Client<'_, ApplicationSecret> = Client::former()
+  let client : Client< '_, ApplicationSecret > = Client::former()
   .endpoint( &*endpoint )
   .form();
 

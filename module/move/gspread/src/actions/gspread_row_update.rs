@@ -8,10 +8,14 @@ mod private
 
   use crate::*;
   use ser::Deserialize;
+  use actions::gspread::update_row;
   use gcore::Secret; 
   use gcore::client::Client;
-  use gcore::error::{ Error, Result };
-  use actions::gspread::update_row;
+  use gcore::error::
+  { 
+    Error, 
+    Result 
+  };
 
   /// # ParsedJson
   ///
@@ -40,14 +44,14 @@ mod private
   ///   The key to use for identifying the row (e.g., `"id"`).
   ///
   /// ## Returns:
-  /// - `Result<ParsedJson>`
+  /// - `Result< ParsedJson >`
   fn parse_json
   (
     json_str : &str,
     select_row_by_key : &str,
   ) -> Result< ParsedJson > 
   {
-    let mut parsed_json: HashMap< String, serde_json::Value > = serde_json::from_str( json_str )
+    let mut parsed_json : HashMap< String, serde_json::Value > = serde_json::from_str( json_str )
     .map_err( | error | Error::InvalidJSON( format!( "Failed to parse JSON: {}", error ) ) )?;
 
     let row_key = if let Some( row_key ) = parsed_json.remove( select_row_by_key ) 
@@ -92,7 +96,7 @@ mod private
   ///   The row's primary key.
   ///
   /// ## Returns:
-  /// - `Result<()>`
+  /// - `Result< () >`
   fn check_select_row_by_key
   (
     key : &str
@@ -112,9 +116,9 @@ mod private
     }
   }
 
-  pub async fn action<S: Secret>
+  pub async fn action< S : Secret >
   (
-    client : &Client<'_, S>,
+    client : &Client< '_, S >,
     select_row_by_key : &str,
     json_str : &str,
     spreadsheet_id : &str,

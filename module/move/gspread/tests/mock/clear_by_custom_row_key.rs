@@ -4,13 +4,19 @@
 
 use httpmock::prelude::*;
 use serde_json::json;
-use gspread::
+use gspread::*
+use actions::gspread::
 {
-  actions::gspread::{clear_by_custom_row_key, OnFind}, 
-  gcore::{client::
-  {
-    BatchClearValuesResponse, Client, Dimension, ValueRange 
-  }, ApplicationSecret},
+  clear_by_custom_row_key, 
+  OnFind
+};
+use gcore::ApplicationSecret;
+use gcore::client::
+{
+  BatchClearValuesResponse, 
+  Client, 
+  Dimension, 
+  ValueRange 
 };
 
 
@@ -70,7 +76,7 @@ async fn test_mock_clear_by_custom_row_key_should_work()
   } );
 
   let endpoint = server.url( "" );
-  let client: Client<'_, ApplicationSecret> = Client::former()
+  let client : Client< '_, ApplicationSecret > = Client::former()
   .endpoint( &*endpoint )
   .form();
 
@@ -131,7 +137,7 @@ async fn test_mock_clear_by_custom_row_key_no_matches_should_return_default()
   } );
 
   let endpoint = server.url( "" );
-  let client: Client<'_, ApplicationSecret> = Client::former()
+  let client : Client< '_, ApplicationSecret > = Client::former()
   .endpoint( &*endpoint )
   .form();
 
@@ -184,7 +190,7 @@ async fn test_mock_clear_by_custom_row_key_error_in_get_column_should_panic()
   } );
 
   let endpoint = server.url( "" );
-  let client: Client<'_, ApplicationSecret> = Client::former()
+  let client : Client< '_, ApplicationSecret > = Client::former()
   .endpoint( &*endpoint )
   .form();
 
@@ -250,7 +256,7 @@ async fn test_mock_clear_by_custom_row_key_error_in_batch_clear_should_panic()
   } );
 
   let endpoint = server.url( "" );
-  let client: Client<'_, ApplicationSecret> = Client::former()
+  let client : Client< '_, ApplicationSecret > = Client::former()
   .endpoint( &*endpoint )
   .form();
 

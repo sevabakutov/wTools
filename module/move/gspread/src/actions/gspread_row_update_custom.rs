@@ -17,9 +17,9 @@ mod private
   };
 
 
-  pub async fn action<S: Secret>
+  pub async fn action< S : Secret >
   (
-    client : &Client<'_, S>,
+    client : &Client< '_, S >,
     spreadsheet_id : &str,
     sheet_name : &str,
     key_by : &str,

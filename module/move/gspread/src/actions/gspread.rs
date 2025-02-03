@@ -11,7 +11,11 @@ mod private
 
   use crate::*;
   use gcore::Secret;
-  use gcore::error::{ Error, Result };
+  use gcore::error::
+  { 
+    Error, 
+    Result 
+  };
   use gcore::client::
   {
     Client, 
@@ -34,10 +38,10 @@ mod private
   /// Collect value matches in a column.
   /// 
   /// ## Params:
-  ///  - `column`: A reference to Vec<serde_json::Value>, column.
+  ///  - `column`: A reference to Vec< serde_json::Value >, column.
   ///  - `key`: A reference to a serde_json::Value, value to find.
   /// 
-  /// Return `Vec<usize>`
+  /// Return `Vec< usize >`
   fn get_key_matches
   ( 
     column : &Vec< serde_json::Value >,
@@ -107,19 +111,19 @@ mod private
   /// - `row_key`:  
   ///   A `serde_json::Value` representing the row's key (e.g., the row index).
   /// - `row_key_val`:  
-  ///   A `HashMap<String, serde_json::Value>` where:  
+  ///   A `HashMap< String, serde_json::Value >` where:  
   ///   - Key: The column name (e.g., "A", "B").  
   ///   - Value: The new value to set in the corresponding cell.
   ///
   /// ## Returns:
-  /// - Result<[`BatchUpdateValuesResponse`]>
+  /// - Result< [`BatchUpdateValuesResponse`] >
   ///
   /// ## Errors:
   /// - `Error::ApiError`:  
   ///   Occurs if the Google Sheets API returns an error, e.g., due to invalid input or insufficient permissions.
-  pub async fn update_row<S: Secret>
+  pub async fn update_row< S : Secret >
   (
-    client : &Client<'_, S>,
+    client : &Client< '_, S >,
     spreadsheet_id : &str,
     sheet_name : &str,
     row_key : serde_json::Value,
@@ -134,9 +138,9 @@ mod private
       (
         ValueRange
         { 
-          major_dimension: Some( Dimension::Row ),
-          values: Some( vec![ vec![ value ] ] ),
-          range: Some( format!( "{}!{}{}", sheet_name, col_name, row_key ) ),
+          major_dimension : Some( Dimension::Row ),
+          values : Some( vec![ vec![ value ] ] ),
+          range : Some( format!( "{}!{}{}", sheet_name, col_name, row_key ) ),
         }
       )
     }
@@ -176,14 +180,14 @@ mod private
   ///   `&str` specifying the sheet's column id (e. g. A, B, C, ..., ZZZ)
   ///
   /// ## Returns:
-  /// - Result<Vec< serde_json::Value >>
+  /// - Result< Vec< serde_json::Value > >
   ///
   /// ## Errors:
   /// - `Error::ApiError`:  
   ///   Occurs if the Google Sheets API returns an error, e.g., due to invalid input or insufficient permissions.
-  pub async fn get_column<S: Secret>
+  pub async fn get_column< S : Secret >
   (
-    client : &Client<'_, S>,
+    client : &Client< '_, S >,
     spreadsheet_id : &str,
     sheet_name : &str,
     column_id : &str
@@ -233,7 +237,7 @@ mod private
   /// - `key_by`:  
   ///   A `( &str, serde_json::Value )` a pair of column key and its value.
   /// - `row_key_val`:  
-  ///   A `HashMap<String, serde_json::Value>` where:  
+  ///   A `HashMap< String, serde_json::Value >` where:  
   ///   - Key: The column name (e.g., "A", "B").  
   ///   - Value: The new value to set in the corresponding cell.
   /// - `update_range_at_all_match_cells`
@@ -247,9 +251,9 @@ mod private
   /// ## Errors:
   /// - `Error::ApiError`:  
   ///   Occurs if the Google Sheets API returns an error, e.g., due to invalid input or insufficient permissions.
-  pub async fn update_rows_by_custom_row_key<S: Secret>
+  pub async fn update_rows_by_custom_row_key< S : Secret >
   (
-    client : &Client<'_, S>,
+    client : &Client< '_, S >,
     spreadsheet_id : &str,
     sheet_name : &str,
     key_by : ( &str, serde_json::Value ), 
@@ -300,7 +304,7 @@ mod private
     };
 
     // Counting mathces.
-    let row_keys: Vec< usize > = values[0]
+    let row_keys : Vec< usize > = values[0]
     .iter()
     .enumerate()
     .filter( | &( _, val ) | { *val == key_by.1 } )
@@ -348,9 +352,9 @@ mod private
         (
           ValueRange
           { 
-            major_dimension: Some( Dimension::Row ),
-            values: Some( vec![ vec![ value.clone() ] ] ),
-            range: Some( format!( "{}!{}{}", sheet_name, col_name, row_key + 1 ) ),
+            major_dimension : Some( Dimension::Row ),
+            values : Some( vec![ vec![ value.clone() ] ] ),
+            range : Some( format!( "{}!{}{}", sheet_name, col_name, row_key + 1 ) ),
           }
         );
       }
@@ -390,7 +394,7 @@ mod private
   /// - `sheet_name`:  
   ///   A `&str` specifying the name of the sheet whose header is to be retrieved.
   /// - `row_key_val`: 
-  ///   A `HashMap<String, serde_json::Value>` where:  
+  ///   A `HashMap< String, serde_json::Value >` where:  
   ///   - Key: The column name (e.g., "A", "B").  
   ///   - Value: The new value to set in the corresponding cell.
   /// 
@@ -401,16 +405,16 @@ mod private
   /// - `Error::ApiError`:  
   ///   Occurs if the Google Sheets API returns an error, such as an invalid spreadsheet ID
   ///   or insufficient permissions.
-  pub async fn append_row<S: Secret>
+  pub async fn append_row< S : Secret >
   (
-    client : &Client<'_, S>,
+    client : &Client< '_, S >,
     spreadsheet_id : &str,
     sheet_name : &str,
     row_key_val : &HashMap< String, serde_json::Value >
   ) -> Result< ValuesAppendResponse >
   {
     // Sort column indexes, from A -> ZZZ
-    let mut columns: Vec< &String > = row_key_val.keys().collect();
+    let mut columns : Vec< &String > = row_key_val.keys().collect();
 
     columns.sort_by_key( | col | _column_label_to_number( col ) );
 
@@ -466,7 +470,7 @@ mod private
   /// - `sheet_name`:  
   ///   A `&str` specifying the name of the sheet from which rows are to be retrieved.
   /// - `key_by`:  
-  ///   A tuple `(column_id, value)` where:
+  ///   A tuple `( column_id, value )` where:
   ///   - `column_letter`: The column identifier (e.g., `"A"`, `"B"`).
   ///   - `value`: A `serde_json::Value` to match in the given column.
   /// - `on_find`:  
@@ -475,16 +479,16 @@ mod private
   ///
   /// ## Returns:
   /// - `Result< Vec< Vec< serde_json::Value > > >`  
-  ///   On success, returns a list of rows, where each row is a `Vec<serde_json::Value>`.
+  ///   On success, returns a list of rows, where each row is a `Vec< serde_json::Value >`.
   ///
   /// ## Errors:
   /// - `Error::ApiError`:  
   ///   Occurs if the Google Sheets API returns an error, 
   ///   such as an invalid spreadsheet ID, insufficient permissions, 
   ///   or any issues during the request/response cycle.
-  pub async fn get_row_by_custom_row_key<S: Secret>
+  pub async fn get_row_by_custom_row_key< S : Secret >
   (
-    client : &Client<'_, S>,
+    client : &Client< '_, S >,
     spreadsheet_id : &str,
     sheet_name : &str,
     key_by : ( &str, serde_json::Value ),
@@ -527,7 +531,7 @@ mod private
           {
             Ok( response ) =>
             {
-              let values: Vec< Vec< serde_json::Value > > = response
+              let values : Vec< Vec< serde_json::Value > > = response
               .value_ranges
               .unwrap_or_default()
               .into_iter()
@@ -561,16 +565,16 @@ mod private
   ///   A `&str` specifying the name of the sheet whose header is to be retrieved.
   ///
   /// ## Returns:
-  /// - `Result<Vec<Vec<serde_json::Value>>>`
+  /// - `Result< Vec< Vec< serde_json::Value > > >`
   ///
   /// ## Errors:
   /// - `Error::ApiError`:  
   ///   Occurs if the Google Sheets API returns an error, such as an invalid spreadsheet ID
   ///   or insufficient permissions.
-  pub async fn get_header<S: Secret>
+  pub async fn get_header< S : Secret >
   (
 
-    client : &Client<'_, S>,
+    client : &Client< '_, S >,
     spreadsheet_id : &str,
     sheet_name : &str, 
   ) -> Result< Vec< serde_json::Value > >
@@ -609,9 +613,9 @@ mod private
   ///   A `&str` specifying the name of the sheet whose rows are to be retrieved.
   /// - `row_key`:
   ///   A `serde_json::Value` represents row's key. Key starts from 1.
-  pub async fn get_row<S: Secret>
+  pub async fn get_row< S : Secret >
   (
-    client : &Client<'_, S>,
+    client : &Client< '_, S >,
     spreadsheet_id : &str,
     sheet_name : &str,
     row_key : serde_json::Value
@@ -659,15 +663,15 @@ mod private
   ///   A `&str` specifying the name of the sheet whose rows are to be retrieved.
   ///
   /// ## Returns:
-  /// - `Result<Vec<Vec<serde_json::Value>>>`
+  /// - `Result< Vec< Vec< serde_json::Value > > >`
   ///
   /// ## Errors:
   /// - `Error::ApiError`:  
   ///   Occurs if the Google Sheets API returns an error, such as an invalid spreadsheet ID
   ///   or insufficient permissions.
-  pub async fn get_rows<S: Secret>
+  pub async fn get_rows< S : Secret >
   (
-    client : &Client<'_, S>,
+    client : &Client< '_, S >,
     spreadsheet_id : &str,
     sheet_name : &str, 
   ) -> Result< Vec< Vec< serde_json::Value > > >
@@ -709,15 +713,15 @@ mod private
   ///   A `&str` representing the cell ID in the format `A1`, where `A` is the column and `1` is the row.
   ///
   /// ## Returns:
-  /// - `Result<serde_json::Value>`:
+  /// - `Result< serde_json::Value >`:
   ///
   /// ## Errors:
   /// - `Error::ApiError`:  
   ///   Occurs if the Google Sheets API returns an error, such as an invalid spreadsheet ID
   ///   or insufficient permissions.
-  pub async fn get_cell<S: Secret>
+  pub async fn get_cell< S : Secret >
   (
-    client : &Client<'_, S>,
+    client : &Client< '_, S >,
     spreadsheet_id : &str,
     sheet_name : &str,
     cell_id : &str
@@ -760,14 +764,14 @@ mod private
   ///   A `serde_json::Value` containing the new value to update in the cell.
   ///
   /// ## Returns:
-  /// - Result<[`UpdateValuesResponse`]>
+  /// - Result< [`UpdateValuesResponse`] >
   /// 
   /// ## Errors:
   /// - `Error::ApiError`:  
   ///   Occurs if the Google Sheets API returns an error, such as invalid input or insufficient permissions.
-  pub async fn set_cell<S: Secret>
+  pub async fn set_cell< S : Secret >
   (
-    client : &Client<'_, S>,
+    client : &Client< '_, S >,
     spreadsheet_id : &str,
     sheet_name : &str,
     cell_id : &str,
@@ -806,14 +810,14 @@ mod private
   ///   A `&str` specifying the name of the sheet where the cell is located.
   /// 
   /// ## Returns:
-  /// - Result<[`ValuesClearResponse`]>
+  /// - Result< [`ValuesClearResponse`] >
   /// 
   /// ## Errors:
   /// - `Error::ApiError`:  
   ///   Occurs if the Google Sheets API returns an error, such as invalid input or insufficient permissions.
-  pub async fn clear<S: Secret>
+  pub async fn clear< S : Secret >
   (
-    client : &Client<'_, S>,
+    client : &Client< '_, S >,
     spreadsheet_id : &str,
     sheet_name : &str
   ) -> Result< ValuesClearResponse >
@@ -847,14 +851,14 @@ mod private
   ///   Action to do on finded matches.
   /// 
   /// ## Returns:
-  /// - Result<[`BatchClearValuesResponse`]>
+  /// - Result< [`BatchClearValuesResponse`] >
   /// 
   /// ## Errors:
   /// - `Error::ApiError`:  
   ///   Occurs if the Google Sheets API returns an error, such as invalid input or insufficient permissions.
-  pub async fn clear_by_custom_row_key<S: Secret>
+  pub async fn clear_by_custom_row_key< S : Secret >
   (
-    client : &Client<'_, S>,
+    client : &Client< '_, S >,
     spreadsheet_id : &str,
     sheet_name : &str,
     key_by : ( &str, serde_json::Value ),
@@ -926,9 +930,9 @@ mod private
   /// ## Errors:
   ///   - [`Error::ApiError`]
   ///   - [`Error::ParseError`]
-  pub async fn copy_to<S: Secret>
+  pub async fn copy_to< S : Secret >
   (
-    client : &Client<'_, S>,
+    client : &Client< '_, S >,
     spreadsheet_id : &str,
     sheet_id : &str,
     dest : &str

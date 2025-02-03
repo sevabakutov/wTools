@@ -13,9 +13,9 @@ mod private
   use gcore::client::Client;
   use gcore::error::Result;
 
-  pub async fn action<S: Secret>
+  pub async fn action< S : Secret >
   (
-    client : &Client<'_, S>,
+    client : &Client< '_, S >,
     spreadsheet_id : &str,
     sheet_name : &str
   ) -> Result< Vec< serde_json::Value > >

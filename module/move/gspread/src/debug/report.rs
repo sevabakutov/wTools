@@ -15,7 +15,7 @@ mod private
   ///
   /// ## Fields:
   /// - `rows`:  
-  ///   A `Vec<RowWrapper>` containing the rows to be displayed.
+  ///   A `Vec< RowWrapper >` containing the rows to be displayed.
   ///
   /// ## Usage:
   /// This structure is used in conjunction with the `fmt::Display` trait to render rows in a formatted table view.

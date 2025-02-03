@@ -4,9 +4,12 @@
 
 use httpmock::prelude::*;
 use serde_json::json;
-use gspread::
+use gspread::*;
+use actions::gspread::copy_to;
+use gcore::
 {
-  actions::gspread::copy_to, gcore::{client::Client, ApplicationSecret}
+  client::Client, 
+  ApplicationSecret
 };
 
 /// # What
@@ -18,18 +21,22 @@ use gspread::
 /// 3. Mock a `POST` request to /{spreadsheet_id}/sheets/{sheet_id}:copyTo.
 /// 4. Call `copy_to`.
 /// 5. Verify the response (e.g. `sheetId` and `title`).
-#[tokio::test]
-async fn test_mock_copy_to_should_work() {
+#[ tokio::test ]
+async fn test_mock_copy_to_should_work() 
+{
   let server = MockServer::start();
   let spreadsheet_id = "12345";
   let sheet_id = "67890";
   let destination_spreadsheet_id = "destination123";
 
-  let body = json!({
-    "sheetId": 999,
-    "title": "CopiedSheet",
-    "index": 2
-  });
+  let body = json!
+  (
+    {
+      "sheetId" : 999,
+      "title" : "CopiedSheet",
+      "index" : 2
+    }
+  );
 
   // 1. Mock the POST request for copying the sheet.
   let copy_mock = server.mock( | when, then | {
@@ -38,11 +45,11 @@ async fn test_mock_copy_to_should_work() {
     then.status( 200 )
       .header( "Content-Type", "application/json" )
       .json_body( body.clone() );
-  });
+  } );
 
   // 2. Create a client pointing to our mock server.
   let endpoint = server.url( "" );
-  let client: Client<'_, ApplicationSecret> = Client::former()
+  let client : Client< '_, ApplicationSecret > = Client::former()
   .endpoint( &*endpoint )
   .form();
 
@@ -74,9 +81,10 @@ async fn test_mock_copy_to_should_work() {
 /// 2. Create a client.
 /// 3. Mock a `POST` request that returns an error (400).
 /// 4. Call `copy_to` and expect a panic (due to `.expect(...)`).
-#[tokio::test]
-#[should_panic]
-async fn test_mock_copy_to_should_panic() {
+#[ tokio::test ]
+#[ should_panic ]
+async fn test_mock_copy_to_should_panic() 
+{
   let server = MockServer::start();
   let spreadsheet_id = "12345";
   let sheet_id = "67890";
@@ -88,14 +96,20 @@ async fn test_mock_copy_to_should_panic() {
       .path( format!( "/{}/sheets/{}:copyTo", spreadsheet_id, sheet_id ) );
     then.status( 400 )
       .header( "Content-Type", "application/json" )
-      .json_body( json!({
-        "error": { "message": "Invalid request or missing permissions." }
-      }) );
+      .json_body
+      ( 
+        json!
+        (
+          {
+            "error" : { "message" : "Invalid request or missing permissions." }
+          }
+        ) 
+      );
   });
 
   // 2. Create a client pointing to our mock server.
   let endpoint = server.url( "" );
-  let client: Client<'_, ApplicationSecret> = Client::former()
+  let client : Client< '_, ApplicationSecret > = Client::former()
   .endpoint( &*endpoint )
   .form();
 

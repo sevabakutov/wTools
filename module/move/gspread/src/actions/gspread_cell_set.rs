@@ -8,19 +8,19 @@
 mod private
 {
   use crate::*;
+  use serde_json::json;
   use actions::gspread::set_cell;
   use gcore::Secret;
+  use gcore::client::Client;
   use gcore::error::
   {
     Error,
     Result
   }; 
-  use gcore::client::Client;
-  use serde_json::json;
 
-  pub async fn action<S: Secret>
+  pub async fn action< S : Secret >
   (
-    client : &Client<'_, S>,
+    client : &Client< '_, S >,
     spreadsheet_id : &str,
     sheet_name : &str,
     cell_id : &str,

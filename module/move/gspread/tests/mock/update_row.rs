@@ -5,15 +5,15 @@
 use httpmock::prelude::*;
 
 use serde_json::json;
-use gspread::
+use gspread::*;
+use actions::gspread::update_row;
+use gcore::ApplicationSecret;
+use gcore::client::
 {
-  actions::gspread::update_row, 
-  gcore::{client::
-  {BatchUpdateValuesResponse, 
-    Client, 
-    Dimension, 
-    ValueRange
-  }, ApplicationSecret}
+  BatchUpdateValuesResponse, 
+  Client, 
+  Dimension, 
+  ValueRange
 };
 
 /// # What
@@ -24,7 +24,7 @@ use gspread::
 /// 2. Create a client.
 /// 3. Call `update_row()`, passing the necessary parameters.
 /// 4. Check results.
-#[tokio::test]
+#[ tokio::test ]
 async fn test_mock_update_row_should_work() 
 {
   let spreadsheet_id = "12345";
@@ -57,24 +57,24 @@ async fn test_mock_update_row_should_work()
 
   // 1. Start a mock server.
   let server = MockServer::start();
-  let mock = server.mock( |when, then | {
+  let mock = server.mock( | when, then | {
     when.method( POST )
       .path( "/12345/values:batchUpdate" );
     then.status( 200 )
       .header( "Content-Type", "application/json" )
       .json_body_obj( &response_body );
-  });
+  } );
 
   // 2. Create a client.
-  let endpoint = server.url("");
-  let client: Client<'_, ApplicationSecret> = Client::former()
+  let endpoint = server.url( "" );
+  let client : Client< '_, ApplicationSecret > = Client::former()
   .endpoint( &*endpoint )
   .form();
 
   // 3. Call `update_row` function.
   let mut row_key_val = std::collections::HashMap::new();
-  row_key_val.insert( "A".to_string(), serde_json::Value::String( "Hello".to_string() ) );
-  row_key_val.insert( "B".to_string(), serde_json::Value::Number( serde_json::Number::from( 123 ) ) );
+  row_key_val.insert( "A".to_string(), json!( "Hello" ) );
+  row_key_val.insert( "B".to_string(), json!( 123 ) );
 
   let batch_result = update_row
   ( 
@@ -101,7 +101,7 @@ async fn test_mock_update_row_should_work()
   }
 }
 
-#[tokio::test]
+#[ tokio::test ]
 async fn test_mock_update_row_with_empty_values_should_work() 
 {
   let spreadsheet_id = "12345";
@@ -117,17 +117,17 @@ async fn test_mock_update_row_with_empty_values_should_work()
 
   // 1. Start a mock server.
   let server = MockServer::start();
-  let mock = server.mock( |when, then | {
+  let mock = server.mock( | when, then | {
     when.method( POST )
       .path( "/12345/values:batchUpdate" );
     then.status( 200 )
       .header( "Content-Type", "application/json" )
       .json_body_obj( &response_body );
-  });
+  } );
 
   // 2. Create a client.
-  let endpoint = server.url("");
-  let client: Client<'_, ApplicationSecret> = Client::former()
+  let endpoint = server.url( "" );
+  let client : Client< '_, ApplicationSecret > = Client::former()
   .endpoint( &*endpoint )
   .form();
 
@@ -167,24 +167,24 @@ async fn test_mock_update_row_with_invalid_row_key_should_panic()
 {
   // 1. Start a mock server.
   let server = MockServer::start();
-  let _mock = server.mock( |when, then | {
+  let _mock = server.mock( | when, then | {
     when.method( POST )
       .path( "/12345/values:batchUpdate" );
     then.status( 400 )
       .header( "Content-Type", "application/json" )
       .body( "{ error: invalid row_key }" );
-  });
+  } );
 
   // 2. Create a client.
-  let endpoint = server.url("");
-  let client: Client<'_, ApplicationSecret> = Client::former()
+  let endpoint = server.url( "" );
+  let client : Client< '_, ApplicationSecret > = Client::former()
   .endpoint( &*endpoint )
   .form();
 
   // 3. Call `update_row` function.
   let mut row_key_val = std::collections::HashMap::new();
-  row_key_val.insert( "A".to_string(), serde_json::Value::String( "Hello".to_string() ) );
-  row_key_val.insert( "B".to_string(), serde_json::Value::Number( serde_json::Number::from( 123 ) ) );
+  row_key_val.insert( "A".to_string(), json!( "Hello" ) );
+  row_key_val.insert( "B".to_string(), json!( 123 ) );
 
   let _batch_result = update_row
   ( 
@@ -204,17 +204,17 @@ async fn test_mock_update_row_with_invalid_row_key_val_should_panic()
 {
   // 1. Start a mock server.
   let server = MockServer::start();
-  let _mock = server.mock( |when, then | {
+  let _mock = server.mock( | when, then | {
     when.method( POST )
       .path( "/12345/values:batchUpdate" );
     then.status( 400 )
       .header( "Content-Type", "application/json" )
       .body( "{ error: invalid column index }" );
-  });
+  } );
 
   // 2. Create a client.
-  let endpoint = server.url("");
-  let client: Client<'_, ApplicationSecret> = Client::former()
+  let endpoint = server.url( "" );
+  let client : Client< '_, ApplicationSecret > = Client::former()
   .endpoint( &*endpoint )
   .form();
 

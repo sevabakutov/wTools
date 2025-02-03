@@ -4,13 +4,13 @@
 
 use httpmock::prelude::*;
 use serde_json::json;
-use gspread::
+use gspread::*;
+use actions::gspread::get_row;
+use gcore::ApplicationSecret;
+use gcore::client::
 {
-  actions::gspread::get_row, 
-  gcore::{client::
-  {
-    Client, ValueRange
-  }, ApplicationSecret}
+  Client, 
+  ValueRange
 };
 
 
@@ -27,7 +27,7 @@ async fn test_mock_get_row_should_work()
 {  
   let spreadsheet_id = "12345";
   let sheet_name = "tab2";
-  let row_key = json!(10);
+  let row_key = json!( 10 );
 
   let mock_response_values = vec![ vec![ json!( "Hello" ), json!( "World" ) ] ];
 
@@ -40,17 +40,20 @@ async fn test_mock_get_row_should_work()
       .query_param( "valueRenderOption", "UNFORMATTED_VALUE" );
     then.status( 200 )
       .header( "Content-Type", "application/json" )
-      .json_body_obj( &ValueRange
-      {
-        range : Some( "tab2!A10:ZZZ10".to_string() ),
-        major_dimension : None,
-        values : Some( mock_response_values.clone() ),
-      } );
+      .json_body_obj
+      ( 
+        &ValueRange
+        {
+          range : Some( "tab2!A10:ZZZ10".to_string() ),
+          major_dimension : None,
+          values : Some( mock_response_values.clone() ),
+        } 
+      );
   } );
 
   // 2. Create a client.
   let endpoint = server.url( "" );
-  let client: Client<'_, ApplicationSecret> = Client::former()
+  let client : Client< '_, ApplicationSecret > = Client::former()
   .endpoint( &*endpoint )
   .form();
 
@@ -63,8 +66,8 @@ async fn test_mock_get_row_should_work()
   mock.assert();
 
   assert_eq!( row.len(), 2 );
-  assert_eq!( row[0], json!( "Hello" ) );
-  assert_eq!( row[1], json!( "World" ) );
+  assert_eq!( row[ 0 ], json!( "Hello" ) );
+  assert_eq!( row[ 1 ], json!( "World" ) );
 }
 
 
@@ -102,7 +105,7 @@ async fn test_mock_get_row_no_data_should_work()
 
   // 2. Create a client.
   let endpoint = server.url( "" );
-  let client: Client<'_, ApplicationSecret> = Client::former()
+  let client : Client< '_, ApplicationSecret > = Client::former()
   .endpoint( &*endpoint )
   .form();
 

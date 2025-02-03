@@ -8,7 +8,11 @@ mod private
   use crate::*;
   use gcore::Secret;
   use gcore::client::Client;
-  use debug::{ RowWrapper, Report };
+  use debug::
+  { 
+    RowWrapper, 
+    Report 
+  };
   use actions::
   {
     self,
@@ -53,57 +57,57 @@ mod private
   pub enum Commands
   {
     #[ command( name = "get", about = "Retreive a column from a Google Sheet.", long_about = r#"
-|---------------------------------------------------------------------------------------------------------------|
-|                                             COLUMN-GET                                                        |
-|---------------------------------------------------------------------------------------------------------------|
-| ● Description:                                                                                                |
-|   ↓ ↓ ↓ ↓ ↓ ↓                                                                                                 |
-|                                                                                                               |
-| Retrieves a column from a Google Sheet as specified by the `--column-id` argument.                            |
-|                                                                                                               |
-|---------------------------------------------------------------------------------------------------------------|
-| ● Command example:                                                                                            |
-|   ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓                                                                                             |
-|                                                                                                               |
-| cargo run gspread column get \                                                                                |
-|         --url 'https://docs.google.com/spreadsheets/d/{spreadsheet_id}/edit?gid={sheet_id}#gid={sheet_id}' \  |
-|         --tab 'tab1' \                                                                                       |
-|         --column-id 'A'                                                                                      |
-|                                                                                                               |
-|---------------------------------------------------------------------------------------------------------------|
-| ● Output:  Prints the retrieved column:                                                                       |
-|   ↓ ↓ ↓ ↓                                                                                                     |
-|                                                                                                               |
-| Column:                                                                                                       |
-| │   0     │                                                                                                   |
-| ───────────                                                                                                   |
-| │ "Name"  │                                                                                                   |
-| │    1    │                                                                                                   |
-| │ "name2" │                                                                                                   |
-| │  true   │                                                                                                   |
-|                                                                                                               |
-|---------------------------------------------------------------------------------------------------------------|
-| ● Errors:                                                                                                     |
-|   ↓ ↓ ↓ ↓                                                                                                     |
-|                                                                                                               |
-|  ◦ Error::ApiError:                                                                                           |
-|    |----------------------------------------------------------------|                                         |
-|    | Occurs if the Google Sheets API returns an error,              |                                         |
-|    | such as an invalid spreadsheet ID, insufficient permissions    |                                         |
-|    | or invalid sheet name.                                         |                                         |
-|    |----------------------------------------------------------------|                                         |
-|                                                                                                               |
-|  ◦ Error::ParseError:                                                                                        |
-|    |---------------------------------------------------------|                                                |
-|    | Occurs when serde_json::Value parse error.              |                                                |
-|    |---------------------------------------------------------|                                                |
-|                                                                                                               |
-|  ◦ Error::InvalidURL:                                                                                         |
-|    |----------------------------------------------------------------------|                                   |
-|    | Occurs when you pass a URL with an invalid spreadsheet format.  |                                        |
-|    |----------------------------------------------------------------------|                                   |
-|                                                                                                               |
-|---------------------------------------------------------------------------------------------------------------|
+---------------------------------------------------------------------------------------------------------------
+                                             COLUMN-GET                                                        
+---------------------------------------------------------------------------------------------------------------
+ ● Description:                                                                                                
+   ↓ ↓ ↓ ↓ ↓ ↓                                                                                                 
+                                                                                                               
+ Retrieves a column from a Google Sheet as specified by the `--column-id` argument.                            
+                                                                                                               
+---------------------------------------------------------------------------------------------------------------
+ ● Command example:                                                                                            
+   ↓ ↓ ↓ ↓ ↓ ↓ ↓ ↓                                                                                             
+                                                                                                               
+ cargo run gspread column get \                                                                                
+         --url 'https://docs.google.com/spreadsheets/d/{spreadsheet_id}/edit?gid={sheet_id}#gid={sheet_id}' \  
+         --tab 'tab1' \                                                                                       
+         --column-id 'A'                                                                                      
+                                                                                                               
+---------------------------------------------------------------------------------------------------------------
+ ● Output:  Prints the retrieved column:                                                                       
+   ↓ ↓ ↓ ↓                                                                                                     
+                                                                                                               
+ Column:                                                                                                       
+ │   0     │                                                                                                   
+ ───────────                                                                                                   
+ │ "Name"  │                                                                                                   
+ │    1    │                                                                                                   
+ │ "name2" │                                                                                                   
+ │  true   │                                                                                                   
+                                                                                                               
+---------------------------------------------------------------------------------------------------------------
+ ● Errors:                                                                                                     
+   ↓ ↓ ↓ ↓                                                                                                     
+                                                                                                               
+  ◦ Error::ApiError:                                                                                           
+    ----------------------------------------------------------------                                         
+     Occurs if the Google Sheets API returns an error,                                                       
+     such as an invalid spreadsheet ID, insufficient permissions                                             
+     or invalid sheet name.                                                                                  
+    ----------------------------------------------------------------                                         
+                                                                                                               
+  ◦ Error::ParseError:                                                                                        
+    ---------------------------------------------------------                                                
+     Occurs when serde_json::Value parse error.                                                              
+    ---------------------------------------------------------                                                
+                                                                                                               
+  ◦ Error::InvalidURL:                                                                                         
+    ----------------------------------------------------------------------                                   
+     Occurs when you pass a URL with an invalid spreadsheet format.                                    
+    ----------------------------------------------------------------------                                  
+                                                                                                               
+---------------------------------------------------------------------------------------------------------------
     "# ) ]
     Get
     {
@@ -132,9 +136,9 @@ mod private
   ///
   /// ## Errors:
   /// - Prints an error message if the spreadsheet ID extraction, retrieval, or update fails.
-  pub async fn command<S: Secret>
+  pub async fn command< S : Secret >
   (
-    client : &Client<'_, S>,
+    client : &Client< '_, S >,
     commands : Commands
   )
   {

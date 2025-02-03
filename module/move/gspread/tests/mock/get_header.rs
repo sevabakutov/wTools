@@ -29,7 +29,7 @@ use gspread::gcore::client::
 /// 2. Create a client.
 /// 3. Call `get_header()` function wich sends a GET request to /{spreadshett_id}/values/{range}.
 /// 4. Check results.
-#[tokio::test]
+#[ tokio::test ]
 async fn test_mock_get_header_should_work() 
 {
   let spreadsheet_id = "12345";
@@ -45,14 +45,14 @@ async fn test_mock_get_header_should_work()
   let mock = server.mock( | when, then | {
     when.method( GET )
       .path( "/12345/values/tab2!A1:ZZZ1" );
-    then.status(200)
+    then.status( 200 )
       .header( "Content-Type", "application/json" )
       .json_body_obj( &body );
-  });
+  } );
 
   // 2. Create a client. 
-  let endpoint = server.url("");
-  let client: Client<'_, ApplicationSecret> = Client::former()
+  let endpoint = server.url( "" );
+  let client : Client< '_, ApplicationSecret > = Client::former()
   .endpoint( &*endpoint )
   .form();
 
@@ -71,7 +71,7 @@ async fn test_mock_get_header_should_work()
   assert_eq!( header[2], serde_json::Value::String( "Email".to_string() ) );
 }
 
-#[tokio::test]
+#[ tokio::test ]
 async fn test_mock_get_header_with_empty_column_betwee_columns_should_work() 
 {
   let spreadsheet_id = "12345";
@@ -87,14 +87,14 @@ async fn test_mock_get_header_with_empty_column_betwee_columns_should_work()
   let mock = server.mock( | when, then | {
     when.method( GET )
       .path( "/12345/values/tab2!A1:ZZZ1" );
-    then.status(200)
+    then.status( 200 )
       .header( "Content-Type", "application/json" )
       .json_body_obj( &body );
-  });
+  } );
 
   // 2. Create a client. 
-  let endpoint = server.url("");
-  let client: Client<'_, ApplicationSecret> = Client::former()
+  let endpoint = server.url( "" );
+  let client : Client< '_, ApplicationSecret > = Client::former()
   .endpoint( &*endpoint )
   .form();
 
@@ -113,7 +113,7 @@ async fn test_mock_get_header_with_empty_column_betwee_columns_should_work()
   assert_eq!( header[2], serde_json::Value::String( "Email".to_string() ) );
 }
 
-#[tokio::test]
+#[ tokio::test ]
 async fn test_mock_get_header_with_empty_first_column_should_work() 
 {
   let spreadsheet_id = "12345";
@@ -129,14 +129,14 @@ async fn test_mock_get_header_with_empty_first_column_should_work()
   let mock = server.mock( | when, then | {
     when.method( GET )
       .path( "/12345/values/tab2!A1:ZZZ1" );
-    then.status(200)
+    then.status( 200 )
       .header( "Content-Type", "application/json" )
       .json_body_obj( &body );
-  });
+  } );
 
   // 2. Create a client. 
-  let endpoint = server.url("");
-  let client: Client<'_, ApplicationSecret> = Client::former()
+  let endpoint = server.url( "" );
+  let client : Client< '_, ApplicationSecret > = Client::former()
   .endpoint( &*endpoint )
   .form();
 
@@ -155,7 +155,7 @@ async fn test_mock_get_header_with_empty_first_column_should_work()
   assert_eq!( header[2], serde_json::Value::String( "Email".to_string() ) );
 }
 
-#[tokio::test]
+#[ tokio::test ]
 async fn test_mock_get_header_with_empty_column_columns_should_work() 
 {
   let spreadsheet_id = "12345";
@@ -171,14 +171,14 @@ async fn test_mock_get_header_with_empty_column_columns_should_work()
   let mock = server.mock( | when, then | {
     when.method( GET )
       .path( "/12345/values/tab2!A1:ZZZ1" );
-    then.status(200)
+    then.status( 200 )
       .header( "Content-Type", "application/json" )
       .json_body_obj( &body );
-  });
+  } );
 
   // 2. Create a client. 
-  let endpoint = server.url("");
-  let client: Client<'_, ApplicationSecret> = Client::former()
+  let endpoint = server.url( "" );
+  let client : Client< '_, ApplicationSecret > = Client::former()
   .endpoint( &*endpoint )
   .form();
 

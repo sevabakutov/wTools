@@ -6,13 +6,21 @@ mod private
 {
   use crate::*;
   use gcore::Secret;
-  use gcore::{ client::Client, error::Result };
+  use gcore::
+  { 
+    client::Client, 
+    error::Result 
+  };
   use actions::gspread::clear_by_custom_row_key; 
-  use actions::utils::{ parse_key_by, parse_on_find };
+  use actions::utils::
+  { 
+    parse_key_by, 
+    parse_on_find 
+  };
 
-  pub async fn action<S: Secret>
+  pub async fn action< S : Secret >
   (
-    client : &Client<'_, S>,
+    client : &Client< '_, S >,
     spreadsheet_id : &str,
     sheet_name : &str,
     key_by : &str,

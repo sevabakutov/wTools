@@ -4,12 +4,20 @@
 
 mod private
 {
-  use reqwest::{ self, Url };
   use former::Former;
   use serde_json::json;
+  use reqwest::
+  { 
+    self, 
+    Url 
+  };
  
-  use crate::{gcore::Secret, *};
-  use gcore::error::{ Error, Result };
+  use crate::*;
+  use gcore::Secret;
+  use gcore::error::
+  { 
+    Error, Result 
+  };
   use ser::
   { 
     self, 
@@ -55,14 +63,14 @@ mod private
   /// to access various Google Sheets API operations, such as reading or updating
   /// spreadsheet cells.
   #[ derive( Former ) ]
-  pub struct Client<'a, S: Secret + 'a >
+  pub struct Client< 'a, S : Secret + 'a >
   {
     secret : Option< &'a S >,
     #[ former( default = GOOGLE_API_URL ) ]
     endpoint : &'a str,
   }
 
-  impl<S: Secret> Client<'_, S>
+  impl< S : Secret > Client< '_, S >
   {
     pub fn spreadsheet( &self ) -> SpreadSheetValuesMethod<S>
     {
@@ -103,21 +111,21 @@ mod private
   ///
   /// This struct is usually obtained by calling the `sheet()` method on a
   /// fully-initialized [`Client`] instance:
-  pub struct SpreadSheetMethod<'a, S: Secret>
+  pub struct SpreadSheetMethod< 'a, S : Secret >
   {
-    client : &'a Client<'a, S>,
+    client : &'a Client< 'a, S >,
   }
 
-  impl<S: Secret> SpreadSheetMethod<'_, S>
+  impl< S : Secret > SpreadSheetMethod< '_, S >
   {
     /// Build SheetCopyMethod.
-    pub fn copy_to<'a>
+    pub fn copy_to< 'a >
     (
       &'a self,
       spreadsheet_id : &'a str,
       sheet_id : &'a str,
       dest : &'a str
-    ) -> SheetCopyMethod<'a, S>
+    ) -> SheetCopyMethod< 'a, S >
     {
       SheetCopyMethod
       {
@@ -152,15 +160,15 @@ mod private
   ///
   /// - `doit()`  
   ///   Sends the configured request to the Google Sheets API to copy a source sheet to destinayion one.
-  pub struct SheetCopyMethod<'a, S: Secret>
+  pub struct SheetCopyMethod< 'a, S : Secret >
   {
-    client : &'a Client<'a, S>,
+    client : &'a Client< 'a, S >,
     _spreadsheet_id : &'a str,
     _sheet_id : &'a str,
     _dest : &'a str
   }
 
-  impl<S: Secret> SheetCopyMethod<'_, S>
+  impl< S : Secret > SheetCopyMethod< '_, S >
   {
     /// Sends the POST request to
     /// https://sheets.googleapis.com/v4/spreadsheets/{spreadsheetId}/sheets/{sheetId}:copyTo
@@ -191,7 +199,7 @@ mod private
         secret
         .get_token()
         .await
-        .map_err(|err| Error::ApiError(err.to_string()))?
+        .map_err( | err | Error::ApiError( err.to_string() ) )?
       } else {
         "".to_string()
       };
@@ -214,7 +222,7 @@ mod private
         return Err( Error::ApiError( response_text ) );
       }
 
-      let response_parsed = response.json::<SheetProperties>()
+      let response_parsed = response.json::< SheetProperties >()
       .await
       .map_err( | err | Error::ParseError( err.to_string() ) )?;
 
@@ -242,16 +250,16 @@ mod private
   ///   Creates a new request object that retrieves the values within the specified `range`
   ///   of the spreadsheet identified by `spreadsheet_id`. 
   ///
-  /// - **`values_update(value_range, spreadsheet_id, range)` → [`ValuesUpdateMethod`]**  
+  /// - **`values_update( value_range, spreadsheet_id, range )` → [`ValuesUpdateMethod`]**  
   ///   Creates a new request object that updates the values within the specified `range`
   ///   of the spreadsheet identified by `spreadsheet_id`, using the provided `value_range`.
   ///
-  /// - **`values_batch_update(spreadsheet_id, req)` → [`ValuesBatchUpdateMethod`]**  
+  /// - **`values_batch_update( spreadsheet_id, req )` → [`ValuesBatchUpdateMethod`]**  
   ///   Creates a new request object that performs multiple updates on the spreadsheet
   ///   identified by `spreadsheet_id`, based on the instructions defined in
   ///   `BatchUpdateValuesRequest`.
   /// 
-  /// - **`append(spreadsheet_id, range, value_range)` → [`ValuesAppendMethod`]**
+  /// - **`append( spreadsheet_id, range, value_range )` → [`ValuesAppendMethod`]**
   ///   Appends a new row at the end of sheet.
   /// 
   /// - **`values_get_batch(spreadsheet_id)` -> [`ValuesBatchGetMethod`]**
@@ -267,12 +275,12 @@ mod private
   ///
   /// This struct is usually obtained by calling the `spreadsheet()` method on a
   /// fully-initialized [`Client`] instance:
-  pub struct SpreadSheetValuesMethod<'a, S: Secret>
+  pub struct SpreadSheetValuesMethod< 'a, S : Secret >
   {
-    client : &'a Client<'a, S>,
+    client : &'a Client< 'a, S >,
   }
 
-  impl<S: Secret> SpreadSheetValuesMethod<'_, S>
+  impl< S : Secret > SpreadSheetValuesMethod< '_, S >
   {
     /// Creates a new request object that updates the values within the specified `range`
     /// of the spreadsheet identified by `spreadsheet_id`, using the provided `value_range`.
@@ -281,7 +289,7 @@ mod private
       &self,
       spreadsheet_id : &str,
       range : &str
-    ) -> ValuesGetMethod<S>
+    ) -> ValuesGetMethod< S >
     {
       ValuesGetMethod
       {
@@ -295,11 +303,11 @@ mod private
     }
 
     /// Returns defined value ranges.
-    pub fn values_get_batch<'a>
+    pub fn values_get_batch< 'a >
     (
       &'a self,
       spreadsheet_id : &'a str,
-    ) -> ValuesBatchGetMethod<'a, S>
+    ) -> ValuesBatchGetMethod< 'a, S >
     {
       ValuesBatchGetMethod
       {
@@ -314,13 +322,13 @@ mod private
 
     /// Creates a new request object that updates the values within the specified `range`
     /// of the spreadsheet identified by `spreadsheet_id`, using the provided `value_range`. 
-    pub fn values_update<'a>
+    pub fn values_update< 'a >
     ( 
       &'a self,
       value_range : ValueRange,
       spreadsheet_id : &'a str,
       range : &'a str 
-    ) -> ValuesUpdateMethod<'a, S>
+    ) -> ValuesUpdateMethod< 'a, S >
     {
       ValuesUpdateMethod
       {
@@ -343,7 +351,7 @@ mod private
       &self,
       spreadsheet_id : &str,
       req : BatchUpdateValuesRequest,
-    ) -> ValuesBatchUpdateMethod<S>
+    ) -> ValuesBatchUpdateMethod< S >
     {
       ValuesBatchUpdateMethod
       {
@@ -354,13 +362,13 @@ mod private
     }
 
     /// Appends a new row at the end of sheet.
-    pub fn append<'a>
+    pub fn append< 'a >
     ( 
       &'a self,
       spreadsheet_id : &'a str,
       range : &'a str,
       value_range : ValueRange
-    ) -> ValuesAppendMethod<'a, S>
+    ) -> ValuesAppendMethod< 'a, S >
     {
       ValuesAppendMethod
       {
@@ -377,12 +385,12 @@ mod private
     }
 
     /// Clears a specified range.
-    pub fn clear<'a>
+    pub fn clear< 'a >
     (
       &'a self,
       spreadsheet_id : &'a str,
       range : &'a str
-    ) -> ValuesClearMethod<'a, S>
+    ) -> ValuesClearMethod< 'a, S >
     {
       ValuesClearMethod
       {
@@ -393,12 +401,12 @@ mod private
     }
 
     /// Clear a specified range.
-    pub fn clear_batch<'a>
+    pub fn clear_batch< 'a >
     (
       &'a self,
       spreadsheet_id : &'a str,
       req : BatchClearValuesRequest
-    ) -> ValuesBatchClearMethod<'a, S>
+    ) -> ValuesBatchClearMethod< 'a, S >
     {
       ValuesBatchClearMethod
       {
@@ -441,9 +449,9 @@ mod private
   ///   Sends the configured request to the Google Sheets API to retrieve the
   ///   specified range of values. Returns a [`ValueRange`] on success, or an
   ///   [`Error`] if the API request fails.
-  pub struct ValuesGetMethod<'a, S: Secret>
+  pub struct ValuesGetMethod< 'a, S : Secret >
   {
-    client : &'a Client<'a, S>,
+    client : &'a Client< 'a, S >,
     _spreadsheet_id : String,
     _range : String,
     _major_dimension : Option< Dimension >,
@@ -451,7 +459,7 @@ mod private
     _date_time_render_option : Option< DateTimeRenderOption >
   }
 
-  impl<S: Secret> ValuesGetMethod<'_, S>
+  impl< S : Secret > ValuesGetMethod< '_, S >
   {
     /// The major dimension that results should use. For example, if the spreadsheet data is: `A1=1,B1=2,A2=3,B2=4`, then requesting `ranges=["A1:B2"],majorDimension=ROWS` returns `[[1,2],[3,4]]`, whereas requesting `ranges=["A1:B2"],majorDimension=COLUMNS` returns `[[1,3],[2,4]]`.
     ///
@@ -498,7 +506,7 @@ mod private
         secret
         .get_token()
         .await
-        .map_err(|err| Error::ApiError(err.to_string()))?
+        .map_err( | err | Error::ApiError( err.to_string() ) )?
       } else {
         "".to_string()
       };
@@ -523,7 +531,7 @@ mod private
 
       let value_range = response.json::< ValueRange >()
       .await
-      .map_err( | err | Error::ParseError( err.to_string() ))?;
+      .map_err( | err | Error::ParseError( err.to_string() ) )?;
 
       Ok( value_range )
     }
@@ -539,9 +547,9 @@ mod private
   /// 
   /// Then, by calling [`ValuesBatchGetMethod::doit`], you send the `GET` request to retrieve all those ranges in a single batch.  
   /// On success, it returns a [`BatchGetValuesResponse`] with the data. On error, it returns an [`Error`].
-  pub struct ValuesBatchGetMethod<'a, S: Secret>
+  pub struct ValuesBatchGetMethod< 'a, S : Secret >
   {
-    client : &'a Client<'a, S>,
+    client : &'a Client< 'a, S >,
     _spreadsheet_id : &'a str,
     _ranges : Vec< String >,
     _major_dimension : Option< Dimension >,
@@ -549,7 +557,7 @@ mod private
     _date_time_render_option : Option< DateTimeRenderOption >
   }
 
-  impl<'a, S: Secret> ValuesBatchGetMethod<'a, S>
+  impl< 'a, S : Secret > ValuesBatchGetMethod< 'a, S >
   {
     /// Executes the request configured by `ValuesBatchGetMethod`.
     ///
@@ -566,7 +574,7 @@ mod private
       );
 
       let mut parsed_url = Url::parse( &url )
-      .map_err( | err | Error::ParseError( err.to_string() ))?;
+      .map_err( | err | Error::ParseError( err.to_string() ) )?;
       
       {
         let mut pairs = parsed_url.query_pairs_mut();
@@ -582,7 +590,7 @@ mod private
         secret
         .get_token()
         .await
-        .map_err(|err| Error::ApiError(err.to_string()))?
+        .map_err( | err | Error::ApiError( err.to_string() ) )?
       } else {
         "".to_string()
       };
@@ -606,7 +614,7 @@ mod private
         return Err( Error::ApiError( format!( "{}", response_text ) ) )
       }
 
-      let parsed_response = response.json::<BatchGetValuesResponse>()
+      let parsed_response = response.json::< BatchGetValuesResponse >()
       .await
       .map_err( | err | Error::ApiError( err.to_string() ) )?;
 
@@ -614,7 +622,7 @@ mod private
     }
 
     /// Set ranges to retrive in A1 notation format.
-    pub fn ranges( mut self, new_val : Vec< String >  ) -> ValuesBatchGetMethod<'a, S>
+    pub fn ranges( mut self, new_val : Vec< String >  ) -> ValuesBatchGetMethod< 'a, S >
     {
       self._ranges = new_val;
       self
@@ -659,9 +667,9 @@ mod private
   ///   Sends the configured request to the Google Sheets API to update the specified
   ///   range with new data. Returns an [`UpdateValuesResponse`] on success, or an
   ///   [`Error`] if the API request fails.
-  pub struct ValuesUpdateMethod<'a, S: Secret>
+  pub struct ValuesUpdateMethod< 'a, S : Secret >
   {
-    client : &'a Client<'a, S>,
+    client : &'a Client< 'a, S >,
     _value_range : ValueRange,
     _spreadsheet_id : &'a str,
     _range : &'a str,
@@ -671,7 +679,7 @@ mod private
     _response_date_time_render_option : Option< DateTimeRenderOption >
   }
 
-  impl< S: Secret > ValuesUpdateMethod< '_, S >
+  impl< S : Secret > ValuesUpdateMethod< '_, S >
   {
     /// Executes the request configured by `ValuesUpdateMethod`.
     ///
@@ -702,7 +710,7 @@ mod private
         secret
         .get_token()
         .await
-        .map_err(|err| Error::ApiError(err.to_string()))?
+        .map_err( | err | Error::ApiError( err.to_string() ) )?
       } else {
         "".to_string()
       };
@@ -760,14 +768,14 @@ mod private
   ///   Sends the configured request to the Google Sheets API to perform multiple
   ///   updates on the target spreadsheet. Returns a [`BatchUpdateValuesResponse`]
   ///   on success, or an [`Error`] if the API request fails.
-  pub struct ValuesBatchUpdateMethod<'a, S: Secret>
+  pub struct ValuesBatchUpdateMethod< 'a, S : Secret >
   {
-    pub client : &'a Client<'a, S>,
+    pub client : &'a Client< 'a, S >,
     pub _spreadsheet_id : String,
     pub _request : BatchUpdateValuesRequest
   }
 
-  impl< S: Secret > ValuesBatchUpdateMethod<'_, S>
+  impl< S : Secret > ValuesBatchUpdateMethod< '_, S >
   {
     /// Executes the request configured by `ValuesBatchUpdateMethod`.
     ///
@@ -789,7 +797,7 @@ mod private
         secret
         .get_token()
         .await
-        .map_err(|err| Error::ApiError(err.to_string()))?
+        .map_err( | err | Error::ApiError( err.to_string() ) )?
       } else {
         "".to_string()
       };
@@ -831,9 +839,9 @@ mod private
   /// 
   /// On success, it returns a [`ValuesAppendResponse`] containing metadata about the append result.
   /// On error, returns an [`Error`].
-  pub struct ValuesAppendMethod<'a, S: Secret>
+  pub struct ValuesAppendMethod< 'a, S : Secret >
   {
-    client : &'a Client<'a, S>,
+    client : &'a Client< 'a, S >,
     _value_range : ValueRange,
     _spreadsheet_id : &'a str,
     _range : &'a str,
@@ -844,7 +852,7 @@ mod private
     _response_date_time_render_option : Option< DateTimeRenderOption >
   }
 
-  impl< S: Secret > ValuesAppendMethod<'_, S>
+  impl< S : Secret > ValuesAppendMethod< '_, S >
   {
     /// Executes the configured append request.
     ///
@@ -884,7 +892,7 @@ mod private
         secret
         .get_token()
         .await
-        .map_err(|err| Error::ApiError(err.to_string()))?
+        .map_err( | err | Error::ApiError( err.to_string() ) )?
       } else {
         "".to_string()
       };
@@ -925,14 +933,14 @@ mod private
   /// 
   /// On success, it returns a [`ValuesClearResponse`] containing metadata about the clear result.
   /// On error, returns an [`Error`].
-  pub struct ValuesClearMethod<'a, S: Secret>
+  pub struct ValuesClearMethod< 'a, S : Secret >
   {
-    client : &'a Client<'a, S>,
+    client : &'a Client< 'a, S >,
     _spreadsheet_id : &'a str,
     _range : &'a str
   }
 
-  impl<S: Secret> ValuesClearMethod<'_, S>
+  impl< S : Secret > ValuesClearMethod< '_, S >
   {
     /// Executes the configured clear request.
     ///
@@ -960,7 +968,7 @@ mod private
         secret
         .get_token()
         .await
-        .map_err(|err| Error::ApiError(err.to_string()))?
+        .map_err( | err | Error::ApiError( err.to_string() ) )?
       } else {
         "".to_string()
       };
@@ -983,7 +991,7 @@ mod private
         return Err( Error::ApiError( response_text ) )
       }
 
-      let response_parsed = response.json::<ValuesClearResponse>()
+      let response_parsed = response.json::< ValuesClearResponse >()
       .await
       .map_err( | err | Error::ParseError( err.to_string() ) )?;
 
@@ -1000,14 +1008,14 @@ mod private
   /// 
   /// On success, it returns a [`BatchClearValuesResponse`] containing metadata about the clear result.
   /// On error, returns an [`Error`].
-  pub struct ValuesBatchClearMethod<'a, S: Secret>
+  pub struct ValuesBatchClearMethod< 'a, S : Secret >
   {
-    client : &'a Client<'a, S>,
+    client : &'a Client< 'a, S >,
     _spreadsheet_id : &'a str,
     _request : BatchClearValuesRequest
   }
 
-  impl<S: Secret> ValuesBatchClearMethod<'_, S>
+  impl< S : Secret > ValuesBatchClearMethod< '_, S >
   {
     /// Executes the configured clear request.
     ///
@@ -1034,7 +1042,7 @@ mod private
         secret
         .get_token()
         .await
-        .map_err(|err| Error::ApiError(err.to_string()))?
+        .map_err( | err | Error::ApiError( err.to_string() ) )?
       } else {
         "".to_string()
       };
@@ -1057,7 +1065,7 @@ mod private
         return Err( Error::ApiError( response_text ) );
       }
 
-      let response_parsed = response.json::<BatchClearValuesResponse>()
+      let response_parsed = response.json::< BatchClearValuesResponse >()
       .await
       .map_err( | err | Error::ParseError( err.to_string() ) )?;
 
@@ -1079,9 +1087,11 @@ mod private
     /// The sheet is a grid. 
     #[ serde( rename = "GRID" ) ]
     Grid,
+
     /// The sheet has no grid and instead has an object like a chart or image. 
     #[ serde( rename = "OBJECT" ) ]
     Object,
+
     /// The sheet connects with an external DataSource and shows the preview of data.
     #[ serde( rename = "DATA_SOURCE" ) ]
     DataSource
@@ -1094,21 +1104,27 @@ mod private
     /// The number of rows in the grid. 
     #[ serde( rename = "rowCount" ) ]
     row_count : Option< u64 >,
+
     /// The number of columns in the grid. 
     #[ serde( rename = "columnCount" ) ]
     column_count : Option< u32 >,
+
     /// The number of rows that are frozen in the grid. 
     #[ serde( rename = "frozenRowCount" ) ]
     frozen_row_count : Option< u64 >,
+
     /// The number of columns that are frozen in the grid. 
     #[ serde( rename = "frozenColumnCount" ) ]
     frozen_column_count : Option< u64 >,
+
     /// True if the grid isn't showing gridlines in the UI. 
     #[ serde( rename = "hideGridlines" ) ]
     hide_grid_lines : Option< bool >,
+
     /// True if the row grouping control toggle is shown after the group. 
     #[ serde( rename = "rowGroupControlAfter" ) ]
     row_group_control_after : Option< bool >,
+
     /// True if the column grouping control toggle is shown after the group. 
     #[ serde( rename = "columnGroupControlAfter" ) ]
     column_group_control_after : Option< bool >
@@ -1121,10 +1137,13 @@ mod private
   {
     /// The amount of red in the color as a value in the interval [0, 1]. 
     pub red : Option< f32 >,
+
     /// The amount of green in the color as a value in the interval [0, 1]. 
     pub green : Option< f32 >,
+
     /// The amount of blue in the color as a value in the interval [0, 1]. 
     pub blue : Option< f32 >,
+
     /// The fraction of this color that should be applied to the pixel.
     pub alpha : Option< f32 >
   }
@@ -1136,27 +1155,35 @@ mod private
     /// Represents the primary text color 
     #[ serde( rename = "TEXT" ) ]
     Text,
+
     /// Represents the primary background color 
     #[ serde( rename = "BACKGROUND" ) ]
     Background,
+
     /// Represents the first accent color 
     #[ serde( rename = "ACCENT1" ) ]
     Accent1,
+
     /// Represents the second accent color 
     #[ serde( rename = "ACCENT2" ) ]
     Accent2,
+
     #[ serde( rename = "ACCENT3" ) ]
     /// Represents the third accent color 
     Accent3,
+
     #[ serde( rename = "ACCENT4" ) ]
     /// Represents the fourth accent color 
     Accent4,
+
     #[ serde( rename = "ACCENT5" ) ]
     /// Represents the fifth accent color
     Accent5,
+
     #[ serde( rename = "ACCENT6" ) ]
     /// Represents the sixth accent color
     Accent6,
+
     /// Represents the color to use for hyperlinks
     #[ serde( rename = "LINK" ) ]
     Link
@@ -1168,6 +1195,7 @@ mod private
   {
     #[ serde( rename = "rgbColor" ) ]
     RgbColor( Color ),
+
     #[ serde( rename = "themeColor" ) ]
     ThemeColor( ThemeColorType )
   }
@@ -1186,6 +1214,7 @@ mod private
   {
     /// The column reference. 
     pub reference : Option< DataSourceColumnReference >,
+
     /// The formula of the calculated column. 
     pub formula : Option< String >
   }
@@ -1197,15 +1226,19 @@ mod private
     /// The data execution has not started. 
     #[ serde( rename = "NOT_STARTED" ) ]
     NotStarted,
+    
     /// The data execution has started and is running.
     #[ serde( rename = "RUNNING" ) ]
     Running,
+
     /// The data execution is currently being cancelled.
     #[ serde( rename = "CANCELLING" ) ]
     Cancelling,
+
     /// The data execution has completed successfully. 
     #[ serde( rename = "SUCCEEDED" ) ]
     Succeeded,
+
     /// The data execution has completed with errors.
     #[ serde( rename = "FAILED" ) ]
     Failed
@@ -1218,57 +1251,75 @@ mod private
     /// The data execution timed out. 
     #[ serde( rename = "TIMED_OUT" ) ]
     TimedOut,
+
     /// The data execution returns more rows than the limit.
     #[ serde( rename = "TOO_MANY_ROWS" ) ]
     TooManyRows,
+
     /// The data execution returns more columns than the limit.
     #[ serde( rename = "TOO_MANY_COLUMNS" ) ]
     TooManyColumns,
+
     /// The data execution returns more cells than the limit.
     #[ serde( rename = "TOO_MANY_CELLS" ) ]
     TooManyCells,
+
     /// Error is received from the backend data execution engine (e.g. BigQuery)
     #[ serde( rename = "ENGINE" ) ]
     Engine,
+
     /// One or some of the provided data source parameters are invalid. 
     #[ serde( rename = "PARAMETER_INVALID" ) ]
     ParameterInvalid,
+
     /// The data execution returns an unsupported data type. 
     #[ serde( rename = "UNSUPPORTED_DATA_TYPE" ) ]
     UnsupportedDataType,
+
     /// The data execution returns duplicate column names or aliases.
     #[ serde( rename = "DUPLICATE_COLUMN_NAMES" ) ]
     DuplicateColumnNames,
+
     /// The data execution is interrupted. Please refresh later.
     #[ serde( rename = "INTERRUPTED" ) ]
     Interrupted,
+
     /// The data execution is currently in progress, can not be refreshed until it completes. 
     #[ serde( rename = "CONCURRENT_QUERY" ) ]
     ConcurrentQuery,
+
     /// Other errors. 
     #[ serde( rename = "OTHER" ) ]
     Other,
+
     /// The data execution returns values that exceed the maximum characters allowed in a single cell.
     #[ serde( rename = "TOO_MANY_CHARS_PER_CELL" ) ]
     TooManyCharsPerCell,
+
     /// The database referenced by the data source is not found.
     #[ serde( rename = "DATA_NOT_FOUND" ) ]
     DataNotFound,
+
     /// The user does not have access to the database referenced by the data source. 
     #[ serde( rename = "PERMISSION_DENIED" ) ]
     PermissionDenied,
+
     /// The data execution returns columns with missing aliases. 
     #[ serde( rename = "MISSING_COLUMN_ALIAS" ) ]
     MissingColumnAlias,
+
     /// The data source object does not exist. 
     #[ serde( rename = "OBJECT_NOT_FOUND" ) ]
     ObjectNotFound,
+
     /// The data source object is currently in error state.
     #[ serde( rename = "OBJECT_IN_ERROR_STATE" ) ]
     ObjectInErrorState,
+
     /// The data source object specification is invalid. 
     #[ serde( rename = "OBJECT_SPEC_INVALID" ) ]
     ObjectSprecInvalid,
+
     /// The data execution has been cancelled. 
     #[ serde( rename = "DATA_EXECUTION_CANCELLED" ) ]
     DataExecutionCancelled
@@ -1281,12 +1332,15 @@ mod private
   {
     /// The state of the data execution.
     pub state : Option< DataExecutionState >,
+
     /// The error code
     #[ serde( rename = "errorCode" ) ]
     pub error_code : Option< DataExecutionErrorCode >,
+
     /// The error message, which may be empty. 
     #[ serde( rename = "errorMessage" ) ]
     pub error_message : Option< String >,
+
     /// lastRefreshTime
     #[ serde( rename = "lastRefreshTime" ) ]
     pub last_refresh_time : Option< String >
@@ -1299,8 +1353,10 @@ mod private
     /// ID of the [DataSource](https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets#DataSource) the sheet is connected to. 
     #[ serde( rename = "dataSourceId" ) ]
     pub data_source_id : Option< String >,
+
     /// The columns displayed on the sheet, corresponding to the values in [RowData](https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets/sheets#RowData). 
     pub columns : Option< Vec< DataSourceColumn > >,
+
     /// The data execution status.
     #[ serde( rename = "dataExecutionStatus" ) ]
     pub data_executin_status : Option< DataExecutinStatus >
@@ -1313,31 +1369,40 @@ mod private
     /// The ID of the sheet. Must be non-negative. This field cannot be changed once set. 
     #[ serde( rename = "sheetId" ) ]
     pub sheet_id : Option< u64 >,
+
     /// The name of the sheet. 
     pub title : Option< String >,
+
     /// The index of the sheet within the spreadsheet. When adding or updating sheet properties, if this field is excluded then
     /// the sheet is added or moved to the end of the sheet list. When updating sheet indices or inserting sheets, movement 
     /// is considered in "before the move" indexes. For example, if there were three sheets (S1, S2, S3) in order to move S1
     /// ahead of S2 the index would have to be set to 2. A sheet index update request is ignored if the requested index is
     /// identical to the sheets current index or if the requested new index is equal to the current sheet index + 1. 
     pub index : Option< u64 >,
+
     #[ serde( rename = "sheetType" ) ]
     /// The type of sheet. Defaults to GRID. This field cannot be changed once set.
     pub sheet_type : Option< SheetType >,
+
     /// Additional properties of the sheet if this sheet is a grid. (If the sheet is an object sheet, containing a chart or image, then this field will be absent.) When writing it is an error to set any grid properties on non-grid sheets. 
     #[ serde( rename = "gridProperties" ) ]
     pub grid_properties : Option< GridProperties >,
+
     /// True if the sheet is hidden in the UI, false if it's visible. 
     pub hidden : Option< bool >,
+
     /// The color of the tab in the UI. Deprecated: Use tabColorStyle. 
     #[ serde( rename = "tabColor" ) ]
     pub tab_color : Option< Color >,
+
     /// The color of the tab in the UI. If tabColor is also set, this field takes precedence. 
     #[ serde( rename = "tabColorStyle" ) ]
     pub tab_color_style : Option< ColorStyle >,
+
     /// True if the sheet is an RTL sheet instead of an LTR sheet. 
     #[ serde( rename = "rightToLeft" ) ]
     pub right_to_left : Option< bool >,
+
     /// Output only. If present, the field contains DATA_SOURCE sheet specific properties. 
     #[ serde( rename = "dataSourceSheetProperties" ) ]
     pub data_source_sheet_properties : Option< DataSourceSheetProperties >
@@ -1349,8 +1414,10 @@ mod private
   {
     #[ serde( rename = "majorDimension" ) ]
     major_dimension : Option< Dimension >,
+
     #[ serde( rename = "valueRenderOption" ) ]
     value_render_option : Option< ValueRenderOption >,
+
     #[ serde( rename = "dateTimeRenderOption" ) ]
     date_time_render_option : Option< DateTimeRenderOption >
   }
@@ -1359,10 +1426,13 @@ mod private
   pub struct BatchGetValuesRequest
   {
     ranges : Vec< String >,
+
     #[ serde( rename = "majorDimension" ) ]
     major_dimension : Option< Dimension >,
+
     #[ serde( rename = "valueRenderOption" ) ]
     value_render_option : Option< ValueRenderOption >,
+
     #[ serde( rename = "dateTimeRenderOption" ) ]
     date_time_render_option : Option< DateTimeRenderOption >
   }
@@ -1372,10 +1442,13 @@ mod private
   {
     #[ serde( rename = "valueInputOption" )]
     value_input_option : ValueInputOption,
+
     #[ serde( rename = "includeValuesInResponse" ) ]
     include_values_in_response : Option< bool >,
+
     #[ serde( rename = "responseValueRenderOption" ) ]
     response_value_render_option : Option< ValueRenderOption >,
+
     #[ serde( rename = "responseDateTimeRenderOption" ) ]
     response_date_time_render_option : Option< DateTimeRenderOption >
   }
@@ -1386,15 +1459,19 @@ mod private
   {
     /// The new values to apply to the spreadsheet.
     pub data : Vec< ValueRange >,
+
     #[ serde( rename = "valueInputOption" ) ]
     /// How the input data should be interpreted.
     pub value_input_option : ValueInputOption,
+
     /// Determines if the update response should include the values of the cells that were updated. By default, responses do not include the updated values. The updatedData field within each of the BatchUpdateValuesResponse.responses contains the updated values. If the range to write was larger than the range actually written, the response includes all values in the requested range (excluding trailing empty rows and columns).
     #[ serde( rename = "includeValuesInResponse" ) ]
     pub include_values_in_response : Option< bool >,
+
     /// Determines how values in the response should be rendered. The default render option is FORMATTED_VALUE.
     #[ serde( rename = "responseValueRenderOption" ) ]
     pub response_value_render_option : Option< ValueRenderOption >,
+
     /// Determines how dates, times, and durations in the response should be rendered. This is ignored if responseValueRenderOption is FORMATTED_VALUE. The default dateTime render option is SERIAL_NUMBER.
     #[ serde( rename = "responseDateTimeRenderOption" ) ]
     pub response_date_time_render_option : Option< DateTimeRenderOption >,
@@ -1405,12 +1482,16 @@ mod private
   {
     #[ serde( rename = "valueInputOption" ) ]
     pub value_input_option : ValueInputOption,
+    
     #[ serde( rename = "insertDataOption" ) ]
     pub insert_data_option : Option< InsertDataOption >,
+
     #[ serde( rename = "includeValuesInResponse" ) ]
     pub include_values_in_response : bool,
+
     #[ serde( rename = "responseValueRenderOption" ) ]
     pub response_value_render_option : Option< ValueRenderOption >,
+
     #[ serde( rename = "responseDateTimeRenderOption" ) ]
     pub response_date_time_render_option : Option< DateTimeRenderOption >
   }
@@ -1424,62 +1505,73 @@ mod private
   }
 
   /// Response from [`values.batchGet`](https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets.values/batchGet).
-  #[derive(Debug, Serialize, Deserialize)]
+  #[ derive( Debug, Serialize, Deserialize ) ]
   pub struct BatchGetValuesResponse 
   {
     /// The ID of the spreadsheet.
-    #[serde(rename = "spreadsheetId")]
-    pub spreadsheet_id: Option<String>,
+    #[ serde( rename = "spreadsheetId" ) ]
+    pub spreadsheet_id : Option< String >,
+
     /// A list of ValueRange objects with data for each requested range.
-    #[serde(rename = "valueRanges")]
-    pub value_ranges: Option<Vec<ValueRange>>,
+    #[ serde( rename = "valueRanges" ) ]
+    pub value_ranges : Option< Vec< ValueRange > >,
   }
 
   /// Response from [`values.update`](https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets.values/update).
-  #[derive(Debug, Serialize, Deserialize)]
+  #[ derive( Debug, Serialize, Deserialize ) ]
   pub struct UpdateValuesResponse 
   {
     /// The ID of the spreadsheet that was updated.
-    #[serde(rename = "spreadsheetId")]
-    pub spreadsheet_id: Option<String>,
+    #[ serde( rename = "spreadsheetId" ) ]
+    pub spreadsheet_id : Option< String >,
+
     /// The range (A1 notation) that was updated.
-    #[serde(rename = "updatedRange")]
-    pub updated_range: Option<String>,
+    #[ serde( rename = "updatedRange" ) ]
+    pub updated_range : Option< String >,
+
     /// How many rows were updated.
-    #[serde(rename = "updatedRows")]
-    pub updated_rows: Option<u32>,
+    #[ serde( rename = "updatedRows" ) ]
+    pub updated_rows : Option< u32 >,
+
     /// How many columns were updated.
-    #[serde(rename = "updatedColumns")]
-    pub updated_columns: Option<u32>,
+    #[ serde( rename = "updatedColumns" ) ]
+    pub updated_columns : Option< u32 >,
+
     /// How many cells were updated.
-    #[serde(rename = "updatedCells")]
-    pub updated_cells: Option<u32>,
+    #[ serde( rename = "updatedCells" ) ]
+    pub updated_cells : Option< u32 >,
+
     /// If `includeValuesInResponse` was `true`, this field contains the updated data.
-    #[serde(rename = "updatedData")]
-    pub updated_data: Option<ValueRange>,
+    #[ serde( rename = "updatedData" ) ]
+    pub updated_data : Option< ValueRange >,
   }
 
   /// Response from [`values.batchUpdate`](https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets.values/batchUpdate).
-  #[derive(Debug, Default, Serialize, Deserialize)]
+  #[ derive( Debug, Default, Serialize, Deserialize ) ]
   pub struct BatchUpdateValuesResponse 
   {
     /// The ID of the spreadsheet that was updated.
-    #[serde(rename = "spreadsheetId")]
-    pub spreadsheet_id: Option<String>,
+    #[ serde( rename = "spreadsheetId" ) ]
+    pub spreadsheet_id : Option< String >,
+
     /// Total number of rows updated.
-    #[serde(rename = "totalUpdatedRows")]
-    pub total_updated_rows: Option<u32>,
+    #[ serde( rename = "totalUpdatedRows" ) ]
+    pub total_updated_rows : Option< u32 >,
+
     /// Total number of columns updated.
-    #[serde(rename = "totalUpdatedColumns")]
-    pub total_updated_columns: Option<u32>,
+    #[ serde( rename = "totalUpdatedColumns" ) ]
+    pub total_updated_columns : Option< u32 >,
+
     /// Total number of cells updated.
-    #[serde(rename = "totalUpdatedCells")]
-    pub total_updated_cells: Option<u32>,
+    #[ serde( rename = "totalUpdatedCells" ) ]
+    pub total_updated_cells : Option< u32 >,
+
     /// Total number of sheets with updates.
-    #[serde(rename = "totalUpdatedSheets")]
-    pub total_updated_sheets: Option<u32>,
+    #[ serde( rename = "totalUpdatedSheets" ) ]
+    pub total_updated_sheets : Option< u32 >,
+
     /// The response for each range updated (if `includeValuesInResponse` was `true`).
-    pub responses: Option<Vec<ValueRange>>,
+    pub responses : Option< Vec< ValueRange > >,
   }
 
   /// Response from [`values.append`](https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets.values/append).
@@ -1489,9 +1581,11 @@ mod private
     /// The ID of the spreadsheet to which data was appended.
     #[ serde( rename = "spreadsheetId" ) ]
     pub spreadsheet_id : Option< String >,
+
     /// The range (A1 notation) that covered the appended data before the append.
     #[ serde( rename = "tableRange" ) ]
     pub table_range : Option< String >,
+
     /// If `includeValuesInResponse` was `true`, this field contains metadata about the update.
     pub updates : Option< UpdateValuesResponse >,
   }
@@ -1503,6 +1597,7 @@ mod private
     /// The spreadsheet the updates were applied to.
     #[ serde( rename = "spreadsheetId" ) ]
     pub spreadsheet_id : Option< String >,
+
     /// The ranges that were cleared, in A1 notation. If the requests are for an unbounded range or a ranger larger than the bounds of the sheet, this is the actual ranges that were cleared, bounded to the sheet's limits.
     #[ serde( rename = "clearedRanges" ) ]
     pub cleared_ranges : Option< Vec< String > >
@@ -1515,6 +1610,7 @@ mod private
     /// The spreadsheet the updates were applied to.
     #[ serde( rename = "spreadsheetId" ) ]
     pub spreadsheet_id : Option< String >,
+
     /// The range (in A1 notation) that was cleared. (If the request was for an unbounded range or a ranger larger than the bounds of the sheet, this will be the actual range that was cleared, bounded to the sheet's limits.)
     #[ serde( rename = "clearedRange" ) ]
     pub cleared_range : Option< String >
@@ -1527,6 +1623,7 @@ mod private
     /// The new data overwrites existing data in the areas it is written. (Note: adding data to the end of the sheet will still insert new rows or columns so the data can be written.)
     #[ serde( rename = "OVERWRITE" ) ]
     Overwrite,
+
     /// Rows are inserted for the new data.
     #[ serde( rename = "INSERT_ROWS" ) ]
     InsertRows
@@ -1539,6 +1636,7 @@ mod private
     /// Instructs date, time, datetime, and duration fields to be output as doubles in "serial number" format, as popularized by Lotus 1-2-3. The whole number portion of the value (left of the decimal) counts the days since December 30th 1899. The fractional portion (right of the decimal) counts the time as a fraction of the day. For example, January 1st 1900 at noon would be 2.5, 2 because it's 2 days after December 30th 1899, and .5 because noon is half a day. February 1st 1900 at 3pm would be 33.625. This correctly treats the year 1900 as not a leap year.
     #[ serde( rename = "SERIAL_NUMBER" ) ]
     SerialNumber,
+
     /// Instructs date, time, datetime, and duration fields to be output as strings in their given number format (which depends on the spreadsheet locale).
     #[ serde( rename = "FORMATTED_STRING" ) ]
     FormattedString
@@ -1551,9 +1649,11 @@ mod private
     /// Values will be calculated & formatted in the response according to the cell's formatting. Formatting is based on the spreadsheet's locale, not the requesting user's locale. For example, if A1 is 1.23 and A2 is =A1 and formatted as currency, then A2 would return "$1.23".
     #[ serde( rename = "FORMATTED_VALUE" ) ]
     FormattedValue,
+
     /// Values will be calculated, but not formatted in the reply. For example, if A1 is 1.23 and A2 is =A1 and formatted as currency, then A2 would return the number 1.23.
     #[ serde( rename = "UNFORMATTED_VALUE" ) ]
     UnformattedValue,
+
     /// Values will not be calculated. The reply will include the formulas. For example, if A1 is 1.23 and A2 is =A1 and formatted as currency, then A2 would return "=A1".
     ///
     /// Sheets treats date and time values as decimal values. This lets you perform arithmetic on them in formulas. For more information on interpreting date and time values, see About date & time values.
@@ -1569,6 +1669,7 @@ mod private
     #[ default ]
     #[ serde( rename = "RAW" ) ]
     Raw,
+
     /// The values will be parsed as if the user typed them into the UI. Numbers will stay as numbers, but strings may be converted to numbers, dates, etc. following the same rules that are applied when entering text into a cell via the Google Sheets UI.
     #[ serde( rename = "USER_ENTERED" ) ]
     UserEntered
@@ -1581,6 +1682,7 @@ mod private
     /// Operates on the rows of a sheet.
     #[ serde( rename = "ROWS" ) ]
     Row,
+
     /// Operates on the columns of a sheet.
     #[ serde( rename = "COLUMNS" ) ]
     Column,
@@ -1592,6 +1694,7 @@ mod private
   {
     /// The range the values cover, in A1 notation. For output, this range indicates the entire requested range, even though the values will exclude trailing rows and columns. When appending values, this field represents the range to search for a table, after which values will be appended.
     pub range : Option< String >,
+
     /// The major dimension of the values.
     /// For output, if the spreadsheet data is: A1=1,B1=2,A2=3,B2=4, then requesting range=A1:B2,majorDimension=ROWS will return [[1,2],[3,4]], whereas requesting range=A1:B2,majorDimension=COLUMNS will return [[1,3],[2,4]].
     ///
@@ -1600,6 +1703,7 @@ mod private
     /// When writing, if this field is not set, it defaults to ROWS.
     #[ serde( rename = "majorDimension" ) ]
     pub major_dimension : Option< Dimension >,
+    
     /// The data that was read or to be written. This is an array of arrays, the outer array representing all the data and each inner array representing a major dimension. Each item in the inner array corresponds with one cell.
     ///
     /// For output, empty trailing rows and columns will not be included.

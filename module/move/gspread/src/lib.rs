@@ -7,8 +7,16 @@ mod private
 
 pub mod ser
 {
-  pub use serde::{ Serialize, Deserialize };
-  pub use serde_json::{ error::Error, self };
+  pub use serde::
+  { 
+    Serialize, 
+    Deserialize 
+  };
+  pub use serde_json::
+  { 
+    error::Error, 
+    self 
+  };
   pub use serde_with::*;
 }
 

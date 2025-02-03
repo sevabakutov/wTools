@@ -3,9 +3,12 @@
 //! 
 
 use httpmock::prelude::*;
-use gspread::
+use gspread::*;
+use actions::gspread::get_cell;
+use gcore::
 {
-  actions::gspread::get_cell, gcore::{client::Client, ApplicationSecret} 
+  client::Client, 
+  ApplicationSecret
 };
 
 
@@ -32,8 +35,8 @@ async fn test_mock_wrong_spreadsheet_id_should_panic()
   } );
 
   // 2. Create a client. 
-  let endpoint = server.url("");
-  let client: Client<'_, ApplicationSecret> = Client::former()
+  let endpoint = server.url( "" );
+  let client : Client< '_, ApplicationSecret > = Client::former()
   .endpoint( &*endpoint )
   .form();
 
@@ -66,8 +69,8 @@ async fn test_mock_wrong_sheet_name_should_panic()
   } );
 
   // 2. Create a client. 
-  let endpoint = server.url("");
-  let client: Client<'_, ApplicationSecret> = Client::former()
+  let endpoint = server.url( "" );
+  let client : Client< '_, ApplicationSecret > = Client::former()
   .endpoint( &*endpoint )
   .form();
 
