@@ -4,7 +4,7 @@
 
 use httpmock::prelude::*;
 use serde_json::json;
-use gspread::*
+use gspread::*;
 use actions::gspread::
 {
   update_rows_by_custom_row_key, 

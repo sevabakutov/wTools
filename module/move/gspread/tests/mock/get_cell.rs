@@ -5,7 +5,7 @@
 use httpmock::prelude::*;
 use serde_json::json;
 use gspread::*;
-use actions::gspread::get_cell, 
+use actions::gspread::get_cell;
 use gcore::ApplicationSecret;
 use gcore::client::
 {

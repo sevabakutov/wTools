@@ -24,9 +24,10 @@ async fn main() -> Result< (), Box< dyn Error > >
   dotenv().ok();
 
   let secret = ApplicationSecret::read();
+  
   let auth = Auth::new( &secret );
+  
   let client = Client::former()
-  // .secret( &secret )
   .auth( auth )
   .form();
 

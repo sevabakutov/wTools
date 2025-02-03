@@ -26,6 +26,15 @@ mod private
     Deserialize 
   };
 
+  /// # Auth
+  /// 
+  /// Structure to keep oauth2 token.
+  /// 
+  /// ## Fields:
+  /// - `secret`:
+  ///   A structure which implemets [`Secret`] trait.
+  /// - `token`:
+  ///   Oauth2 token in string representation.
   pub struct Auth< 'a, S : Secret + 'a >
   {
     pub secret : &'a S,
@@ -34,6 +43,7 @@ mod private
 
   impl< 'a, S : Secret > Auth< 'a, S >
   {
+    /// Just constructor.
     pub fn new( secret : &'a S ) -> Self
     {
       Self
@@ -84,7 +94,6 @@ mod private
   #[ derive( Former ) ]
   pub struct Client< 'a, S : Secret + 'a >
   {
-    // secret : Option< &'a S >,
     auth : Option< Auth< 'a, S > >,
     #[ former( default = GOOGLE_API_URL ) ]
     endpoint : &'a str,
