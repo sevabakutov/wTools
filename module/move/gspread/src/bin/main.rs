@@ -4,7 +4,12 @@ use dotenv::dotenv;
 
 use gspread::*;
 use gcore::ApplicationSecret;
-use gcore::client::Client;
+use gcore::client::
+{
+  Auth,
+  Client
+};
+
 use commands::
 {
   self,
@@ -19,9 +24,10 @@ async fn main() -> Result< (), Box< dyn Error > >
   dotenv().ok();
 
   let secret = ApplicationSecret::read();
-
+  let auth = Auth::new( &secret );
   let client = Client::former()
-  .secret( &secret )
+  // .secret( &secret )
+  .auth( auth )
   .form();
 
   let cli = Cli::parse();

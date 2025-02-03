@@ -4,6 +4,7 @@
 
 mod private
 {
+  use std::cell::RefCell;
   use former::Former;
   use serde_json::json;
   use reqwest::
@@ -24,6 +25,24 @@ mod private
     Serialize, 
     Deserialize 
   };
+
+  pub struct Auth< 'a, S : Secret + 'a >
+  {
+    pub secret : &'a S,
+    token : RefCell< Option< String > >
+  }
+
+  impl< 'a, S : Secret > Auth< 'a, S >
+  {
+    pub fn new( secret : &'a S ) -> Self
+    {
+      Self
+      {
+        secret : secret,
+        token : RefCell::new( None )
+      }
+    }
+  }
   
   /// # Gspread Client
   ///
@@ -65,7 +84,8 @@ mod private
   #[ derive( Former ) ]
   pub struct Client< 'a, S : Secret + 'a >
   {
-    secret : Option< &'a S >,
+    // secret : Option< &'a S >,
+    auth : Option< Auth< 'a, S > >,
     #[ former( default = GOOGLE_API_URL ) ]
     endpoint : &'a str,
   }
@@ -194,14 +214,30 @@ mod private
         dest : Some( self._dest.to_string() )
       };
 
-      let token = if let Some( secret ) = self.client.secret 
+      let token = match &self.client.auth
       {
-        secret
-        .get_token()
-        .await
-        .map_err( | err | Error::ApiError( err.to_string() ) )?
-      } else {
-        "".to_string()
+        Some( auth_data ) => 
+        {
+          let mut token_ref = auth_data.token.borrow_mut();
+
+          if let Some( token ) = &*token_ref 
+          {
+            token.clone()
+          } 
+          else 
+          {
+            let new_token = auth_data
+            .secret
+            .get_token()
+            .await
+            .map_err( | err | Error::ApiError( err.to_string() ) )?;
+
+            *token_ref = Some( new_token.clone() );
+
+            new_token
+          }
+        }
+        None => "".to_string()
       };
 
       let response = reqwest::Client::new()
@@ -501,14 +537,30 @@ mod private
         date_time_render_option : self._date_time_render_option
       };
 
-      let token = if let Some( secret ) = self.client.secret 
+      let token = match &self.client.auth
       {
-        secret
-        .get_token()
-        .await
-        .map_err( | err | Error::ApiError( err.to_string() ) )?
-      } else {
-        "".to_string()
+        Some( auth_data ) => 
+        {
+          let mut token_ref = auth_data.token.borrow_mut();
+
+          if let Some( token ) = &*token_ref 
+          {
+            token.clone()
+          } 
+          else 
+          {
+            let new_token = auth_data
+            .secret
+            .get_token()
+            .await
+            .map_err( | err | Error::ApiError( err.to_string() ) )?;
+
+            *token_ref = Some( new_token.clone() );
+
+            new_token
+          }
+        }
+        None => "".to_string()
       };
 
       let response = reqwest::Client::new()
@@ -585,14 +637,30 @@ mod private
         }
       }
 
-      let token = if let Some( secret ) = self.client.secret 
+      let token = match &self.client.auth
       {
-        secret
-        .get_token()
-        .await
-        .map_err( | err | Error::ApiError( err.to_string() ) )?
-      } else {
-        "".to_string()
+        Some( auth_data ) => 
+        {
+          let mut token_ref = auth_data.token.borrow_mut();
+
+          if let Some( token ) = &*token_ref 
+          {
+            token.clone()
+          } 
+          else 
+          {
+            let new_token = auth_data
+            .secret
+            .get_token()
+            .await
+            .map_err( | err | Error::ApiError( err.to_string() ) )?;
+
+            *token_ref = Some( new_token.clone() );
+
+            new_token
+          }
+        }
+        None => "".to_string()
       };
 
       url = parsed_url.into();
@@ -705,14 +773,30 @@ mod private
         response_date_time_render_option : self._response_date_time_render_option
       };
 
-      let token = if let Some( secret ) = self.client.secret 
+      let token = match &self.client.auth
       {
-        secret
-        .get_token()
-        .await
-        .map_err( | err | Error::ApiError( err.to_string() ) )?
-      } else {
-        "".to_string()
+        Some( auth_data ) => 
+        {
+          let mut token_ref = auth_data.token.borrow_mut();
+
+          if let Some( token ) = &*token_ref 
+          {
+            token.clone()
+          } 
+          else 
+          {
+            let new_token = auth_data
+            .secret
+            .get_token()
+            .await
+            .map_err( | err | Error::ApiError( err.to_string() ) )?;
+
+            *token_ref = Some( new_token.clone() );
+
+            new_token
+          }
+        }
+        None => "".to_string()
       };
 
       let response = reqwest::Client::new()
@@ -792,14 +876,30 @@ mod private
         self._spreadsheet_id
       );
 
-      let token = if let Some( secret ) = self.client.secret 
+      let token = match &self.client.auth
       {
-        secret
-        .get_token()
-        .await
-        .map_err( | err | Error::ApiError( err.to_string() ) )?
-      } else {
-        "".to_string()
+        Some( auth_data ) => 
+        {
+          let mut token_ref = auth_data.token.borrow_mut();
+
+          if let Some( token ) = &*token_ref 
+          {
+            token.clone()
+          } 
+          else 
+          {
+            let new_token = auth_data
+            .secret
+            .get_token()
+            .await
+            .map_err( | err | Error::ApiError( err.to_string() ) )?;
+
+            *token_ref = Some( new_token.clone() );
+
+            new_token
+          }
+        }
+        None => "".to_string()
       };
 
       let response = reqwest::Client::new()
@@ -887,14 +987,30 @@ mod private
         response_date_time_render_option : self._response_date_time_render_option
       };
 
-      let token = if let Some( secret ) = self.client.secret 
+      let token = match &self.client.auth
       {
-        secret
-        .get_token()
-        .await
-        .map_err( | err | Error::ApiError( err.to_string() ) )?
-      } else {
-        "".to_string()
+        Some( auth_data ) => 
+        {
+          let mut token_ref = auth_data.token.borrow_mut();
+
+          if let Some( token ) = &*token_ref 
+          {
+            token.clone()
+          } 
+          else 
+          {
+            let new_token = auth_data
+            .secret
+            .get_token()
+            .await
+            .map_err( | err | Error::ApiError( err.to_string() ) )?;
+
+            *token_ref = Some( new_token.clone() );
+
+            new_token
+          }
+        }
+        None => "".to_string()
       };
 
       let response = reqwest::Client::new()
@@ -963,14 +1079,30 @@ mod private
         self._range
       );
 
-      let token = if let Some( secret ) = self.client.secret 
+      let token = match &self.client.auth
       {
-        secret
-        .get_token()
-        .await
-        .map_err( | err | Error::ApiError( err.to_string() ) )?
-      } else {
-        "".to_string()
+        Some( auth_data ) => 
+        {
+          let mut token_ref = auth_data.token.borrow_mut();
+
+          if let Some( token ) = &*token_ref 
+          {
+            token.clone()
+          } 
+          else 
+          {
+            let new_token = auth_data
+            .secret
+            .get_token()
+            .await
+            .map_err( | err | Error::ApiError( err.to_string() ) )?;
+
+            *token_ref = Some( new_token.clone() );
+
+            new_token
+          }
+        }
+        None => "".to_string()
       };
 
       let response = reqwest::Client::new()
@@ -1037,14 +1169,30 @@ mod private
         self._spreadsheet_id
       );
 
-      let token = if let Some( secret ) = self.client.secret 
+      let token = match &self.client.auth
       {
-        secret
-        .get_token()
-        .await
-        .map_err( | err | Error::ApiError( err.to_string() ) )?
-      } else {
-        "".to_string()
+        Some( auth_data ) => 
+        {
+          let mut token_ref = auth_data.token.borrow_mut();
+
+          if let Some( token ) = &*token_ref 
+          {
+            token.clone()
+          } 
+          else 
+          {
+            let new_token = auth_data
+            .secret
+            .get_token()
+            .await
+            .map_err( | err | Error::ApiError( err.to_string() ) )?;
+
+            *token_ref = Some( new_token.clone() );
+
+            new_token
+          }
+        }
+        None => "".to_string()
       };
 
       let response = reqwest::Client::new()
@@ -1703,7 +1851,7 @@ mod private
     /// When writing, if this field is not set, it defaults to ROWS.
     #[ serde( rename = "majorDimension" ) ]
     pub major_dimension : Option< Dimension >,
-    
+
     /// The data that was read or to be written. This is an array of arrays, the outer array representing all the data and each inner array representing a major dimension. Each item in the inner array corresponds with one cell.
     ///
     /// For output, empty trailing rows and columns will not be included.
@@ -1719,6 +1867,7 @@ crate::mod_interface!
 {
   own use
   {
+    Auth,
     Client,
     SheetProperties,
     Dimension,
