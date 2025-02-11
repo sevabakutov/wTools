@@ -1047,6 +1047,15 @@ mod private
 
       Ok( parsed_response )
     }
+
+    /// #insert_data_option
+    /// 
+    /// Set up new insertDataOption to request.
+    pub fn insert_data_option( mut self, new_val : InsertDataOption ) -> Self 
+    {
+      self._insert_data_option = Some( new_val );
+      self
+    }
   }
 
   /// A builder for clearing values from a sheet.

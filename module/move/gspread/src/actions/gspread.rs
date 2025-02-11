@@ -9,7 +9,8 @@ mod private
   use serde_json::json;
   use std::collections::HashMap;
 
-  use crate::*;
+  use crate::gcore::client::InsertDataOption;
+use crate::*;
   use gcore::Secret;
   use gcore::error::
   { 
@@ -447,6 +448,7 @@ mod private
     match client
     .spreadsheet()
     .append( spreadsheet_id, &range, value_range )
+    .insert_data_option( InsertDataOption::InsertRows )
     .doit()
     .await
     {
