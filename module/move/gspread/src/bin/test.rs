@@ -29,10 +29,9 @@ async fn main() -> Result< (), Box< dyn Error > >
 
   let spreadsheet_ids = vec![
     "172krpHTo_BI8Bwm9-9aGc5Bt9tm6P3nbiwkveVbO81k",
-
   ];
   let tables = vec!["t1", "t2", "t3", "t4", "t5"];
-  let mut row_key_val = generate_truly_random_key_val(18278, 10);
+  let mut row_key_val = generate_truly_random_key_val(18278, 100);
 
   for &spreadsheet_id in &spreadsheet_ids {
     for i in 0..5 {
