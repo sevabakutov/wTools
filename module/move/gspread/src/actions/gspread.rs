@@ -6,7 +6,9 @@
 
 mod private
 {
+  use regex::Regex;
   use serde_json::json;
+  use once_cell::sync::Lazy;
   use std::collections::HashMap;
 
   use crate::gcore::client::InsertDataOption;
@@ -33,6 +35,10 @@ mod private
     SheetProperties, 
     ValuesClearResponse
   };
+
+  static REGEX_ROW_INDEX : Lazy< Regex > = Lazy::new( || {
+    Regex::new( r"^([A-Za-z]+)(\d+)$" ).unwrap()
+  });
 
   /// # get_key_matches
   /// 
@@ -415,171 +421,154 @@ mod private
   ) -> Result< BatchUpdateValuesResponse >
   {
     // Sort column indexes, from A -> ZZZ
-    let mut columns: Vec< ( String, usize, serde_json::Value ) > = row_key_val
+    let mut columns : Vec< ( String, usize, serde_json::Value ) > = row_key_val
     .iter()
     .map( | ( k, v ) | ( k.clone(), column_label_to_number( k ), v.clone() ) )
     .collect();
 
-    columns.sort_by_key( | ( _, idx, _ ) | *idx );
+    columns.sort_by_key( | ( _, col_idx, _ ) | *col_idx );
 
     let min_idx = 1;
     let max_idx = columns.last().unwrap().1;
+    
+    let empty_row_size = max_idx - min_idx + 1;
+    let empty_row = vec![ json!( "" ); empty_row_size ];
 
-    // Creating an enmpty row, just for adding it at the and of the table 
-    let empty_row = vec![ json!( "" ); max_idx - min_idx + 1 ];
-
-    // Creating request.
     let range = format!( "{}!A1", sheet_name );
-    let value_range = ValueRange
+    let empty_value_range = ValueRange
     {
       major_dimension : Some( Dimension::Row ),
       values : Some( vec![ empty_row ] ),
       range : None
     };
 
-    match client
+    let append_response = client
     .spreadsheet()
-    .append( spreadsheet_id, &range, value_range )
+    .append( spreadsheet_id, &range, empty_value_range )
     .insert_data_option( InsertDataOption::InsertRows )
     .doit()
-    .await
+    .await;
+
+    let row_index = match append_response
     {
-      Ok( response ) =>
-      {
-        let row_index = response
-        .clone()
+      Ok( ref response ) => parse_row_index
+      ( 
+        &response
         .updates
+        .clone()
         .unwrap()
         .updated_range
         .unwrap()
-        .chars()
-        .last()
-        .unwrap()
-        .to_digit( 10 )
-        .unwrap();
+      )?,
+      Err( error ) => return Err( Error::ApiError( error.to_string() ) )
+    };
 
-        // 3) Creating batches
-        const MAX_BATCH_SIZE : usize = 26;
-        let mut batch_ranges = Vec::new();
+    let total_colspan = max_idx - min_idx + 1;
+    let max_subrequests = 100;
+    let chunk_size = ( total_colspan + max_subrequests - 1 ) / max_subrequests;
 
-        let mut batch_start_idx = None;
-        let mut batch_data: Vec<(usize, serde_json::Value)> = Vec::new();
-        let mut prev_idx = 0;
+    let mut batch_ranges = Vec::new();
+    
+    let mut start_col = min_idx;
+    let mut idx_cols = 0;
+    let col_count = columns.len();
 
-        for ( _, col_idx, val ) in columns 
+    while start_col <= max_idx 
+    {
+      let end_col = ( start_col + chunk_size - 1 ).min( max_idx );
+      let subrange_len = end_col - start_col + 1;
+
+      let mut row_values = vec![ json!( "" ); subrange_len ];
+      while idx_cols < col_count 
+      {
+        let col_idx = columns[ idx_cols ].1;
+        if col_idx < start_col
         {
-          if batch_start_idx.is_none() 
-          {
-            // Beginign of new batch
-            batch_start_idx = Some( col_idx );
-            batch_data.push( ( col_idx, val ) );
-            prev_idx = col_idx;
-            continue;
-          }
-          // If sequence and less than 26
-          let run_len = ( col_idx - batch_start_idx.unwrap() ) + 1;
-          if col_idx == prev_idx + 1 && run_len <= MAX_BATCH_SIZE 
-          {
-            // Continue batch
-            batch_data.push( ( col_idx, val ) );
-            prev_idx = col_idx;
-          } 
-          else 
-          {
-            // Close current batch
-            let ( range, row_values ) = build_range_and_values( sheet_name, row_index, &batch_data )?;
-            batch_ranges.push
-            ( 
-              ValueRange 
-              {
-                major_dimension : Some( Dimension::Row ),
-                values : Some( vec![ row_values ] ),
-                range : Some( range.clone() ),
-              }
-            );
-
-            // Beiging new batch
-            batch_start_idx = Some( col_idx );
-            batch_data = vec![ ( col_idx, val ) ];
-            prev_idx = col_idx;
-          }
+          idx_cols += 1;
+          continue;
+        }
+        if col_idx > end_col
+        {
+          break;
         }
 
-        if !batch_data.is_empty() 
-        {
-          let ( range, row_values ) = build_range_and_values( sheet_name, row_index, &batch_data )?;
-          batch_ranges.push
-          (
-            ValueRange 
-            {
-              major_dimension : Some( Dimension::Row ),
-              values : Some( vec![ row_values ] ),
-              range : Some( range.clone() ),
-            }
-          );
-        }
+        let offset = col_idx - start_col;
+        row_values[ offset ] = columns[ idx_cols ].2.clone();
+        idx_cols += 1;
+      }
 
-        let request = BatchUpdateValuesRequest 
-        {
-            data : batch_ranges,
-            value_input_option : ValueInputOption::UserEntered,
-            include_values_in_response : Some( true ),
-            response_value_render_option : Some( ValueRenderOption::FormattedValue ),
-            response_date_time_render_option : Default::default()
-        };
+      let start_col_label = number_to_column_label( start_col );
+      let end_col_label = number_to_column_label( end_col );
 
-        match client
-        .spreadsheet()
-        .values_batch_update(spreadsheet_id, request)
-        .doit()
-        .await
-        {
-          Ok( response ) => Ok( response ),
-          Err( error ) => Err( error ),
-        }
-      },
-      Err( error ) => Err( Error::ApiError( error.to_string() ) )
+      let range_str = if start_col == end_col {
+        format!( "{}!{}{}", sheet_name, start_col_label, row_index )
+      } else {
+        format!
+        (
+          "{}!{}{}:{}{}",
+          sheet_name, start_col_label, row_index, end_col_label, row_index
+        )
+      };
+
+      let value_range = ValueRange 
+      {
+        major_dimension : Some( Dimension::Row ),
+        values : Some( vec![ row_values ] ),
+        range : Some( range_str ),
+      };
+      batch_ranges.push( value_range );
+
+      // Next chunck;
+      start_col = end_col + 1;
+    }
+
+    let request = BatchUpdateValuesRequest 
+    {
+      data : batch_ranges,
+      value_input_option : ValueInputOption::UserEntered,
+      include_values_in_response : Some( true ),
+      response_value_render_option : Some( ValueRenderOption::FormattedValue ),
+      response_date_time_render_option : Default::default(),
+    };
+
+    match client
+    .spreadsheet()
+    .values_batch_update( spreadsheet_id, request )
+    .doit()
+    .await
+    {
+      Ok( response ) => Ok( response ),
+      Err( error ) => {
+        println!( "{error}" );
+        Err( Error::ApiError( error.to_string() ) )
+      }
     }
   }
 
-  fn build_range_and_values
-  (
-    sheet_name : &str,
-    row_index : u32,
-    batch_data : &[ ( usize, serde_json::Value ) ],
-  ) -> Result< ( String, Vec< serde_json::Value > ) > 
+  fn parse_row_index( range_str : &str ) -> Result< u32 >
   {
-    if batch_data.is_empty() 
+    let parts : Vec< &str > = range_str.split( '!' ).collect();
+    
+    let second_part = parts[ 1 ];
+    
+    let sub_parts : Vec< &str > = second_part.split( ':' ).collect();
+    
+    let left_part = sub_parts[ 0 ];
+
+    if let Some( caps ) = REGEX_ROW_INDEX.captures( left_part ) 
     {
-      return Err( Error::ApiError( "batch_data is empty".to_string() ) );
-    }
-
-    let min_idx = batch_data.iter().map( | ( i, _ ) | *i ).min().unwrap();
-    let max_idx = batch_data.iter().map( | ( i, _ ) | *i ).max().unwrap();
-
-    let start_col = number_to_column_label( min_idx );
-    let end_col = number_to_column_label( max_idx );
-
-    let mut row_values = vec![ json!( "" ); max_idx - min_idx + 1 ];
-
-    for (col_i, val) in batch_data 
-    {
-      let offset = *col_i - min_idx;
-      row_values[ offset ] = val.clone();
-    }
-
-    let range = if min_idx == max_idx 
-    {
-      format!( "{}!{}{}", sheet_name, start_col, row_index )
+      let row_str = &caps[ 2 ];
+      let row_index = row_str
+      .parse::< u32 >()
+      .map_err( | err | Error::ParseError( err.to_string() ) )?;
+      
+      Ok( row_index )
     } 
     else 
     {
-      format!( "{}!{}{}:{}{}", sheet_name, start_col, row_index, end_col, row_index )
-    };
-
-    Ok( ( range, row_values ) )
+      Err( Error::ParseError( format!( "Could not parse column+row from '{left_part}'" ) ) )
+    }
   }
-
 
   /// # `get_row_by_custom_row_key`
   /// 
