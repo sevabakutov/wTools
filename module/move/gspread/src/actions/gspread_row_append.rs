@@ -45,14 +45,7 @@ mod private
       {
         match append_row( client, spreadsheet_id, sheet_name, &row_key_val ).await
         {
-          Ok( response ) => Ok
-          ( 
-            response
-            .updates
-            .unwrap()
-            .updated_cells
-            .unwrap() 
-          ),
+          Ok( response ) => Ok( response.total_updated_cells.unwrap() ),
           Err( error ) => Err( error )
         }
       }

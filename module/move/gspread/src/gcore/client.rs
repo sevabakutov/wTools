@@ -1620,7 +1620,7 @@ mod private
   }
 
   /// The request body.
-  #[ derive( Debug, Serialize ) ]
+  #[ derive( Debug, Serialize, Clone ) ]
   pub struct BatchUpdateValuesRequest 
   {
     /// The new values to apply to the spreadsheet.
@@ -1684,7 +1684,7 @@ mod private
   }
 
   /// Response from [`values.update`](https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets.values/update).
-  #[ derive( Debug, Serialize, Deserialize ) ]
+  #[ derive( Debug, Serialize, Deserialize, Clone ) ]
   pub struct UpdateValuesResponse 
   {
     /// The ID of the spreadsheet that was updated.
@@ -1713,7 +1713,7 @@ mod private
   }
 
   /// Response from [`values.batchUpdate`](https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets.values/batchUpdate).
-  #[ derive( Debug, Default, Serialize, Deserialize ) ]
+  #[ derive( Debug, Default, Serialize, Deserialize, Clone ) ]
   pub struct BatchUpdateValuesResponse 
   {
     /// The ID of the spreadsheet that was updated.
@@ -1741,7 +1741,7 @@ mod private
   }
 
   /// Response from [`values.append`](https://developers.google.com/sheets/api/reference/rest/v4/spreadsheets.values/append).
-  #[ derive( Debug, Serialize, Deserialize ) ]
+  #[ derive( Debug, Serialize, Deserialize, Clone ) ]
   pub struct ValuesAppendResponse 
   {
     /// The ID of the spreadsheet to which data was appended.

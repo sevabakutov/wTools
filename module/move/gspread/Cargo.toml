@@ -15,7 +15,7 @@ default-run = "main"
 
 [[bin]]
 name = "main"
-path = "src/bin/main.rs"
+path = "src/bin/test.rs"
 
 [features]
 with_online = []

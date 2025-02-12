@@ -159,6 +159,20 @@ async fn test_mock_update_rows_by_custom_row_key_on_find_append_row_should_work(
   // 1. Start get_mock.
   let server = MockServer::start();
   let spreadsheet_id = "12345";
+  let body_batch_update = BatchUpdateValuesResponse 
+  {
+    spreadsheet_id : Some( spreadsheet_id.to_string() ),
+    total_updated_rows : Some( 1 ),
+    total_updated_columns : Some( 7 ),
+    total_updated_cells : Some( 7 ),
+    total_updated_sheets : Some( 1 ),
+    responses : None,
+  };
+  let body_values_append = json!({
+    "updates": {
+      "updatedRange": "tab2!A5"
+    }
+  });
 
   let get_mock = server.mock( | when, then | {
     when.method( GET )
@@ -178,21 +192,21 @@ async fn test_mock_update_rows_by_custom_row_key_on_find_append_row_should_work(
       );
   } );
 
-  let response_body = BatchUpdateValuesResponse
-  {
-    spreadsheet_id : Some( spreadsheet_id.to_string() ),
-    total_updated_rows : Some( 1 ),
-    total_updated_sheets : Some( 1 ),
-    ..Default::default()
-  };
-
   // 2. Start append_row_mock.
   let append_row_mock = server.mock( | when, then | {
     when.method( POST )
       .path( "/12345/values/tab1!A1:append" );
     then.status( 200 )
       .header( "Content-Type", "application/json" )
-      .json_body_obj( &response_body );
+      .json_body_obj( &body_values_append );
+  } );
+
+  let mock_batch_update = server.mock( | when, then | {
+    when.method( POST )
+      .path( "/12345/values:batchUpdate" );
+    then.status( 200 )
+      .header( "Content-Type", "application/json" )
+      .json_body_obj( &body_batch_update );
   } );
 
   // 3. Create a client.
@@ -225,6 +239,7 @@ async fn test_mock_update_rows_by_custom_row_key_on_find_append_row_should_work(
 
   get_mock.assert();
   append_row_mock.assert();
+  mock_batch_update.assert();
 }
 
 /// # What
