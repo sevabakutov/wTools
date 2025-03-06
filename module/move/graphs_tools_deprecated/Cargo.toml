@@ -1,9 +1,10 @@
 [package]
-name = "graphs_tools"
+name = "graphs_tools_deprecated"
 version = "0.3.0"
 edition = "2021"
 authors = [
   "Kostiantyn Wandalen <wandalen@obox.systems>",
+  "Dmytro Kryvoruchko <dmytro.kr@obox.systems>",
 ]
 license = "MIT"
 readme = "Readme.md"
@@ -23,34 +24,26 @@ workspace = true
 features = [ "full" ]
 all-features = false
 
+
 [features]
 default = [
-  "enabled",
-  "debug",
+  "enabled"
 ]
 full = [
-  "default",
+  "enabled",
 ]
-enabled = [
-  "meta_tools/enabled",
-  "iter_tools/enabled",
-  # "data_type/enabled",
-  # "strs_tools/enabled",
-  "collection_tools/enabled",
-  "former/enabled",
-]
-debug = []
+no_std = []
+use_alloc = [ "no_std" ]
+enabled = [ "meta_tools/enabled", "iter_tools/enabled", "data_type/enabled", "strs_tools/enabled" ]
 
 [dependencies]
-# indexmap = "~1.8"
+indexmap = "~1.8"
 meta_tools = { workspace = true, features = [ "default" ] }
 iter_tools = { workspace = true, features = [ "default" ] }
-# data_type = { workspace = true, features = [ "default" ] }
-collection_tools = { workspace = true, features = [ "default" ] }
-# strs_tools = { workspace = true, features = [ "default" ] }
+data_type = { workspace = true, features = [ "default" ] }
+strs_tools = { workspace = true, features = [ "default" ] }
 derive_tools = { workspace = true, features = [ "default" ] }
 # type_constructor ={ workspace = true, features = [ "default" ] }
-former = { workspace = true, features = [ "default" ] }
 
 [dev-dependencies]
 test_tools = { workspace = true }
