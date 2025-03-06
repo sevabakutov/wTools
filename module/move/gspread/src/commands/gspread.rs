@@ -43,11 +43,7 @@ mod private
   {
     #[ arg( long, help = "Full URL of Google Sheet.\n\
     It has to be inside of '' to avoid parse errors.\n\
-<<<<<<< HEAD
-    Example: 'https://docs.google.com/spreadsheets/d/your_spreadsheet_id/edit?gid=0#gid=0'" ) ]
-=======
     Example: 'https://docs.google.com/spreadsheets/d/{spreadsheet_id}/edit?gid={sheet_id}#gid={sheet_id}'" ) ]
->>>>>>> updstream/alpha
     pub url : String,
 
     #[ arg( long, help = "Sheet name.\nExample: Sheet1" ) ]
@@ -125,36 +121,6 @@ mod private
   #[ derive( Debug, Subcommand ) ]
   pub enum Command
   {
-<<<<<<< HEAD
-    
-    /// Command to get header of a sheet. Header is a first raw.
-    #[ command ( name = "header" ) ]
-    Header
-    (
-      CommonArgs
-    ),
-
-    /// Command to get all raws of a sheet but not header.
-    #[ command( name = "rows" ) ]
-    Rows
-    (
-      CommonArgs
-    ),
-
-    /// Command to get or update a cell from a sheet.
-    #[ command ( subcommand, name = "cell" ) ]
-    Cell
-    (
-      gspread_cell::Commands
-    ),
-
-    /// Commands to set a new value to a cell or get a value from a cell.
-    #[ command ( subcommand, name = "cells" ) ]
-    Cells
-    (
-      gspread_cells::Commands
-    )
-=======
     #[ command( name = "header", about = "Retrieves the header (first row).", long_about = r#"
 ---------------------------------------------------------------------------------------------------------------
                                                  HEADER                                                        
@@ -419,7 +385,6 @@ mod private
 ---------------------------------------------------------------------------------------------------------------
     "# )]
     Copy( gspread_copy::Args )
->>>>>>> updstream/alpha
 
   }
 

@@ -77,10 +77,6 @@ mod private
   #[ command( long_about = "\n\nSubcommands for the `CELL` command, used to interact with individual cells in a Google Sheet." ) ]
   pub enum Commands
   {
-<<<<<<< HEAD
-    /// Command to get a value from a sheet's cell
-    #[ command( name = "get" ) ]
-=======
     #[ command( name = "get", about = "Retrieves a single cell.", long_about = r#"
 ---------------------------------------------------------------------------------------------------------------
                                               CELL GET                                                         
@@ -123,16 +119,11 @@ mod private
                                                                                                                
 ---------------------------------------------------------------------------------------------------------------
     "# ) ]
->>>>>>> updstream/alpha
     Get
     {
       #[ arg( long, help = "Full URL of Google Sheet.\n\
       It has to be inside of '' to avoid parse errors.\n\
-<<<<<<< HEAD
-      Example: 'https://docs.google.com/spreadsheets/d/your_spreadsheet_id/edit?gid=0#gid=0'" ) ]
-=======
       Example: 'https://docs.google.com/spreadsheets/d/{spreadsheet_id}/edit?gid={sheet_id}#gid={sheet_id}'" ) ]
->>>>>>> updstream/alpha
       url : String,
 
       #[ arg( long, help = "Sheet name.\nExample: Sheet1" ) ]
@@ -144,10 +135,6 @@ mod private
       cell : String,
     },
 
-<<<<<<< HEAD
-    /// Command to set a new value to a sheet's cell.
-    #[ command( name = "set" ) ]
-=======
     #[ command( name = "set", about = "Updates a single cell.", long_about = r#"
 ---------------------------------------------------------------------------------------------------------------
                                              CELL SET                                                          
@@ -196,16 +183,11 @@ mod private
                                                                                                                
 ---------------------------------------------------------------------------------------------------------------
     "# ) ]
->>>>>>> updstream/alpha
     Set
     {
       #[ arg( long, help = "Full URL of Google Sheet.\n\
       It has to be inside of '' to avoid parse errors.\n\
-<<<<<<< HEAD
-      Example: 'https://docs.google.com/spreadsheets/d/your_spreadsheet_id/edit?gid=0#gid=0'" ) ]
-=======
       Example: 'https://docs.google.com/spreadsheets/d/{spreadsheet_id}/edit?gid={sheet_id}#gid={sheet_id}'" ) ]
->>>>>>> updstream/alpha
       url : String,
 
       #[ arg( long, help = "Sheet name.\nExample: Sheet1" ) ]

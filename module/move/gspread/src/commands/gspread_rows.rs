@@ -43,11 +43,7 @@ mod private
           }
         };
 
-<<<<<<< HEAD
-        match actions::gspread_get_rows::action
-=======
         match actions::gspread_rows_get::action
->>>>>>> updstream/alpha
         (
           client,
           spreadsheet_id,
@@ -57,15 +53,6 @@ mod private
         {
           Ok( rows ) =>
           {
-<<<<<<< HEAD
-            let max_len = rows.iter().map(|row| row.len()).max().unwrap_or(0);
-            let rows_wrapped: Vec<RowWrapper> = rows
-            .into_iter()
-            .map(|row| RowWrapper { row, max_len })
-            .collect();
-
-            println!( "Rows:\n{}", Report{ rows: rows_wrapped } );
-=======
             let max_len = rows
             .iter()
             .map( | row | row.len() )
@@ -78,7 +65,6 @@ mod private
             .collect();
 
             println!( "Rows:\n{}", Report{ rows : rows_wrapped } );
->>>>>>> updstream/alpha
           }
           Err( error ) => eprintln!( "Error:\n{}", error ),
         }
