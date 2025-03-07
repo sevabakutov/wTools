@@ -10,6 +10,7 @@ mod private
   use serde_json::json;
   use once_cell::sync::Lazy;
   use std::collections::HashMap;
+use std::usize;
 
   use crate::gcore::client::InsertDataOption;
   use crate::*;
@@ -763,7 +764,7 @@ mod private
     }
   }
 
-  /// # `get_rows`
+  /// # `get_all_rows`
   ///
   /// Retrieves all rows (excluding the header) from a specific sheet.
   ///
@@ -782,14 +783,70 @@ mod private
   /// - `Error::ApiError`:  
   ///   Occurs if the Google Sheets API returns an error, such as an invalid spreadsheet ID
   ///   or insufficient permissions.
-  pub async fn get_rows< S : Secret >
+  pub async fn get_all_rows< S : Secret >
   (
     client : &Client< '_, S >,
     spreadsheet_id : &str,
     sheet_name : &str, 
   ) -> Result< Vec< Vec< serde_json::Value > > >
   {
-    let range = format!( "{}!A2:ZZZ", sheet_name );
+    get_rows( client, spreadsheet_id, sheet_name, RowRange::All ).await
+  }
+
+  /// # `RowRange`
+  /// 
+  /// Enum sprecifies range of rows to retrieve from a sheet.
+  /// 
+  /// ## `Variants`:
+  ///  - `All`:
+  ///   All rows but not header.
+  ///  - `Range`:
+  ///   Specified range of rows. 
+  pub enum RowRange
+  {
+    /// All rows but header (the first row in a sheet)
+    All,
+    /// The first and the last rows to retrieve. It will include header in response only in case you set `row_start` = 0.
+    Range
+    {
+      row_start : usize,
+      row_end   : usize
+    }
+  }
+
+  /// # `get_rows`
+  ///
+  /// Retrieves specified range of rows from a sheet.
+  ///
+  /// ## Parameters:
+  /// - `client`:  
+  ///   A reference to the `Client` client configured for the Google Sheets API.
+  /// - `spreadsheet_id`:  
+  ///   A `&str` representing the unique identifier of the spreadsheet.
+  /// - `sheet_name`:  
+  ///   A `&str` specifying the name of the sheet whose rows are to be retrieved.
+  /// - `range`:
+  ///   A `RowRange` variant.
+  /// ## Returns:
+  /// - `Result< Vec< Vec< serde_json::Value > > >`
+  ///
+  /// ## Errors:
+  /// - `Error::ApiError`:  
+  ///   Occurs if the Google Sheets API returns an error, such as an invalid spreadsheet ID
+  ///   or insufficient permissions.
+  pub async fn get_rows< S : Secret >
+  (
+    client : &Client< '_, S >,
+    spreadsheet_id : &str,
+    sheet_name : &str, 
+    range : RowRange
+  )-> Result< Vec< Vec< serde_json::Value > > >
+  {
+    let range = match range 
+    {
+      RowRange::All => format!( "{}!A2:ZZZ", sheet_name ),
+      RowRange::Range { row_start, row_end } => format!( "{}!A{}:ZZZ{}", sheet_name, row_start + 1, row_end + 1 )
+    };
 
     match client
     .spreadsheet()
@@ -808,8 +865,40 @@ mod private
       }
       Err( error ) => Err( error )
     }
-    
   }
+
+  // pub async fn get_rows_2< S : Secret >
+  // (
+  //   client : &Client< '_, S >,
+  //   spreadsheet_id : &str,
+  //   sheet_name : &str, 
+  // ) -> Result< Vec< Vec< serde_json::Value > > >
+  // {
+  //   // let range = format!( "{}!A2:ZZZ", sheet_name );
+  //   let mut rows = Vec::new();
+  //   let batch_size = 10000;
+  //   for start in 1..180000 {
+
+  //   }
+  //   match client
+  //   .spreadsheet()
+  //   .values_get( spreadsheet_id, &range )
+  //   .value_render_option( ValueRenderOption::UnformattedValue )
+  //   .doit()
+  //   .await
+  //   {
+  //     Ok( response ) => 
+  //     {
+  //       match response.values
+  //       {
+  //         Some( values ) => Ok( values ),
+  //         None => Ok( Vec::new() )
+  //       }
+  //     }
+  //     Err( error ) => Err( error )
+  //   }
+    
+  // }
 
   /// # `get_cell`
   ///
@@ -1096,6 +1185,7 @@ crate::mod_interface!
     get_cell,
     get_row,
     get_rows,
+    get_all_rows,
     update_row,
     get_header,
     append_row,
@@ -1104,6 +1194,7 @@ crate::mod_interface!
     get_column,
     clear,
     clear_by_custom_row_key,
-    copy_to
+    copy_to,
+    RowRange
   };
 }
