@@ -1,6 +1,6 @@
 mod private 
 {
-  use crate::{gcore::{DeleteDimensionRequest, Error, Request, Response, Result}, *};
+  use crate::{gcore::{types::Spreadsheet, DeleteDimensionRequest, Error, Request, Response, Result}, *};
   use gcore::{Secret, Client};
 
   pub struct SpreadSheetBatchUpdate< 'a, 'b, S : Secret >
@@ -116,7 +116,8 @@ mod private
     #[ serde( rename = "spreadsheetId" ) ]
     spreadsheet_id : Option< String >,
     replies : Option< Vec< Response > >,
-    updated_spreadsheet : Option<  >
+    #[ serde( rename = "updatedSpreadsheet" ) ]
+    updated_spreadsheet : Option< Spreadsheet >
   }
 }
 
