@@ -15,3 +15,4 @@ mod get_column;
 mod clear;
 mod clear_by_custom_row_key;
 mod copy_to;
+mod delete_rows;

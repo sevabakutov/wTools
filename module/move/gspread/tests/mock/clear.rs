@@ -2,15 +2,12 @@
 //! Tests for `clear` function.
 //!
 
+use gspread::gcore::methods::values::ValuesClearResponse;
 use httpmock::prelude::*;
 use gspread::*;
 use actions::gspread::clear;
 use gcore::ApplicationSecret;
-use gcore::client::
-{
-  Client,
-  ValuesClearResponse
-};
+use gcore::Client;
 
 
 /// # What 

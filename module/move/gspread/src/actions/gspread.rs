@@ -11,7 +11,34 @@ mod private
   use once_cell::sync::Lazy;
   use std::collections::HashMap;
 
-  use crate::{gcore::{methods::values::{BatchClearValuesRequest, BatchClearValuesResponse, BatchUpdateValuesRequest, BatchUpdateValuesResponse, UpdateValuesResponse, ValuesClearResponse}, types::{DimensionRange, InsertDataOption, SheetProperties, ValueInputOption, ValueRenderOption}, Client, DeleteDimensionRequest, Dimension, Error, Result, ValueRange}, *};
+  use crate::*;
+  use gcore::methods::batch_update::BatchUpdateResponse;
+  use gcore::methods::values::
+  {
+    BatchClearValuesRequest, 
+    BatchClearValuesResponse, 
+    BatchUpdateValuesRequest, 
+    BatchUpdateValuesResponse, 
+    UpdateValuesResponse, 
+    ValuesClearResponse
+  }; 
+  use gcore::types::
+  {
+    DimensionRange, 
+    InsertDataOption, 
+    SheetProperties, 
+    ValueInputOption, 
+    ValueRenderOption
+  };
+  use gcore::
+  {
+    Client, 
+    DeleteDimensionRequest, 
+    Dimension, 
+    Error, 
+    Result, 
+    ValueRange
+  };
   use gcore::Secret;
 
   static REGEX_ROW_INDEX : Lazy< Regex > = Lazy::new( || {
@@ -641,17 +668,30 @@ mod private
 
   }
 
+  /// # delete_rows
+  /// 
+  /// Deletes selected range of rows. It starts from the first one.
+  /// 
+  /// ## Returns:
+  /// - `Result< Response >`  
+  ///   On success, returns a list of rows, where each row is a `Vec< serde_json::Value >`.
+  ///
+  /// ## Errors:
+  /// - `Error::ApiError`:  
+  ///   Occurs if the Google Sheets API returns an error, 
+  ///   such as an invalid spreadsheet ID, insufficient permissions, 
+  ///   or any issues during the request/response cycle.
   pub async fn delete_rows< S : Secret >
   (
     client : &Client< '_, S >,
     spreadsheet_id : &str,
     sheet_id : &str,
     range : RowRange
-  ) -> Result<()>
+  ) -> Result< BatchUpdateResponse >
   {
-    let (start_index, end_index) = match range
+    let ( start_index, end_index ) = match range
     {
-      RowRange::All => ( None, None ),
+      RowRange::All => ( Some( 1 ), None ),
       RowRange::Range { row_start, row_end } => ( Some( row_start ), Some( row_end ) )
     };
 
@@ -669,12 +709,12 @@ mod private
     };
 
     match client
-    .sheet()
-    .delete_dimension( spreadsheet_id, request )
+    .batch_update( spreadsheet_id )
+    .delete_dimension( request )
     .doit()
     .await
     {
-      Ok( _ ) => Ok( () ),
+      Ok( response ) => Ok( response ),
       Err( error ) => Err( Error::ApiError( error.to_string() ) )
     }
   }
@@ -1177,6 +1217,7 @@ crate::mod_interface!
     clear,
     clear_by_custom_row_key,
     copy_to,
-    RowRange
+    RowRange,
+    delete_rows
   };
 }

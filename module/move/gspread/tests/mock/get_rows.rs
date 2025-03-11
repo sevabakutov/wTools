@@ -7,7 +7,7 @@ use httpmock::prelude::*;
 
 use serde_json::json;
 use gspread::actions::gspread::{get_all_rows, get_rows, RowRange};
-use gspread::gcore::client::
+use gspread::gcore::
 {
   Client, 
   Dimension, 

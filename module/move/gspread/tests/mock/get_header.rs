@@ -8,7 +8,7 @@ use httpmock::prelude::*;
 
 use serde_json::json;
 use gspread::actions::gspread::get_header;
-use gspread::gcore::client::
+use gspread::gcore::
 {
   Client, 
   Dimension, 
